@@ -13,12 +13,10 @@ celery = Celery(
 )
 
 celery.conf.task_routes = {
-    "worker.*": {"queue": "queue_multiply"},
+    "worker.*": {"queue": "queue_database"},
 }
 
 
-@celery.task(name="multiply")
-def multiply(x, y):
-    import time
-    time.sleep(10)
-    return x * y
+@celery.task(name="database")
+def database():
+    pass
