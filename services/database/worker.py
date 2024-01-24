@@ -1,6 +1,7 @@
 import os
 from celery import Celery
 
+
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "rpc://")
 CELERY_BROKER_URL = (
     os.environ.get("CELERY_BROKER_URL", "pyamqp://guest:guest@localhost:5672/"),
@@ -11,12 +12,3 @@ celery = Celery(
     broker=CELERY_BROKER_URL,
     backend=CELERY_RESULT_BACKEND,
 )
-
-celery.conf.task_routes = {
-    "worker.*": {"queue": "queue_database"},
-}
-
-
-@celery.task(name="database")
-def database():
-    pass
