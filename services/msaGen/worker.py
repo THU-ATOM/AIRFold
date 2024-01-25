@@ -1,8 +1,6 @@
 import os
-
-from celery import Celery
-
-
+from celery import Celery, group
+from tasks import hhblist, jackhmmer, blast
 
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "rpc://")
 CELERY_BROKER_URL = (
@@ -16,10 +14,12 @@ celery = Celery(
 )
 
 celery.conf.task_routes = {
-    "worker.*": {"queue": "queue_msaSelect"},
+    "worker.*": {"queue": "queue_msaGen"},
 }
 
 
-@celery.task(name="msaSelect")
-def msaSelect():
-    pass
+@celery.task(name="msaGen")
+def msaGen(params):
+    g = group(hhblist(), jackhmmer(), blast())
+    res = g()
+    res.get()

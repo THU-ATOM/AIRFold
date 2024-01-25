@@ -4,7 +4,7 @@ from celery.result import AsyncResult
 from worker import celery
 
 from pathlib import Path
-from typing import Union
+from typing import Any, Dict, Union
 
 import json
 
@@ -37,6 +37,12 @@ async def submit_task(
         hash_ids = [hash_ids]
 
     task = celery.send_task("submit", args=[pdb_path, plddt, target_addresses], queue="queue_submit")
+    return {"task_id": task.id}
+
+
+@app.post("/blast")
+async def blast_task(request: Dict[str, Any]):
+    task = celery.send_task("blast", args=[request], queue="queue_blast")
     return {"task_id": task.id}
 
 

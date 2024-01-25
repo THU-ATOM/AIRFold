@@ -43,7 +43,23 @@ services:
     volumes:
       - ./services/submit:/worker
       - /data:/data
+      - ./lib:/worker/lib
     command: celery -A worker worker --loglevel=info -Q queue_submit --concurrency=4
+  
+  worker_blast:
+    build:
+      context: ./services/blast
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_RESULT_BACKEND=rpc://
+    volumes:
+      - ./services/blast:/worker
+      - /data:/data
+      - ./lib:/worker/lib
+    command: celery -A worker worker --loglevel=info -Q queue_blast --concurrency=4
 
   rabbitmq:
     image: "rabbitmq:3-management"
