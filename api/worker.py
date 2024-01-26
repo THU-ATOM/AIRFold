@@ -6,7 +6,7 @@ CELERY_BROKER_URL = (
     os.environ.get("CELERY_BROKER_URL", "pyamqp://guest:guest@localhost:5672/"),
 )
 
-celery = Celery(
+celery_client = Celery(
     __name__,
     broker=CELERY_BROKER_URL,
     backend=CELERY_RESULT_BACKEND,

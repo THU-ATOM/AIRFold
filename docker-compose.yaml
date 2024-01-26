@@ -9,11 +9,12 @@ services:
       - "8081:8081"
     depends_on:
       - rabbitmq
+      - redis
     volumes:
       - ./api:/app
     environment:
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
-      - CELERY_RESULT_BACKEND=rpc://
+      - CELERY_RESULT_BACKEND=redis://redis
       - HOST=0.0.0.0
       - PORT=8081
     command: uvicorn api:app --host 0.0.0.0 --port 8081
@@ -26,7 +27,7 @@ services:
       - rabbitmq
     environment:
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
-      - CELERY_RESULT_BACKEND=rpc://
+      - CELERY_RESULT_BACKEND=redis://redis
     volumes:
       - ./services/add:/worker
     command: celery -A worker worker --loglevel=info -Q queue_add --concurrency=2
@@ -39,7 +40,7 @@ services:
       - rabbitmq
     environment:
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
-      - CELERY_RESULT_BACKEND=rpc://
+      - CELERY_RESULT_BACKEND=redis://redis
     volumes:
       - ./services/submit:/worker
       - /data:/data
@@ -54,7 +55,7 @@ services:
       - rabbitmq
     environment:
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
-      - CELERY_RESULT_BACKEND=rpc://
+      - CELERY_RESULT_BACKEND=redis://redis
     volumes:
       - ./services/blast:/worker
       - /data:/data
@@ -65,7 +66,10 @@ services:
     image: "rabbitmq:3-management"
     ports:
       - "5672:5672"
-      # - "15672:15672"
+      - "15672:15672"
+      
+  redis:
+    image: redis:latest
 
   # Optionally, you can also include Flower for monitoring the Celery tasks
   # flower:
