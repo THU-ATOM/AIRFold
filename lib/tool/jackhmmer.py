@@ -24,20 +24,19 @@ import subprocess
 import time
 import sys
 
-# from pipeline.tool import utils
-from pipeline.tool.hhblits import N_CPU_PER_THREAD, N_GPU_PER_THREAD
-from pipeline.utils.ray_tools import ProgressBar
-from pipeline.utils.execute import execute
-import pipeline.utils.datatool as dtool
-from pipeline.base import BasePathTree
+# from lib.tool import utils
+from lib.tool.hhblits import N_CPU_PER_THREAD, N_GPU_PER_THREAD
+from lib.utils.ray_tools import ProgressBar
+from lib.utils.execute import execute
+import lib.utils.datatool as dtool
 from pathlib import Path
 
-from pipeline.pathtree import SearchPathTree
+from lib.pathtree import SearchPathTree
 
 # TODO fix parser and utils
 
-from pipeline.tool.parsers import parse_a3m, parse_fasta
-from pipeline.tool import utils
+from lib.tool.parsers import parse_a3m, parse_fasta
+from lib.tool import utils
 
 
 class Jackhmmer:
@@ -177,7 +176,7 @@ class Jackhmmer:
             sto_path = os.path.join(query_tmp_dir, "output.sto")
             # The F1/F2/F3 are the expected proportion to pass each of the filtering
             # stages (which get progressively more expensive), reducing these
-            # speeds up the pipeline at the expensive of sensitivity.  They are
+            # speeds up the lib at the expensive of sensitivity.  They are
             # currently set very low to make querying Mgnify run in a reasonable
             # amount of time.
             cmd_flags = [
