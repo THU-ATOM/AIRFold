@@ -10,6 +10,17 @@ RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 RUN pip install -U setuptools pip
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
+# Install HMMER
+RUN mkdir /tmp/hmmer \
+    && cd /tmp/hmmer \
+    && wget -O hmmer-3.3.2.tar.gz http://eddylab.org/software/hmmer/hmmer-3.3.2.tar.gz \
+    && tar xvzf hmmer-3.3.2.tar.gz \
+    && cd hmmer-3.3.2 \
+    && ./configure --prefix /usr/local \
+    && make \
+    && make install \
+    && rm -rf /tmp/hmmer
+    
 WORKDIR /worker
 
 # Specify the command to run on container start
