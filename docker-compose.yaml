@@ -62,6 +62,51 @@ services:
       - ./lib:/worker/lib
     command: celery -A worker worker --loglevel=info -Q queue_blast --concurrency=4
 
+  worker_jackhmmer:
+    build:
+      context: ./services/jackhmmer
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_RESULT_BACKEND=redis://redis
+    volumes:
+      - ./services/jackhmmer:/worker
+      - /data:/data
+      - ./lib:/worker/lib
+    command: celery -A worker worker --loglevel=info -Q queue_jackhmmer --concurrency=4
+
+  worker_hhblits:
+    build:
+      context: ./services/hhblits
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_RESULT_BACKEND=redis://redis
+    volumes:
+      - ./services/hhblits:/worker
+      - /data:/data
+      - ./lib:/worker/lib
+    command: celery -A worker worker --loglevel=info -Q queue_hhblits --concurrency=4
+
+  worker_mmseqs:
+    build:
+      context: ./services/mmseqs
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_RESULT_BACKEND=redis://redis
+    volumes:
+      - ./services/mmseqs:/worker
+      - /data:/data
+      - ./lib:/worker/lib
+    command: celery -A worker worker --loglevel=info -Q queue_mmseqs --concurrency=4
+
   rabbitmq:
     image: "rabbitmq:3-management"
     ports:

@@ -10,6 +10,14 @@ RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 RUN pip install -U setuptools pip
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
+# Install BLAST
+RUN mkdir /tmp/blast \
+    && cd /tmp/blast \
+    &&  wget -O ncbi-blast-2.13.0+-x64-linux.tar.gz https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.13.0/ncbi-blast-2.13.0+-x64-linux.tar.gz \
+    && tar zxvf ncbi-blast-2.13.0+-x64-linux.tar.gz \
+    && cp ncbi-blast-2.13.0+/bin/* /usr/local/bin/ \
+    && rm -rf /tmp/blast
+
 WORKDIR /worker
 
 # Specify the command to run on container start

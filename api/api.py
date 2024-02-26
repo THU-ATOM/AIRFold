@@ -5,7 +5,7 @@ from celery.result import AsyncResult, GroupResult
 from worker import celery_client
 
 from pathlib import Path
-from typing import Any, Dict, Union
+from typing import Any, Dict, Union, List
 
 import json
 
@@ -30,7 +30,10 @@ async def add_task(x: int, y: int):
 
 @app.post(f"/submit")
 async def submit_task(
-    request: Request, pdb_path: Union[str, Path] = None, plddt: float = 0.0, target_addresses: str = ""
+    request: Request,
+    pdb_path: Union[str, Path] = None,
+    plddt: float = 0.0,
+    target_addresses: str = "",
 ):
     _params = request.json()
     print("Request: ", _params)
@@ -41,15 +44,34 @@ async def submit_task(
     if not isinstance(hash_ids, list):
         hash_ids = [hash_ids]
 
-    task = celery_client.send_task("submit", args=[pdb_path, plddt, target_addresses], queue="queue_submit")
+    task = celery_client.send_task(
+        "submit", args=[pdb_path, plddt, target_addresses], queue="queue_submit"
+    )
     return {"task_id": task.id}
 
 
 @app.post("/blast")
-async def blast_task(request: Dict[str, Any]):
-    task = celery_client.send_task("blast", args=[request], queue="queue_blast")
+async def blast_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("blast", args=[requests], queue="queue_blast")
     return {"task_id": task.id}
 
+
+@app.post("/jackhmmer")
+async def jackhmmer_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("jackhmmer", args=[requests], queue="queue_jackhmmer")
+    return {"task_id": task.id}
+
+
+@app.post("/hhblits")
+async def blast_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("hhblits", args=[requests], queue="queue_hhblits")
+    return {"task_id": task.id}
+
+
+@app.post("/mmseqs")
+async def jackhmmer_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("mmseqs", args=[requests], queue="queue_mmseqs")
+    return {"task_id": task.id}
 
 
 @app.get("/check/{task_id}")
@@ -78,7 +100,7 @@ async def get_task_result(task_id: str):
 async def multiply_and_add_task(request: Dict[str, Any]):
     group_task = group(
         signature("blast", args=[request], queue="queue_blast"),
-        # signature("add", args=[x, y], queue="queue_add"),
+        signature("jackhmmer", args=[request], queue="queue_jackhmmer"),
     )()
     group_task.save()
     return {"group_task_id": group_task.id}

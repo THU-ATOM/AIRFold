@@ -132,6 +132,7 @@ class SearchPathTree(BasePathTree):
     def mmseqs_fa(self):
         return self.root / "mmseqs_fa" / f"{self.id}.fasta"
 
+    # blast output path
     @property
     def blast_a3m(self):
         return self.root / "blast_a3m" / f"{self.id}.a3m"
