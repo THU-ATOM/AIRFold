@@ -7,10 +7,8 @@ from typing import Any, Dict, List, Union
 from lib.base import BaseCommandRunner
 from lib.state import State
 from lib.pathtree import get_pathtree
-from lib.utils import misc, pathtool
 from lib.monitor import info_report
 from lib.tool import mmseqs
-from lib.utils.execute import rlaunch_exists, rlaunch_wrapper
 from lib.utils.pathtool import get_module_path
 
 
@@ -26,14 +24,13 @@ celery = Celery(
 )
 
 celery.conf.task_routes = {
-    "worker.*": {"queue": "queue_blast"},
+    "worker.*": {"queue": "queue_mmseqs"},
 }
 
 DB_PATH = Path("/data/protein/CAMEO/database/cameo_test.db")
 
-@celery.task(name="blast")
-# def blast(request: Dict[str, Any]):
-def blastTask(requests: List[Dict[str, Any]]):
+@celery.task(name="mmseqs")
+def mmseqsTask(requests: List[Dict[str, Any]]):
     command = MMseqRunner(requests=requests, db_path=DB_PATH).run()
 
     return command

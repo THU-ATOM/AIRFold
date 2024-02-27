@@ -29,7 +29,6 @@ celery.conf.task_routes = {
 DB_PATH = Path("/data/protein/CAMEO/database/cameo_test.db")
 
 @celery.task(name="blast")
-# def blast(request: Dict[str, Any]):
 def blastTask(requests: List[Dict[str, Any]]):
     command = BlastRunner(requests=requests, db_path=DB_PATH).run()
 

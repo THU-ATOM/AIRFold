@@ -63,13 +63,13 @@ async def jackhmmer_task(requests: List[Dict[str, Any]]):
 
 
 @app.post("/hhblits")
-async def blast_task(requests: List[Dict[str, Any]]):
+async def hhblits_task(requests: List[Dict[str, Any]]):
     task = celery_client.send_task("hhblits", args=[requests], queue="queue_hhblits")
     return {"task_id": task.id}
 
 
 @app.post("/mmseqs")
-async def jackhmmer_task(requests: List[Dict[str, Any]]):
+async def mmseqs_task(requests: List[Dict[str, Any]]):
     task = celery_client.send_task("mmseqs", args=[requests], queue="queue_mmseqs")
     return {"task_id": task.id}
 
@@ -97,7 +97,7 @@ async def get_task_result(task_id: str):
 
 
 @app.post("/msaGen")
-async def multiply_and_add_task(requests: List[Dict[str, Any]]):
+async def msaGen_task(requests: List[Dict[str, Any]]):
     group_task = group(
         signature("blast", args=[requests], queue="queue_blast"),
         signature("jackhmmer", args=[requests], queue="queue_jackhmmer"),

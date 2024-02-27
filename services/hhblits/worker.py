@@ -26,14 +26,13 @@ celery = Celery(
 )
 
 celery.conf.task_routes = {
-    "worker.*": {"queue": "queue_blast"},
+    "worker.*": {"queue": "queue_hhblits"},
 }
 
 DB_PATH = Path("/data/protein/CAMEO/database/cameo_test.db")
 
-@celery.task(name="blast")
-# def blast(request: Dict[str, Any]):
-def blastTask(requests: List[Dict[str, Any]]):
+@celery.task(name="hhblits")
+def hhblitsTask(requests: List[Dict[str, Any]]):
     command = HHblitsRunner(requests=requests, db_path=DB_PATH).run()
 
     return command
