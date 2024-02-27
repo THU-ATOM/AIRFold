@@ -97,10 +97,12 @@ async def get_task_result(task_id: str):
 
 
 @app.post("/msaGen")
-async def multiply_and_add_task(request: Dict[str, Any]):
+async def multiply_and_add_task(requests: List[Dict[str, Any]]):
     group_task = group(
-        signature("blast", args=[request], queue="queue_blast"),
-        signature("jackhmmer", args=[request], queue="queue_jackhmmer"),
+        signature("blast", args=[requests], queue="queue_blast"),
+        signature("jackhmmer", args=[requests], queue="queue_jackhmmer"),
+        signature("hhblits", args=[requests], queue="queue_hhblits"),
+        signature("mmseqs", args=[requests], queue="queue_mmseqs"),
     )()
     group_task.save()
     return {"group_task_id": group_task.id}

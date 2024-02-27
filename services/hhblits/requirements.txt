@@ -1,4 +1,4 @@
-celery
+celery[redis]
 loguru
 matplotlib
 requests
@@ -9,3 +9,4 @@ py3Dmol
 psutil
 gpustat
 ray
+tqdm

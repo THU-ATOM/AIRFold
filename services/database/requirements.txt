@@ -1,4 +1,4 @@
 fastapi
 uvicorn
-celery
+celery[redis]
 sqlite3
