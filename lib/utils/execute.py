@@ -51,7 +51,7 @@ def rlaunch_wrapper(
     preemptible: str = "in-replica",
     log_path: str = None,
 ) -> str:
-    """Use rlaunch to run a comand.
+    """Use rlaunch to run a command.
 
     Parameters
     ----------

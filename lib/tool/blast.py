@@ -105,7 +105,7 @@ def _get_whole_seq(blast_file: Path, whole_seq: Path):
                         out_path,
                     ]
                     # by default in fasta format
-                    # print(' '.join(cmd))
+                    # logger.info(" ".join(cmd))
                     execute(" ".join(cmd))
                     with open(out_path) as f:
                         lines = f.readlines()

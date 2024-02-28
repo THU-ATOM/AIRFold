@@ -36,7 +36,7 @@ from lib.pathtree import SearchPathTree
 # TODO fix parser and utils
 
 from lib.tool.parsers import parse_a3m, parse_fasta
-from lib.tool import utils
+from lib.tool import tool_utils
 
 
 class Jackhmmer:
@@ -172,7 +172,7 @@ class Jackhmmer:
     ) -> Mapping[str, Any]:
         """Queries the database chunk using Jackhmmer."""
 
-        with utils.tmpdir_manager(base_dir="/tmp") as query_tmp_dir:
+        with tool_utils.tmpdir_manager(base_dir="/tmp") as query_tmp_dir:
             sto_path = os.path.join(query_tmp_dir, "output.sto")
             # The F1/F2/F3 are the expected proportion to pass each of the filtering
             # stages (which get progressively more expensive), reducing these
@@ -225,7 +225,7 @@ class Jackhmmer:
             process = subprocess.Popen(
                 cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
-            with utils.timing(
+            with tool_utils.timing(
                 f"Jackhmmer ({os.path.basename(database_path)}) query"
             ):
                 _, stderr = process.communicate()
