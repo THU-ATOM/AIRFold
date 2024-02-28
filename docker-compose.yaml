@@ -1,6 +1,20 @@
 version: '3.8'
 
 services:
+  gui:
+    build:
+      context: ./gui
+      dockerfile: Dockerfile
+    ports:
+      - "80:4173"
+    volumes:
+      - ./gui:/app
+    command: >
+      bash -c "yrm use taobao
+      && yarn
+      && yarn build
+      && yarn preview --host --port 4173"
+
   api:
     build:
       context: ./api
