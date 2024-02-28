@@ -110,7 +110,7 @@ def _get_whole_seq(blast_file: Path, whole_seq: Path):
                     with open(out_path) as f:
                         lines = f.readlines()
                         lines = [line.strip() for line in lines]
-                        if santity_check(lines):
+                        if len(lines) != 0 and santity_check(lines):
                             for l_ in lines:
                                 result.append(l_)
                         else:
