@@ -30,13 +30,13 @@ celery = Celery(
 )
 
 celery.conf.task_routes = {
-    "worker.*": {"queue": "queue_msaMerge"},
+    "worker.*": {"queue": "queue_mergemsa"},
 }
 
 DB_PATH = Path("/data/protein/CAMEO/database/cameo_test.db")
 
-@celery.task(name="msaMerge")
-def msaMergeTask(requests: List[Dict[str, Any]]):
+@celery.task(name="mergemsa")
+def mergemsaTask(requests: List[Dict[str, Any]]):
     command = MSAMergeRunner(requests=requests, db_path=DB_PATH).run()
 
     return command
@@ -52,11 +52,11 @@ class MSAMergeRunner(BaseRunner):
     def __init__(
         self,
         requests: List[Dict[str, Any]],
-        search_requests: List[Dict[str, Any]],
+        # search_requests: List[Dict[str, Any]],
         db_path: Union[str, Path] = None,
     ) -> None:
         super().__init__(requests, db_path)
-        self.search_requests = search_requests
+        # self.search_requests = search_requests
 
     @property
     def start_stage(self) -> int:

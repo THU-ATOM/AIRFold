@@ -30,10 +30,11 @@ celery.conf.task_routes = {
 }
 
 DB_PATH = Path("/data/protein/CAMEO/database/cameo_test.db")
+TMP_ROOT = Path("/data/protein/CAMEO/tmp/")
 
 @celery.task(name="hhblits")
 def hhblitsTask(requests: List[Dict[str, Any]]):
-    command = HHblitsRunner(requests=requests, db_path=DB_PATH).run()
+    command = HHblitsRunner(requests=requests, db_path=DB_PATH, tmpdir=TMP_ROOT).run()
 
     return command
 

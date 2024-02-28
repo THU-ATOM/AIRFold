@@ -68,9 +68,14 @@ async def hhblits_task(requests: List[Dict[str, Any]]):
     return {"task_id": task.id}
 
 
-@app.post("/mmseqs")
-async def mmseqs_task(requests: List[Dict[str, Any]]):
-    task = celery_client.send_task("mmseqs", args=[requests], queue="queue_mmseqs")
+# @app.post("/mmseqs")
+# async def mmseqs_task(requests: List[Dict[str, Any]]):
+#     task = celery_client.send_task("mmseqs", args=[requests], queue="queue_mmseqs")
+#     return {"task_id": task.id}
+
+@app.post("/mergemsa")
+async def mergemsa_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("mergemsa", args=[requests], queue="queue_mergemsa")
     return {"task_id": task.id}
 
 
@@ -102,7 +107,7 @@ async def msaGen_task(requests: List[Dict[str, Any]]):
         signature("blast", args=[requests], queue="queue_blast"),
         signature("jackhmmer", args=[requests], queue="queue_jackhmmer"),
         signature("hhblits", args=[requests], queue="queue_hhblits"),
-        signature("mmseqs", args=[requests], queue="queue_mmseqs"),
+        # signature("mmseqs", args=[requests], queue="queue_mmseqs"),
     )()
     group_task.save()
     return {"group_task_id": group_task.id}

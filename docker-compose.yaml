@@ -106,9 +106,9 @@ services:
       - ./lib:/worker/lib
     command: celery -A worker worker --loglevel=info -Q queue_hhblits --concurrency=4
 
-  worker_mmseqs:
+  worker_mergemsa:
     build:
-      context: ./services/mmseqs
+      context: ./services/mergemsa
       dockerfile: Dockerfile
     depends_on:
       - rabbitmq
@@ -116,10 +116,10 @@ services:
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
-      - ./services/mmseqs:/worker
+      - ./services/mergemsa:/worker
       - /data:/data
       - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_mmseqs --concurrency=4
+    command: celery -A worker worker --loglevel=info -Q queue_mergemsa --concurrency=4
 
   rabbitmq:
     image: "rabbitmq:3-management"
