@@ -266,7 +266,8 @@ class BaseCommandRunner(BaseRunner):
                 if not dry:
                     execute(command)
             except:
-                pass
+                logger.exception("Exception happend during executing!")
+                
 
 
 class BaseGroupCommandRunner(BaseCommandRunner):

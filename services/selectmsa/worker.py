@@ -10,7 +10,7 @@ from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.monitor import info_report
 from lib.utils.execute import rlaunch_exists, rlaunch_wrapper
-from lib.utils import pathtool
+from lib.utils import misc, pathtool
 from lib.strategy import *
 
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "rpc://")
@@ -32,8 +32,7 @@ DB_PATH = Path("/data/protein/CAMEO/database/cameo_test.db")
 
 @celery.task(name="selectmsa")
 def selectmsaTask(requests: List[Dict[str, Any]]):
-    config = requests[0]["run_config"]["msa_select"]
-    MSASelectRunner(requests=requests, db_path=DB_PATH).run(config)
+    MSASelectRunner(requests=requests, db_path=DB_PATH).select()
 
 
 class MSASelectRunner(BaseCommandRunner):
@@ -58,23 +57,24 @@ class MSASelectRunner(BaseCommandRunner):
 
     def build_command(self, request: Dict[str, Any]) -> list:
         ptree = get_pathtree(request=request)
-        command_list = []
-        str_dict = self.select_config
+        str_dict = misc.safe_get(request, ["run_config", "msa_select"])
         key_list = list(str_dict.keys())
         # input fasta dir not compatible with a3m
         input_path = self.input_path
+        command_list = []
         for index in range(len(key_list)):
             """TODO current implementation could not be compatible with ABA-like strategy"""
             method_ = key_list[index]
-            # executed_file = (
-            #     Path(__file__).resolve().parent / "strategy" / f"{method_}.py"
-            # )
+            executed_file = (
+                Path(__file__).resolve().parent / "lib" / "strategy" / f"{method_}.py"
+            )
             params = [f"--{k} {v} " for (k, v) in str_dict[method_].items()]
 
             params.append(f"--input_a3m_path {input_path} ")
             params.append(f"--output_a3m_path {ptree.strategy.strategy_list[index]} ")
 
-            command = f"python {pathtool.get_module_path(method_)} " + "".join(params)
+            # command = f"python {pathtool.get_module_path(method_)} " + "".join(params)
+            command = f"python {executed_file} " + "".join(params)
             if rlaunch_exists():
                 command = rlaunch_wrapper(
                     command,
@@ -84,22 +84,22 @@ class MSASelectRunner(BaseCommandRunner):
                 )
             command_list.append(command)
             input_path = ptree.strategy.strategy_list[index]
-        self.output_path = input_path
-
+        self.output_path = str(input_path)
+        logger.info(f"The output file for msa selection procedure: {self.output_path}")
         return "&& ".join(command_list)
 
-    def run(self, config, dry=False):
+    def select(self, dry=False):
         # Check if the integrated_search_a3m file exists or not!
         ptree = get_pathtree(request=self.requests[0])
-        ptree.search.integrated_search_a3m.parent.mkdir(exist_ok=True, parents=True)
         integrated_search_a3m = str(ptree.search.integrated_search_a3m)
-        logger.info(f"integrated_search_a3m:{integrated_search_a3m}")
+        logger.info(f"integrated_search_a3m: {integrated_search_a3m}")
+
+        config = self.requests[0]["run_config"]["msa_select"]
 
         if os.path.exists(integrated_search_a3m):
             if "idle" in config:
                 self.output_path = integrated_search_a3m
                 return integrated_search_a3m
-            self.select_config = config
             self.input_path = integrated_search_a3m
             super().run(dry)
             return self.output_path
