@@ -10,7 +10,7 @@ from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.monitor import info_report
 from lib.utils.execute import rlaunch_exists, rlaunch_wrapper
-from lib.utils import misc, pathtool
+from lib.utils import misc
 from lib.strategy import *
 
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "rpc://")

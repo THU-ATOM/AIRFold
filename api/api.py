@@ -73,9 +73,19 @@ async def hhblits_task(requests: List[Dict[str, Any]]):
 #     task = celery_client.send_task("mmseqs", args=[requests], queue="queue_mmseqs")
 #     return {"task_id": task.id}
 
-@app.post("/mergemsa")
-async def mergemsa_task(requests: List[Dict[str, Any]]):
-    task = celery_client.send_task("mergemsa", args=[requests], queue="queue_mergemsa")
+@app.post("/searchtpl")
+async def searchtpl_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("searchtpl", args=[requests], queue="queue_searchtpl")
+    return {"task_id": task.id}
+
+@app.post("/tplfeature")
+async def tplfeature_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("tplfeature", args=[requests], queue="queue_tplfeature")
+    return {"task_id": task.id}
+
+@app.post("/selecttpl")
+async def selecttpl_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("selecttpl", args=[requests], queue="queue_selecttpl")
     return {"task_id": task.id}
 
 

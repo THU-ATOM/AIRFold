@@ -136,6 +136,51 @@ services:
       - ./lib:/worker/lib
     command: celery -A worker worker --loglevel=info -Q queue_selectmsa --concurrency=4
 
+  worker_searchtpl:
+    build:
+      context: ./services/searchtpl
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_RESULT_BACKEND=redis://redis
+    volumes:
+      - ./services/searchtpl:/worker
+      - /data:/data
+      - ./lib:/worker/lib
+    command: celery -A worker worker --loglevel=info -Q queue_searchtpl --concurrency=4
+
+  worker_tplfeature:
+    build:
+      context: ./services/tplfeature
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_RESULT_BACKEND=redis://redis
+    volumes:
+      - ./services/tplfeature:/worker
+      - /data:/data
+      - ./lib:/worker/lib
+    command: celery -A worker worker --loglevel=info -Q queue_tplfeature --concurrency=4
+
+  worker_selecttpl:
+    build:
+      context: ./services/selecttpl
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_RESULT_BACKEND=redis://redis
+    volumes:
+      - ./services/selecttpl:/worker
+      - /data:/data
+      - ./lib:/worker/lib
+    command: celery -A worker worker --loglevel=info -Q queue_selecttpl --concurrency=4
+
   rabbitmq:
     image: "rabbitmq:3-management"
     ports:

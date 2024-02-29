@@ -1,0 +1,11 @@
+celery[redis]
+loguru
+matplotlib
+requests
+jsonlines
+rich
+biopython
+py3Dmol
+psutil
+gpustat
+absl-py
