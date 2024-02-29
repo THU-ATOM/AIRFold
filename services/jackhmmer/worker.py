@@ -33,9 +33,7 @@ DB_PATH = Path("/data/protein/CAMEO/database/cameo_test.db")
 
 @celery.task(name="jackhmmer")
 def jackhmmerTask(requests: List[Dict[str, Any]]):
-    command = JackhmmerRunner(requests=requests, db_path=DB_PATH, tmpdir=TMP_ROOT).run()
-    return command
-
+    JackhmmerRunner(requests=requests, db_path=DB_PATH, tmpdir=TMP_ROOT).run()
 
 
 class JackhmmerRunner(BaseGroupCommandRunner):

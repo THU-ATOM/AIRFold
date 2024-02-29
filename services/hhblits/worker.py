@@ -34,10 +34,7 @@ TMP_ROOT = Path("/data/protein/CAMEO/tmp/")
 
 @celery.task(name="hhblits")
 def hhblitsTask(requests: List[Dict[str, Any]]):
-    command = HHblitsRunner(requests=requests, db_path=DB_PATH, tmpdir=TMP_ROOT).run()
-
-    return command
-
+    HHblitsRunner(requests=requests, db_path=DB_PATH, tmpdir=TMP_ROOT).run()
 
 
 class HHblitsRunner(BaseGroupCommandRunner):

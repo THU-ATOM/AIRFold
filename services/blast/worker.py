@@ -30,10 +30,7 @@ DB_PATH = Path("/data/protein/CAMEO/database/cameo_test.db")
 
 @celery.task(name="blast")
 def blastTask(requests: List[Dict[str, Any]]):
-    command = BlastRunner(requests=requests, db_path=DB_PATH).run()
-
-    return command
-
+    BlastRunner(requests=requests, db_path=DB_PATH).run()
 
 
 class BlastRunner(BaseCommandRunner):

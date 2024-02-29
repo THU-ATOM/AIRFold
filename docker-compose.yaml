@@ -121,6 +121,21 @@ services:
       - ./lib:/worker/lib
     command: celery -A worker worker --loglevel=info -Q queue_mergemsa --concurrency=4
 
+  worker_selectmsa:
+    build:
+      context: ./services/selectmsa
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_RESULT_BACKEND=redis://redis
+    volumes:
+      - ./services/selectmsa:/worker
+      - /data:/data
+      - ./lib:/worker/lib
+    command: celery -A worker worker --loglevel=info -Q queue_selectmsa --concurrency=4
+
   rabbitmq:
     image: "rabbitmq:3-management"
     ports:

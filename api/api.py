@@ -79,6 +79,11 @@ async def mergemsa_task(requests: List[Dict[str, Any]]):
     return {"task_id": task.id}
 
 
+@app.post("/selectmsa")
+async def selectmsa_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("selectmsa", args=[requests], queue="queue_selectmsa")
+    return {"task_id": task.id}
+
 @app.get("/check/{task_id}")
 async def get_task_result(task_id: str):
     task_result = AsyncResult(task_id, app=celery_client)

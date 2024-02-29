@@ -37,9 +37,9 @@ DB_PATH = Path("/data/protein/CAMEO/database/cameo_test.db")
 
 @celery.task(name="mergemsa")
 def mergemsaTask(requests: List[Dict[str, Any]]):
-    command = MSAMergeRunner(requests=requests, db_path=DB_PATH).run()
+    integrated_search_a3m, template_msa_a3m = MSAMergeRunner(requests=requests, db_path=DB_PATH).run()
 
-    return command
+    return integrated_search_a3m, template_msa_a3m
 
 
 

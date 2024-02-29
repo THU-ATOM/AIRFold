@@ -13,4 +13,4 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 WORKDIR /worker
 
 # Specify the command to run on container start
-CMD ["celery", "-A", "msaSelect", "worker", "--loglevel=info", "-Q", "queue_msaSelect"]
+CMD ["celery", "-A", "selectmsa", "worker", "--loglevel=info", "-Q", "queue_selectmsa"]
