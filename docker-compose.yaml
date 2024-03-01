@@ -32,34 +32,6 @@ services:
       - HOST=0.0.0.0
       - PORT=8081
     command: uvicorn api:app --host 0.0.0.0 --port 8081
-
-  worker_add:
-    build:
-      context: ./services/add
-      dockerfile: Dockerfile
-    depends_on:
-      - rabbitmq
-    environment:
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
-      - CELERY_RESULT_BACKEND=redis://redis
-    volumes:
-      - ./services/add:/worker
-    command: celery -A worker worker --loglevel=info -Q queue_add --concurrency=2
-
-  worker_submit:
-    build:
-      context: ./services/submit
-      dockerfile: Dockerfile
-    depends_on:
-      - rabbitmq
-    environment:
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
-      - CELERY_RESULT_BACKEND=redis://redis
-    volumes:
-      - ./services/submit:/worker
-      - /data:/data
-      - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_submit --concurrency=4
   
   worker_blast:
     build:
@@ -180,6 +152,81 @@ services:
       - /data:/data
       - ./lib:/worker/lib
     command: celery -A worker worker --loglevel=info -Q queue_selecttpl --concurrency=4
+
+  worker_msafeature:
+    build:
+      context: ./services/msafeature
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_RESULT_BACKEND=redis://redis
+    volumes:
+      - ./services/msafeature:/worker
+      - /data:/data
+      - ./lib:/worker/lib
+    command: celery -A worker worker --loglevel=info -Q queue_msafeature --concurrency=4
+
+  worker_monostructure:
+    build:
+      context: ./services/monostructure
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_RESULT_BACKEND=redis://redis
+    volumes:
+      - ./services/monostructure:/worker
+      - /data:/data
+      - ./lib:/worker/lib
+    command: celery -A worker worker --loglevel=info -Q queue_monostructure --concurrency=4
+
+  worker_relaxation:
+    build:
+      context: ./services/relaxation
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_RESULT_BACKEND=redis://redis
+    volumes:
+      - ./services/relaxation:/worker
+      - /data:/data
+      - ./lib:/worker/lib
+    command: celery -A worker worker --loglevel=info -Q queue_relaxation --concurrency=4
+
+  worker_analysis:
+    build:
+      context: ./services/analysis
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_RESULT_BACKEND=redis://redis
+    volumes:
+      - ./services/analysis:/worker
+      - /data:/data
+      - ./lib:/worker/lib
+    command: celery -A worker worker --loglevel=info -Q queue_analysis --concurrency=4
+
+  worker_submit:
+    build:
+      context: ./services/submit
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_RESULT_BACKEND=redis://redis
+    volumes:
+      - ./services/submit:/worker
+      - /data:/data
+      - ./lib:/worker/lib
+    command: celery -A worker worker --loglevel=info -Q queue_submit --concurrency=4
 
   rabbitmq:
     image: "rabbitmq:3-management"

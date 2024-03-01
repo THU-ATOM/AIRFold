@@ -1,4 +1,4 @@
-FROM python:3.9-alpine
+FROM python:3.9
 
 ENV CELERY_BROKER_URL pyamqp://guest:guest@localhost:5672/
 ENV CELERY_RESULT_BACKEND rpc://
@@ -10,7 +10,6 @@ RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 RUN pip install -U setuptools pip
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-WORKDIR /worker
 
 # Specify the command to run on container start
-CMD ["celery", "-A", "add", "worker", "--loglevel=info", "-Q", "queue_add"]
+CMD ["celery", "-A", "relaxation", "worker", "--loglevel=info", "-Q", "queue_relaxation"]

@@ -21,12 +21,65 @@ app.add_middleware(CORSMiddleware, allow_origins=origins)
 # Single task
 # ----------------------------
 
-
-@app.post("/add")
-async def add_task(x: int, y: int):
-    task = celery_client.send_task("add", args=[x, y], queue="queue_add")
+@app.post("/blast")
+async def blast_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("blast", args=[requests], queue="queue_blast")
     return {"task_id": task.id}
 
+@app.post("/jackhmmer")
+async def jackhmmer_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("jackhmmer", args=[requests], queue="queue_jackhmmer")
+    return {"task_id": task.id}
+
+@app.post("/hhblits")
+async def hhblits_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("hhblits", args=[requests], queue="queue_hhblits")
+    return {"task_id": task.id}
+
+@app.post("/mergemsa")
+async def mergemsa_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("mergemsa", args=[requests], queue="queue_mergemsa")
+    return {"task_id": task.id}
+
+@app.post("/selectmsa")
+async def selectmsa_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("selectmsa", args=[requests], queue="queue_selectmsa")
+    return {"task_id": task.id}
+
+@app.post("/searchtpl")
+async def searchtpl_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("searchtpl", args=[requests], queue="queue_searchtpl")
+    return {"task_id": task.id}
+
+@app.post("/tplfeature")
+async def tplfeature_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("tplfeature", args=[requests], queue="queue_tplfeature")
+    return {"task_id": task.id}
+
+@app.post("/selecttpl")
+async def selecttpl_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("selecttpl", args=[requests], queue="queue_selecttpl")
+    return {"task_id": task.id}
+
+@app.post("/msafeature")
+async def msafeature_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("msafeature", args=[requests], queue="queue_msafeature")
+    return {"task_id": task.id}
+
+@app.post("/monostructure")
+async def monostructure_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("monostructure", args=[requests], queue="queue_monostructure")
+    return {"task_id": task.id}
+
+@app.post("/relaxation")
+async def relaxation_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("relaxation", args=[requests], queue="queue_relaxation")
+    return {"task_id": task.id}
+
+@app.post("/analysis")
+async def analysis_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("analysis", args=[requests], queue="queue_analysis")
+    return {"task_id": task.id}
 
 @app.post(f"/submit")
 async def submit_task(
@@ -49,50 +102,6 @@ async def submit_task(
     )
     return {"task_id": task.id}
 
-
-@app.post("/blast")
-async def blast_task(requests: List[Dict[str, Any]]):
-    task = celery_client.send_task("blast", args=[requests], queue="queue_blast")
-    return {"task_id": task.id}
-
-
-@app.post("/jackhmmer")
-async def jackhmmer_task(requests: List[Dict[str, Any]]):
-    task = celery_client.send_task("jackhmmer", args=[requests], queue="queue_jackhmmer")
-    return {"task_id": task.id}
-
-
-@app.post("/hhblits")
-async def hhblits_task(requests: List[Dict[str, Any]]):
-    task = celery_client.send_task("hhblits", args=[requests], queue="queue_hhblits")
-    return {"task_id": task.id}
-
-
-# @app.post("/mmseqs")
-# async def mmseqs_task(requests: List[Dict[str, Any]]):
-#     task = celery_client.send_task("mmseqs", args=[requests], queue="queue_mmseqs")
-#     return {"task_id": task.id}
-
-@app.post("/searchtpl")
-async def searchtpl_task(requests: List[Dict[str, Any]]):
-    task = celery_client.send_task("searchtpl", args=[requests], queue="queue_searchtpl")
-    return {"task_id": task.id}
-
-@app.post("/tplfeature")
-async def tplfeature_task(requests: List[Dict[str, Any]]):
-    task = celery_client.send_task("tplfeature", args=[requests], queue="queue_tplfeature")
-    return {"task_id": task.id}
-
-@app.post("/selecttpl")
-async def selecttpl_task(requests: List[Dict[str, Any]]):
-    task = celery_client.send_task("selecttpl", args=[requests], queue="queue_selecttpl")
-    return {"task_id": task.id}
-
-
-@app.post("/selectmsa")
-async def selectmsa_task(requests: List[Dict[str, Any]]):
-    task = celery_client.send_task("selectmsa", args=[requests], queue="queue_selectmsa")
-    return {"task_id": task.id}
 
 @app.get("/check/{task_id}")
 async def get_task_result(task_id: str):
