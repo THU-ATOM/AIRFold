@@ -46,25 +46,24 @@ import traceback
 from itertools import chain
 from pathlib import Path
 from typing import Union, Dict, Any
-from pipeline.utils.systool import get_available_gpus
+from lib.utils.systool import get_available_gpus
 
 import ray
 from ray.util.queue import Queue
-from pipeline.constant import COLABFOLD_PYTHON_PATH, AF_PARAMS_ROOT
-from pipeline.base import BasePathTree
+from lib.constant import COLABFOLD_PYTHON_PATH, AF_PARAMS_ROOT
+from lib.base import BasePathTree
 
 from loguru import logger
 
-import pipeline.utils.datatool as dtool
-from pipeline.tool import metrics
-from pipeline.utils.ray_tools import ProgressBar
-from pipeline.utils.execute import (
+import lib.utils.datatool as dtool
+from lib.tool import metrics
+from lib.utils.execute import (
     cuda_visible_devices_wrapper,
     execute,
     rlaunch_wrapper,
     rlaunch_exists,
 )
-from pipeline.utils.timetool import time2str, with_time
+from lib.utils.timetool import time2str, with_time
 
 
 RUNNER_SCRIPT_PATH = Path(__file__).resolve().parent / "alphafold_runner.py"

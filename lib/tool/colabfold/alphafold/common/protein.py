@@ -16,7 +16,7 @@
 import dataclasses
 import io
 from typing import Any, Mapping, Optional
-from pipeline.tool.colabfold.alphafold.common import residue_constants
+from lib.tool.colabfold.alphafold.common import residue_constants
 from Bio.PDB import PDBParser
 import numpy as np
 from string import ascii_uppercase,ascii_lowercase

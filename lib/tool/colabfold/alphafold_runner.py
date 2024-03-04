@@ -10,9 +10,9 @@ import numpy as np
 import tqdm
 import pickle
 
-from pipeline.tool.colabfold import colabfold as cf
-from pipeline.tool.colabfold import colabfold_alphafold as cf_af
-from pipeline.constant import HHFILTER_PATH
+from lib.tool.colabfold import colabfold as cf
+from lib.tool.colabfold import colabfold_alphafold as cf_af
+from lib.constant import HHFILTER_PATH
 
 
 tf.config.set_visible_devices([], "GPU")
@@ -435,8 +435,8 @@ def alphafold_predict_run(args):
             # source activate ~/localcolabfold/colabfold/colabfold-conda # absolute path of the enviroment
             # conda install -c conda-forge openmm-setup
             # vim ~/localcolabfold/colabfold/alphafold/relax/cleanup.py # change simtk.openmm to openmm, or copy revised relax directory
-            from pipeline.tool.colabfold.alphafold.relax import relax
-            from pipeline.tool.colabfold.alphafold.relax import utils
+            from lib.tool.colabfold.alphafold.relax import relax
+            # from pipeline.tool.colabfold.alphafold.relax import utils
 
         with tqdm.tqdm(total=num_relax, bar_format=TQDM_BAR_FORMAT) as pbar:
             pbar.set_description(f"AMBER relaxation")

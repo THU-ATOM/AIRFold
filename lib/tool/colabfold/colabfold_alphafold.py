@@ -7,22 +7,22 @@ import jax
 import pickle
 import tensorflow as tf
 
-from pipeline.tool.colabfold.alphafold.data.tools import jackhmmer
-from pipeline.tool.colabfold.alphafold.data import parsers
-from pipeline.tool.colabfold.alphafold.data import pipeline
-from pipeline.tool.colabfold.alphafold.common import protein
-from pipeline.tool.colabfold.alphafold.model import config
-from pipeline.tool.colabfold.alphafold.model import model
-from pipeline.tool.colabfold.alphafold.model import data
-from pipeline.tool.colabfold.alphafold.model.tf import shape_placeholders
+from lib.tool.colabfold.alphafold.data.tools import jackhmmer
+from lib.tool.colabfold.alphafold.data import parsers
+from lib.tool.colabfold.alphafold.data import pipeline
+from lib.tool.colabfold.alphafold.common import protein
+from lib.tool.colabfold.alphafold.model import config
+from lib.tool.colabfold.alphafold.model import model
+from lib.tool.colabfold.alphafold.model import data
+from lib.tool.colabfold.alphafold.model.tf import shape_placeholders
 
 from string import ascii_uppercase
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-import pipeline.tool.colabfold.colabfold as cf
-from pipeline.tool.colabfold import pairmsa
+import lib.tool.colabfold.colabfold as cf
+from lib.tool.colabfold import pairmsa
 
 
 IN_COLAB = False
