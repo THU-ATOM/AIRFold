@@ -10,6 +10,7 @@ RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 RUN pip install -U setuptools pip
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
+WORKDIR /worker
 
 # Specify the command to run on container start
 CMD ["celery", "-A", "msafeature", "worker", "--loglevel=info", "-Q", "queue_msafeature"]
