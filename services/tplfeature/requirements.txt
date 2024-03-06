@@ -10,3 +10,5 @@ psutil
 gpustat
 absl-py
 docker
+ray
+dm-tree

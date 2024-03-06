@@ -300,4 +300,4 @@ class GenAnalysisRunner(BaseRunner):
         )
         result_path = os.path.join(dirname, "plddt_results.json")
         dtool.write_json(result_path, data=model2plddts)
-        return True
+        # return True

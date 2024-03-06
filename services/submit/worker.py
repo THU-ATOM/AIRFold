@@ -336,4 +336,4 @@ class UniforSubmitRunner(BaseRunner):
     def run(self, dry=False, *args, **kwargs):
         for runner in self.runners:
             runner.run(dry=dry)
-        return True
+        # return True

@@ -1,4 +1,5 @@
 FROM python:3.9
+
 ENV CELERY_BROKER_URL pyamqp://guest:guest@localhost:5672/
 ENV CELERY_RESULT_BACKEND rpc://
 ENV C_FORCE_ROOT true

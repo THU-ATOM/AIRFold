@@ -82,24 +82,8 @@ async def analysis_task(requests: List[Dict[str, Any]]):
     return {"task_id": task.id}
 
 @app.post(f"/submit")
-async def submit_task(
-    request: Request,
-    pdb_path: Union[str, Path] = None,
-    plddt: float = 0.0,
-    target_addresses: str = "",
-):
-    _params = request.json()
-    print("Request: ", _params)
-    HASH_ID = "hash_id"
-    if _params is None or HASH_ID not in _params:
-        return json.dumps([])
-    hash_ids = _params[HASH_ID]
-    if not isinstance(hash_ids, list):
-        hash_ids = [hash_ids]
-
-    task = celery_client.send_task(
-        "submit", args=[pdb_path, plddt, target_addresses], queue="queue_submit"
-    )
+async def submit_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("submit", args=[requests], queue="queue_submit")
     return {"task_id": task.id}
 
 
