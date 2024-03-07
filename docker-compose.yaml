@@ -37,6 +37,12 @@ services:
     build:
       context: ./services/blast
       dockerfile: Dockerfile
+      args:
+        - http_proxy=${http_proxy}
+        - https_proxy=${https_proxy}
+        - USER_ID=${UID}
+        - GROUP_ID=${GID}
+        - USER_NAME=${USER_NAME}
     depends_on:
       - rabbitmq
     environment:
@@ -52,6 +58,12 @@ services:
     build:
       context: ./services/jackhmmer
       dockerfile: Dockerfile
+      args:
+        - http_proxy=${http_proxy}
+        - https_proxy=${https_proxy}
+        - USER_ID=${UID}
+        - GROUP_ID=${GID}
+        - USER_NAME=${USER_NAME}
     depends_on:
       - rabbitmq
     environment:
@@ -67,6 +79,12 @@ services:
     build:
       context: ./services/hhblits
       dockerfile: Dockerfile
+      args:
+        - http_proxy=${http_proxy}
+        - https_proxy=${https_proxy}
+        - USER_ID=${UID}
+        - GROUP_ID=${GID}
+        - USER_NAME=${USER_NAME}
     depends_on:
       - rabbitmq
     environment:
@@ -82,6 +100,12 @@ services:
     build:
       context: ./services/mergemsa
       dockerfile: Dockerfile
+      args:
+        - http_proxy=${http_proxy}
+        - https_proxy=${https_proxy}
+        - USER_ID=${UID}
+        - GROUP_ID=${GID}
+        - USER_NAME=${USER_NAME}
     depends_on:
       - rabbitmq
     environment:
@@ -97,6 +121,12 @@ services:
     build:
       context: ./services/selectmsa
       dockerfile: Dockerfile
+      args:
+        - http_proxy=${http_proxy}
+        - https_proxy=${https_proxy}
+        - USER_ID=${UID}
+        - GROUP_ID=${GID}
+        - USER_NAME=${USER_NAME}
     depends_on:
       - rabbitmq
     environment:
@@ -130,25 +160,16 @@ services:
       - ./lib:/worker/lib
     command: celery -A worker worker --loglevel=info -Q queue_searchtpl --concurrency=4
 
-  worker_tplfeature:
-    build:
-      context: ./services/tplfeature
-      dockerfile: Dockerfile
-    depends_on:
-      - rabbitmq
-    environment:
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
-      - CELERY_RESULT_BACKEND=redis://redis
-    volumes:
-      - ./services/tplfeature:/worker
-      - /data:/data
-      - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_tplfeature --concurrency=4
-
   worker_selecttpl:
     build:
       context: ./services/selecttpl
       dockerfile: Dockerfile
+      args:
+        - http_proxy=${http_proxy}
+        - https_proxy=${https_proxy}
+        - USER_ID=${UID}
+        - GROUP_ID=${GID}
+        - USER_NAME=${USER_NAME}
     depends_on:
       - rabbitmq
     environment:
@@ -160,16 +181,46 @@ services:
       - ./lib:/worker/lib
     command: celery -A worker worker --loglevel=info -Q queue_selecttpl --concurrency=4
 
-  worker_msafeature:
+
+  worker_tplfeature:
     build:
-      context: ./services/msafeature
+      context: ./services/tplfeature
       dockerfile: Dockerfile
+      args:
+        - http_proxy=${http_proxy}
+        - https_proxy=${https_proxy}
+        - USER_ID=${UID}
+        - GROUP_ID=${GID}
+        - USER_NAME=${USER_NAME}
     depends_on:
       - rabbitmq
     environment:
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # run docker in docker
+      - ./services/tplfeature:/worker
+      - /data:/data
+      - ./lib:/worker/lib
+    command: celery -A worker worker --loglevel=info -Q queue_tplfeature --concurrency=4
+
+  worker_msafeature:
+    build:
+      context: ./services/msafeature
+      dockerfile: Dockerfile
+      args:
+        - http_proxy=${http_proxy}
+        - https_proxy=${https_proxy}
+        - USER_ID=${UID}
+        - GROUP_ID=${GID}
+        - USER_NAME=${USER_NAME}
+    depends_on:
+      - rabbitmq
+    environment:
+      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_RESULT_BACKEND=redis://redis
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # run docker in docker
       - ./services/msafeature:/worker
       - /data:/data
       - ./lib:/worker/lib
@@ -179,12 +230,19 @@ services:
     build:
       context: ./services/monostructure
       dockerfile: Dockerfile
+      args:
+        - http_proxy=${http_proxy}
+        - https_proxy=${https_proxy}
+        - USER_ID=${UID}
+        - GROUP_ID=${GID}
+        - USER_NAME=${USER_NAME}
     depends_on:
       - rabbitmq
     environment:
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # run docker in docker
       - ./services/monostructure:/worker
       - /data:/data
       - ./lib:/worker/lib
@@ -194,12 +252,19 @@ services:
     build:
       context: ./services/relaxation
       dockerfile: Dockerfile
+      args:
+        - http_proxy=${http_proxy}
+        - https_proxy=${https_proxy}
+        - USER_ID=${UID}
+        - GROUP_ID=${GID}
+        - USER_NAME=${USER_NAME}
     depends_on:
       - rabbitmq
     environment:
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # run docker in docker
       - ./services/relaxation:/worker
       - /data:/data
       - ./lib:/worker/lib
@@ -209,6 +274,12 @@ services:
     build:
       context: ./services/analysis
       dockerfile: Dockerfile
+      args:
+        - http_proxy=${http_proxy}
+        - https_proxy=${https_proxy}
+        - USER_ID=${UID}
+        - GROUP_ID=${GID}
+        - USER_NAME=${USER_NAME}
     depends_on:
       - rabbitmq
     environment:

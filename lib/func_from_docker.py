@@ -26,7 +26,7 @@ from pathlib import Path
 import docker
 from docker import types
 from loguru import logger
-from typing import Sequence, List, Dict, Any, Union
+from typing import Sequence, List, Dict, Union
 from lib.tool import tool_utils as utils
 from lib.constant import (
     AF_PARAMS_ROOT,

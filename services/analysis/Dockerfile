@@ -4,7 +4,10 @@ ENV CELERY_BROKER_URL pyamqp://guest:guest@localhost:5672/
 ENV CELERY_RESULT_BACKEND rpc://
 ENV C_FORCE_ROOT true
 
-# RUN apk add build-base linux-headers   # very slow
+ARG USER_ID=1011
+ARG GROUP_ID=1011
+ARG USER_NAME=docker
+
 COPY requirements.txt /tmp/requirements.txt
 
 RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
