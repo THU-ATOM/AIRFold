@@ -86,8 +86,12 @@ class TPLTSelectRunner(BaseCommandRunner):
 
         return command
 
-    def run(self, template_feats, dry=False):
+    def run(self, dry=False):
+        # get template features
         ptree = get_pathtree(request=self.requests[0])
+        template_feats_path = str(ptree.alphafold.template_feat)
+        template_feats = dtool.read_pickle(template_feats_path)
+
         self.output_path = ptree.alphafold.selected_template_feat
         with utils.tmpdir_manager() as tmpdir:
             self.input_path = Path(tmpdir) / "template_feat.pkl"

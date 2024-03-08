@@ -65,7 +65,7 @@ class TemplateFeaturizationRunner(BaseRunner):
                 template_feature[k].append(_out[k])
         return template_feature
 
-    def run(self, template_hits, *args, dry=False, **kwargs):
+    def run(self):
         TEMPLATE_FEATURES = {
             "template_aatype": np.float32,
             "template_all_atom_masks": np.float32,
@@ -75,7 +75,11 @@ class TemplateFeaturizationRunner(BaseRunner):
             "template_sum_probs": np.float32,
         }
 
+        # get template hits
         ptree = get_pathtree(request=self.requests[0])
+        template_hits_path = str(ptree.search.template_hits)
+        template_hits = dtool.read_pickle(template_hits_path)
+
         output_path = str(ptree.alphafold.template_feat)
         Path(output_path).parent.mkdir(exist_ok=True, parents=True)
         template_feature = make_template_feature(
