@@ -57,7 +57,7 @@ class TPLTSelectRunner(BaseCommandRunner):
             and request["run_config"]["template"]["template_select_strategy"] == "top"
         ):
             executed_file = (
-                Path(__file__).resolve().parent / "strategy" / "template_top_select.py"
+                Path(__file__).resolve().parent / "lib" / "strategy" / "template_top_select.py"
             )
         elif (
             "template_select_strategy" in request["run_config"]["template"]
@@ -65,11 +65,11 @@ class TPLTSelectRunner(BaseCommandRunner):
             == "clustering"
         ):
             executed_file = (
-                Path(__file__).resolve().parent / "strategy" / "template_clustering.py"
+                Path(__file__).resolve().parent / "lib" / "strategy" / "template_clustering.py"
             )
         else:
             executed_file = (
-                Path(__file__).resolve().parent / "strategy" / "template_clustering.py"
+                Path(__file__).resolve().parent / "lib" / "strategy" / "template_clustering.py"
             )
         params = []
         params.append(f"-s {self.input_path} ")
