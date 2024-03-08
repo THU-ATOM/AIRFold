@@ -12,3 +12,4 @@ absl-py
 docker
 ray
 dm-tree
+numpy==1.23

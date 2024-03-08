@@ -78,6 +78,7 @@ class TemplateFeaturizationRunner(BaseRunner):
         # get template hits
         ptree = get_pathtree(request=self.requests[0])
         template_hits_path = str(ptree.search.template_hits)
+        logger.info(f"template_hits_path: {template_hits_path}")
         template_hits = dtool.read_pickle(template_hits_path)
 
         output_path = str(ptree.alphafold.template_feat)

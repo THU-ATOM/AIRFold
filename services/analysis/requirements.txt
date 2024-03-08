@@ -10,6 +10,6 @@ psutil
 gpustat
 absl-py
 scipy
-tensorflow
 ray
 dm-tree
+tensorflow-gpu==2.6.0

@@ -5,6 +5,12 @@ services:
     build:
       context: ./gui
       dockerfile: Dockerfile
+      args:
+        - http_proxy=${http_proxy}
+        - https_proxy=${https_proxy}
+        - USER_ID=${UID}
+        - GROUP_ID=${GID}
+        - USER_NAME=${USER_NAME}
     ports:
       - "80:4173"
     volumes:
@@ -19,6 +25,12 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
+      args:
+        - http_proxy=${http_proxy}
+        - https_proxy=${https_proxy}
+        - USER_ID=${UID}
+        - GROUP_ID=${GID}
+        - USER_NAME=${USER_NAME}
     ports:
       - "8081:8081"
     depends_on:
@@ -181,7 +193,6 @@ services:
       - ./lib:/worker/lib
     command: celery -A worker worker --loglevel=info -Q queue_selecttpl --concurrency=4
 
-
   worker_tplfeature:
     build:
       context: ./services/tplfeature
@@ -295,6 +306,12 @@ services:
     build:
       context: ./services/submit
       dockerfile: Dockerfile
+      args:
+        - http_proxy=${http_proxy}
+        - https_proxy=${https_proxy}
+        - USER_ID=${UID}
+        - GROUP_ID=${GID}
+        - USER_NAME=${USER_NAME}
     depends_on:
       - rabbitmq
     environment:

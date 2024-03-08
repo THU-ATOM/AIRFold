@@ -22,6 +22,16 @@ RUN mkdir /tmp/blast \
     && cp ncbi-blast-2.13.0+/bin/* /usr/local/bin/ \
     && rm -rf /tmp/blast
 
+# add user
+RUN if [ $USER_NAME != "root" ] ; \
+    then addgroup --gid ${GROUP_ID} ${USER_NAME} \
+    && adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID ${USER_NAME} \
+    && usermod -aG sudo ${USER_NAME} \
+    && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers ; fi
+    
+# Switch to the created user
+USER ${USER_NAME}
+
 WORKDIR /worker
 
 # Specify the command to run on container start

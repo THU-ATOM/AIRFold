@@ -15,6 +15,17 @@ RUN pip install -U setuptools pip
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 
+# add user
+RUN if [ $USER_NAME != "root" ] ; \
+    then addgroup --gid ${GROUP_ID} ${USER_NAME} \
+    && adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID ${USER_NAME} \
+    && usermod -aG sudo ${USER_NAME} \
+    && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers ; fi
+    
+# Switch to the created user
+USER ${USER_NAME}
+
+
 WORKDIR /worker
 
 # Specify the command to run on container start

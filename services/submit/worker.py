@@ -333,7 +333,7 @@ class UniforSubmitRunner(BaseRunner):
             self.add_runner(f"submit_{sender}", submit)
         return runners
 
-    def run(self, dry=False, *args, **kwargs):
+    def run(self, dry=False):
         for runner in self.runners:
             runner.run(dry=dry)
-        # return True
+        return "submitted!"

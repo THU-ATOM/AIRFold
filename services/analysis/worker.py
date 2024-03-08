@@ -270,7 +270,7 @@ class GenAnalysisRunner(BaseRunner):
             )
             os.system(f"cp {src_path} {tgt_path}")
 
-    def run(self, *args, dry=False, **kwargs):
+    def run(self):
         ptree = get_pathtree(request=self.requests[0])
         num_res = len(self.requests[0]["sequence"])
         dirname = str(ptree.alphafold.root)
@@ -300,4 +300,4 @@ class GenAnalysisRunner(BaseRunner):
         )
         result_path = os.path.join(dirname, "plddt_results.json")
         dtool.write_json(result_path, data=model2plddts)
-        # return True
+        return str(result_path)
