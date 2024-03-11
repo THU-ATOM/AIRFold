@@ -61,19 +61,9 @@ async def selecttpl_task(requests: List[Dict[str, Any]]):
     task = celery_client.send_task("selecttpl", args=[requests], queue="queue_selecttpl")
     return {"task_id": task.id}
 
-@app.post("/msafeature")
-async def msafeature_task(requests: List[Dict[str, Any]]):
-    task = celery_client.send_task("msafeature", args=[requests], queue="queue_msafeature")
-    return {"task_id": task.id}
-
 @app.post("/monostructure")
 async def monostructure_task(requests: List[Dict[str, Any]]):
     task = celery_client.send_task("monostructure", args=[requests], queue="queue_monostructure")
-    return {"task_id": task.id}
-
-@app.post("/relaxation")
-async def relaxation_task(requests: List[Dict[str, Any]]):
-    task = celery_client.send_task("relaxation", args=[requests], queue="queue_relaxation")
     return {"task_id": task.id}
 
 @app.post("/analysis")

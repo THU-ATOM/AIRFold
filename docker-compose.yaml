@@ -215,28 +215,6 @@ services:
       - ./lib:/worker/lib
     command: celery -A worker worker --loglevel=info -Q queue_tplfeature --concurrency=4
 
-  worker_msafeature:
-    build:
-      context: ./services/msafeature
-      dockerfile: Dockerfile
-      args:
-        - http_proxy=${http_proxy}
-        - https_proxy=${https_proxy}
-        - USER_ID=${UID}
-        - GROUP_ID=${GID}
-        - USER_NAME=${USER_NAME}
-    depends_on:
-      - rabbitmq
-    environment:
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
-      - CELERY_RESULT_BACKEND=redis://redis
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock # run docker in docker
-      - ./services/msafeature:/worker
-      - /data:/data
-      - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_msafeature --concurrency=4
-
   worker_monostructure:
     build:
       context: ./services/monostructure
@@ -258,28 +236,6 @@ services:
       - /data:/data
       - ./lib:/worker/lib
     command: celery -A worker worker --loglevel=info -Q queue_monostructure --concurrency=4
-
-  worker_relaxation:
-    build:
-      context: ./services/relaxation
-      dockerfile: Dockerfile
-      args:
-        - http_proxy=${http_proxy}
-        - https_proxy=${https_proxy}
-        - USER_ID=${UID}
-        - GROUP_ID=${GID}
-        - USER_NAME=${USER_NAME}
-    depends_on:
-      - rabbitmq
-    environment:
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
-      - CELERY_RESULT_BACKEND=redis://redis
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock # run docker in docker
-      - ./services/relaxation:/worker
-      - /data:/data
-      - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_relaxation --concurrency=4
 
   worker_analysis:
     build:
