@@ -10,3 +10,5 @@ psutil
 gpustat
 absl-py
 docker
+numpy==1.23
+gpustat

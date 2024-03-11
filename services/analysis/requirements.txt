@@ -12,4 +12,5 @@ absl-py
 scipy
 ray
 dm-tree
-tensorflow-gpu==2.6.0
+tensorflow-gpu==2.8.2
+numpy==1.23

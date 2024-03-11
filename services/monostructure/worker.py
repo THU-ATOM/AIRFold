@@ -36,9 +36,7 @@ DB_PATH = Path("/data/protein/CAMEO/database/cameo_test.db")
 
 @celery.task(name="monostructure")
 def monostructureTask(requests: List[Dict[str, Any]]):
-    af2_config = requests[0]["run_config"]["structure_prediction"]["alphafold"]
-    random_seed = af2_config.get("random_seed", 0)
-    MonoStructureRunner(requests=requests, db_path=DB_PATH).run(af2_config=af2_config, random_seed=random_seed)
+    AirFoldRunner(requests=requests, db_path=DB_PATH).run()
 
 
 class MonoFeatureRunner(BaseRunner):
@@ -81,9 +79,7 @@ class MonoFeatureRunner(BaseRunner):
         template_feat: Dict[str, Any],
         af2_config: Dict[str, Any],
         model_name: str = "model_1",
-        *args,
-        dry=False,
-        **kwargs,
+        random_seed: int = 0,
     ):
         if not isinstance(msa_paths, list):
             msa_paths = [msa_paths]
@@ -94,7 +90,7 @@ class MonoFeatureRunner(BaseRunner):
             template_feature=template_feat,
             af2_config=af2_config,
             model_name=model_name,
-            random_seed=kwargs.get("random_seed", 0),  # random.randint(0, 100000),
+            random_seed=random_seed  # random.randint(0, 100000),
         )
 
         ptree = get_pathtree(request=self.requests[0])
@@ -202,7 +198,7 @@ class AmberRelaxationRunner(BaseRunner):
     def start_stage(self) -> State:
         return self.start_code
 
-    def run(self, unrelaxed_pdb_str, model_name, *args, dry=False, **kwargs):
+    def run(self, unrelaxed_pdb_str, model_name):
         ptree = get_pathtree(request=self.requests[0])
         gpu_devices = "".join([f"{i}" for i in get_available_gpus(1)])
         relaxed_pdb_str = run_relaxation(
@@ -273,7 +269,7 @@ class AirFoldRunner(BaseRunner):
     def start_stage(self) -> int:
         return State.AIRFOLD_START
 
-    def run(self, dry=False):
+    def run(self):
 
         af2_config = self.requests[0]["run_config"]["structure_prediction"]["alphafold"]
         models = af2_config["model_name"].split(",")
@@ -292,22 +288,29 @@ class AirFoldRunner(BaseRunner):
         selected_msa_path = integrated_search_a3m
         for index in range(len(key_list)):
             selected_msa_path = ptree.strategy.strategy_list[index]
-        # selected_msa_path = ptree.strategy.strategy_list[index]
-        selected_template_feat = ptree.alphafold.selected_template_feat
+        if not selected_msa_path:
+            return
+
+        # get selected_template_feat
+        selected_template_feat_path = ptree.alphafold.selected_template_feat
+        selected_template_feat = dtool.read_pickle(selected_template_feat_path)
+        if not selected_template_feat:
+            return
+        
         for m_name in models:
-            processed_feature = self.mono_msa2feature(
+            processed_feature = self.mono_msa2feature.run(
                 msa_paths=selected_msa_path,
                 template_feat=selected_template_feat,
                 af2_config=af2_config,
                 model_name=m_name,
-                random_seed=random_seed,
+                random_seed=random_seed
             )
             logger.info(
                 f"the shape of msa_feat is: {processed_feature['msa_feat'].shape}"
             )
             if not processed_feature:
                 return
-            unrelaxed_pdb_str = self.mono_structure(
+            unrelaxed_pdb_str = self.mono_structure.run(
                 processed_feat=processed_feature,
                 af2_config=af2_config,
                 model_name=m_name,
@@ -316,12 +319,8 @@ class AirFoldRunner(BaseRunner):
             if not unrelaxed_pdb_str:
                 return
 
-            relaxed_pdb_str = self.amber_relax(
+            relaxed_pdb_str = self.amber_relax.run(
                 unrelaxed_pdb_str=unrelaxed_pdb_str, model_name=m_name
             )
             if not relaxed_pdb_str:
                 return
-        success = self.gen_analysis()
-        if not success:
-            return
-        self.submit(dry=dry)
