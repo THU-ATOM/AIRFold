@@ -80,15 +80,15 @@ class CAMEOSubmitRunner(BaseRunner):
             plddt = np.mean(prot.b_factors[:, 0])
         return plddt
 
-    def run(self, dry=False, *args, **kwargs):
+    def run(self, dry=False):
         for _request in self.requests:
-            if not _request.get("submit", True):
-                if self.info_reportor is not None:
-                    self.info_reportor.update_state(
-                        hash_id=_request[info_report.HASH_ID],
-                        state=State.SUBMIT_SKIP,
-                    )
-                continue
+            # if not _request.get("submit", True):
+            #     if self.info_reportor is not None:
+            #         self.info_reportor.update_state(
+            #             hash_id=_request[info_report.HASH_ID],
+            #             state=State.SUBMIT_SKIP,
+            #         )
+            #     continue
             with smtplib.SMTP(self.smtp_ssl_host, self.smtp_ssl_port) as server:
                 server.ehlo()
                 server.starttls()
@@ -142,18 +142,18 @@ class CAMEOSubmitRunner(BaseRunner):
 
                     if not dry:
                         server.sendmail(self.sender, target_addresses, msg.as_string())
-                        if self.info_reportor is not None:
-                            self.info_reportor.update_state(
-                                hash_id=_request[info_report.HASH_ID],
-                                state=State.SUBMIT_SUCCESS,
-                            )
+                        # if self.info_reportor is not None:
+                        #     self.info_reportor.update_state(
+                        #         hash_id=_request[info_report.HASH_ID],
+                        #         state=State.SUBMIT_SUCCESS,
+                        #     )
                 else:
                     if not dry:
-                        if self.info_reportor is not None:
-                            self.info_reportor.update_state(
-                                hash_id=_request[info_report.HASH_ID],
-                                state=State.SUBMIT_ERROR,
-                            )
+                        # if self.info_reportor is not None:
+                        #     self.info_reportor.update_state(
+                        #         hash_id=_request[info_report.HASH_ID],
+                        #         state=State.SUBMIT_ERROR,
+                        #     )
                         if self.loop_forever:
                             post_utils.set_visible(hash_id=_request[post_utils.HASH_ID])
                     logger.info("No pdb to submit.")
@@ -191,16 +191,16 @@ class CASPSubmitRunner(BaseRunner):
             plddt = np.mean(prot.b_factors[:, 0])
         return plddt
 
-    def run(self, dry=False, *args, **kwargs):
+    def run(self, dry=False):
         for reqs in misc.chunk_generate(self.requests, chunk_size=3):
             for _request in reqs:
-                if not _request.get("submit", True):
-                    if self.info_reportor is not None:
-                        self.info_reportor.update_state(
-                            hash_id=_request[info_report.HASH_ID],
-                            state=State.SUBMIT_SKIP,
-                        )
-                    continue
+                # if not _request.get("submit", True):
+                #     if self.info_reportor is not None:
+                #         self.info_reportor.update_state(
+                #             hash_id=_request[info_report.HASH_ID],
+                #             state=State.SUBMIT_SKIP,
+                #         )
+                #     continue
                 with smtplib.SMTP(self.smtp_ssl_host, self.smtp_ssl_port) as server:
                     server.ehlo()
                     server.starttls()
@@ -273,18 +273,18 @@ class CASPSubmitRunner(BaseRunner):
                             server.sendmail(
                                 self.sender, target_addresses, msg.as_string()
                             )
-                            if self.info_reportor is not None:
-                                self.info_reportor.update_state(
-                                    hash_id=_request[info_report.HASH_ID],
-                                    state=State.SUBMIT_SUCCESS,
-                                )
+                            # if self.info_reportor is not None:
+                            #     self.info_reportor.update_state(
+                            #         hash_id=_request[info_report.HASH_ID],
+                            #         state=State.SUBMIT_SUCCESS,
+                            #     )
                     else:
                         if not dry:
-                            if self.info_reportor is not None:
-                                self.info_reportor.update_state(
-                                    hash_id=_request[info_report.HASH_ID],
-                                    state=State.SUBMIT_ERROR,
-                                )
+                            # if self.info_reportor is not None:
+                            #     self.info_reportor.update_state(
+                            #         hash_id=_request[info_report.HASH_ID],
+                            #         state=State.SUBMIT_ERROR,
+                            #     )
                             if self.loop_forever:
                                 post_utils.set_visible(
                                     hash_id=_request[post_utils.HASH_ID]

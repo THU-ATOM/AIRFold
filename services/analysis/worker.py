@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import Bio.PDB
 from scipy.special import softmax
+from loguru import logger
 
 from lib.base import BaseRunner
 from lib.state import State
@@ -274,6 +275,7 @@ class GenAnalysisRunner(BaseRunner):
         ptree = get_pathtree(request=self.requests[0])
         num_res = len(self.requests[0]["sequence"])
         dirname = str(ptree.alphafold.root)
+        logger.info(f"Analysis dirname: {dirname}")
         self.rerank_relaxed_plddts(dirname=dirname)
         self.parse_save_plddt_from_dir(dirname=dirname)
         self.get_conformation_from_dir(dirname=dirname)
@@ -282,22 +284,22 @@ class GenAnalysisRunner(BaseRunner):
             file_pattern="model_*_output_raw.pkl",
             num_res=num_res,
         )
-        model2plddts, model2pdbpaths = self.get_plddts_from_dir(
+        model2plddts, _ = self.get_plddts_from_dir(
             dirname=dirname, pdb_pattern="rank_*.pdb"
         )
-        template_infos = self.get_template_info_from_ptree(ptree)
-        self.info_reportor.update_reserved(
-            hash_id=self.requests[0][info_report.HASH_ID], update_dict=template_infos
-        )
-        self.info_reportor.update_metric(
-            hash_id=self.requests[0][info_report.HASH_ID],
-            value=model2plddts,
-            metric="plddt",
-        )
+        # template_infos = self.get_template_info_from_ptree(ptree)
+        # self.info_reportor.update_reserved(
+        #     hash_id=self.requests[0][info_report.HASH_ID], update_dict=template_infos
+        # )
+        # self.info_reportor.update_metric(
+        #     hash_id=self.requests[0][info_report.HASH_ID],
+        #     value=model2plddts,
+        #     metric="plddt",
+        # )
 
-        self.info_reportor.update_path_tree(
-            hash_id=self.requests[0][info_report.HASH_ID], path_tree=ptree.tree
-        )
+        # self.info_reportor.update_path_tree(
+        #     hash_id=self.requests[0][info_report.HASH_ID], path_tree=ptree.tree
+        # )
         result_path = os.path.join(dirname, "plddt_results.json")
         dtool.write_json(result_path, data=model2plddts)
         return str(result_path)
