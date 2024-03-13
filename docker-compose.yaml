@@ -8,9 +8,6 @@ services:
       args:
         - http_proxy=${http_proxy}
         - https_proxy=${https_proxy}
-        - USER_ID=${UID}
-        - GROUP_ID=${GID}
-        - USER_NAME=${USER_NAME}
     ports:
       - "80:4173"
     volumes:
@@ -28,9 +25,6 @@ services:
       args:
         - http_proxy=${http_proxy}
         - https_proxy=${https_proxy}
-        - USER_ID=${UID}
-        - GROUP_ID=${GID}
-        - USER_NAME=${USER_NAME}
     ports:
       - "8081:8081"
     depends_on:

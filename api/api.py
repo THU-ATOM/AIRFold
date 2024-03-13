@@ -1,6 +1,6 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Request
-from celery import group, signature
+from celery import group, signature, chord, chain
 from celery.result import AsyncResult, GroupResult
 from worker import celery_client
 
@@ -95,20 +95,23 @@ async def get_task_result(task_id: str):
 
 
 # ----------------------------
-# Group task
+# Group/Graph task
 # ----------------------------
 
 
 @app.post("/msaGen")
 async def msaGen_task(requests: List[Dict[str, Any]]):
-    group_task = group(
+    # msaTasks
+    msaSearchTasks = group(
         signature("blast", args=[requests], queue="queue_blast"),
         signature("jackhmmer", args=[requests], queue="queue_jackhmmer"),
         signature("hhblits", args=[requests], queue="queue_hhblits"),
         # signature("mmseqs", args=[requests], queue="queue_mmseqs"),
-    )()
-    group_task.save()
-    return {"group_task_id": group_task.id}
+    )
+    msaMergeTask = signature("mergemsa", args=[requests], queue="queue_mergemsa")
+    msaGenTask = chord(msaSearchTasks)(msaMergeTask)
+    msaGenTask.save()
+    return {"msaGenTask_id": msaGenTask.id}
 
 
 @app.get("/check_group/{group_task_id}")
@@ -126,3 +129,42 @@ async def get_group_task_result(group_task_id: str):
             "status": [task.status for task in task_result],
             "result": "Not ready",
         }
+
+
+@app.post("/pipeline")
+async def pipeline_task(requests: List[Dict[str, Any]]):
+    # msaTasks
+    msaSearchTasks = group(
+        signature("blast", args=[requests], queue="queue_blast"),
+        signature("jackhmmer", args=[requests], queue="queue_jackhmmer"),
+        signature("hhblits", args=[requests], queue="queue_hhblits"),
+    )
+    msaMergeTask = signature("mergemsa", args=[requests], queue="queue_mergemsa")
+    msaSelctTask = signature("selectmsa", args=[requests], queue="queue_selectmsa")
+
+    msaTask   = (chord(msaSearchTasks)(msaMergeTask) | msaSelctTask)
+
+    # templateTasks
+    templateSearchTask  = signature("searchtpl", args=[requests], queue="queue_searchtpl")
+    templateFeatureTask = signature("tplfeature", args=[requests], queue="queue_tplfeature")
+    templateSelectTask  = signature("selecttpl", args=[requests], queue="queue_selecttpl")
+
+    templateTask = chain(templateSearchTask, templateFeatureTask, templateSelectTask)
+
+
+    # structureTask
+    structureTask = signature("monostructure", args=[requests], queue="queue_monostructure")
+
+    # analysisTask
+    analysisTask = signature("analysis", args=[requests], queue="queue_analysis")
+
+    # submitTask
+    submitTask = signature("submit", args=[requests], queue="queue_submit")
+
+
+    # pipelineTask
+    pipelineTask = chain(chord((msaTask | templateTask))(structureTask), analysisTask, submitTask)()
+    
+    pipelineTask.save()
+
+    return {"pipelineTask._id": pipelineTask.id}
