@@ -1,10 +1,7 @@
-import atexit
 import json
 import sys
 import sqlite3
 import requests
-from multiprocessing import Semaphore
-from multiprocessing.dummy import Process
 from time import sleep, time
 from traceback import print_exception
 from typing import List
@@ -13,17 +10,16 @@ from loguru import logger
 
 from lib.constant import *
 from lib.state import State
-from lib.utils.execute import execute
 from lib.tool import utils
 
 from lib.monitor.database_mgr import StateRecord
 from lib.monitor.info_report import *
 from lib.monitor.cameo_server import post_utils
-from lib.utils import datatool, misc
+from lib.utils import misc
 from lib.monitor.extend_config import extend_run_config
 
 
-MAX_CONCURRENT_PIPELINE_NUM = 20
+# MAX_CONCURRENT_PIPELINE_NUM = 20
 # WAIT_UNTIL_START = 15 * 60
 WAIT_UNTIL_START = 30
 # REQUEST_PERIOD = 60
@@ -56,49 +52,26 @@ def compose_requests(records: List[StateRecord], info_report: InfoReport) -> Lis
     return res
 
 
-def pipelineWorker(request_dicts, resource_lock):
-    resource_lock.acquire()
-    logger.info(
-        f"semaphore acquire success, remaining resource_number: "
-        f"{resource_lock.get_value()}"
-    )
+def pipelineWorker(request_dicts):
+    
     with utils.tmpdir_manager(base_dir="/tmp") as tmpdir:
-        req_path = os.path.join(tmpdir, "requests.pkl")
-        datatool.write_pickle(request_dicts, req_path)
-        command = f"python -m pipeline.pipeline -r {req_path} --load_config monitor"
-        command = f"export PYTHONPATH={os.getcwd()}:$PYTHONPATH && {command}"
+        os.path.join(tmpdir, "requests.pkl")
+        pip_request= {"requests" : request_dicts}
+        pipeline_url = f"http://10.0.0.12:8081/pipeline"
 
         try:
-            execute(command=command, verbose=True)
+            requests.post(pipeline_url , json=pip_request)
         except e:
             logger.error(str(e))
-        finally:
-            resource_lock.release()
-            logger.info(
-                f"semaphore released, remaining resource_number: "
-                f"{resource_lock.get_value()}"
-            )
 
 
 if __name__ == "__main__":
     logger.configure(**MONITOR_LOGGING_CONFIG)
     logger.info("Start to monitor...")
 
-    process_pool: List[Process] = []
-
-    def exit_handler():
-        print("terminating all pipeline processes!")
-        for p in process_pool:
-            if p.is_alive():
-                p.terminate()
-
-    atexit.register(exit_handler)
-
-    resource_lock = Semaphore(MAX_CONCURRENT_PIPELINE_NUM)
-    # todo
-
+    DB_PATH = Path("/data/protein/CAMEO/database/cameo_test.db")
     info_report = InfoReport(db_path=DB_PATH)
-    # info_report = InfoReport('./state.db')
+
     last_received_time = time()
     while True:
         _cur_time = time()
@@ -111,12 +84,10 @@ if __name__ == "__main__":
             continue
         if len(_requests) == 0:
             if _cur_time - last_received_time >= WAIT_UNTIL_START:
-                if resource_lock.get_value() > 0:
-                    records = info_report.dbmgr.query(
-                        {VISIBLE: 1, STATE: State.RECEIVED.name}
-                    )
-                else:
-                    records = []
+                records = info_report.dbmgr.query(
+                    {VISIBLE: 1, STATE: State.RECEIVED.name}
+                )
+                
                 if len(records) > 0:
                     for rcds in misc.chunk_generate(records, chunk_size=1):
                         try:
@@ -128,16 +99,8 @@ if __name__ == "__main__":
                                 f"start processing {len(request_dicts)} requests"
                                 f"\n{json.dumps(request_dicts)}"
                             )
-                            _p = Process(
-                                target=pipelineWorker,
-                                args=(request_dicts, resource_lock),
-                            )
-                            _p.start()
-                            process_pool.append(_p)
-                            for p in process_pool:
-                                if not p.is_alive():
-                                    process_pool.remove(p)
-                            # print(request_dicts)
+                            pipelineWorker(request_dicts)
+                            
                         except:
                             print_exception(*sys.exc_info())
                 last_received_time = _cur_time
