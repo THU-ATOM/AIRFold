@@ -108,8 +108,8 @@ async def msaGen_task(requests: List[Dict[str, Any]]):
         signature("hhblits", args=[requests], queue="queue_hhblits"),
         # signature("mmseqs", args=[requests], queue="queue_mmseqs"),
     )
-    msaMergeTask = signature("mergemsa", args=[requests], queue="queue_mergemsa")
-    msaGenTask = chord(msaSearchTasks)(msaMergeTask)
+    msaMergeTask = signature("mergemsa", args=[requests], queue="queue_mergemsa", immutable=True)
+    msaGenTask = chord(msaSearchTasks)(msaMergeTask)()
     msaGenTask.save()
     return {"msaGenTask_id": msaGenTask.id}
 
@@ -135,36 +135,32 @@ async def get_group_task_result(group_task_id: str):
 async def pipeline_task(requests: List[Dict[str, Any]]):
     # msaTasks
     msaSearchTasks = group(
-        signature("blast", args=[requests], queue="queue_blast"),
+        signature("blast", args=[requests], queue="queue_blast"), 
         signature("jackhmmer", args=[requests], queue="queue_jackhmmer"),
         signature("hhblits", args=[requests], queue="queue_hhblits"),
     )
-    msaMergeTask = signature("mergemsa", args=[requests], queue="queue_mergemsa")
-    msaSelctTask = signature("selectmsa", args=[requests], queue="queue_selectmsa")
-
-    msaTask   = (chord(msaSearchTasks)(msaMergeTask) | msaSelctTask)
+    msaMergeTask = signature("mergemsa", args=[requests], queue="queue_mergemsa", immutable=True)
+    msaSelctTask = signature("selectmsa", args=[requests], queue="queue_selectmsa", immutable=True)
 
     # templateTasks
-    templateSearchTask  = signature("searchtpl", args=[requests], queue="queue_searchtpl")
-    templateFeatureTask = signature("tplfeature", args=[requests], queue="queue_tplfeature")
-    templateSelectTask  = signature("selecttpl", args=[requests], queue="queue_selecttpl")
-
-    templateTask = chain(templateSearchTask, templateFeatureTask, templateSelectTask)
-
+    templateSearchTask  = signature("searchtpl", args=[requests], queue="queue_searchtpl", immutable=True)
+    templateFeatureTask = signature("tplfeature", args=[requests], queue="queue_tplfeature", immutable=True)
+    templateSelectTask  = signature("selecttpl", args=[requests], queue="queue_selecttpl", immutable=True)
 
     # structureTask
-    structureTask = signature("monostructure", args=[requests], queue="queue_monostructure")
+    structureTask = signature("monostructure", args=[requests], queue="queue_monostructure", immutable=True)
 
     # analysisTask
-    analysisTask = signature("analysis", args=[requests], queue="queue_analysis")
+    analysisTask = signature("analysis", args=[requests], queue="queue_analysis", immutable=True)
 
     # submitTask
-    submitTask = signature("submit", args=[requests], queue="queue_submit")
+    submitTask = signature("submit", args=[requests], queue="queue_submit", immutable=True)
 
 
     # pipelineTask
-    pipelineTask = chain(chord((msaTask | templateTask))(structureTask), analysisTask, submitTask)()
-    
+    pipelineTask = (msaSearchTasks | msaMergeTask | msaSelctTask | templateSearchTask | templateFeatureTask | templateSelectTask | 
+                    structureTask | analysisTask | submitTask)()
+
     pipelineTask.save()
 
-    return {"pipelineTask._id": pipelineTask.id}
+    return {"pipelineTask_id": pipelineTask.id}

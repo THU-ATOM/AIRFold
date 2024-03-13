@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<script type="text/javascript" src="{{ url_for('static', filename='js/tabulator.js') }}"></script>
+<link href="{{ url_for('static', filename='css/tabulator.css') }}" rel="stylesheet">
+<html lang="en">
+
+<head>
+<title>Page Title</title>
+</head>
+
+<body>
+
+
+<div id="example-table"></div>
+
+</body>
+</html>
+
+<script type='text/javascript'>
+	var table = new Tabulator("#example-table", {
+		height:"800px",
+		layout:"fitColumns",
+	    ajaxURL:"/query{{ str_params }}", //ajax URL
+		placeholder:"No Data Set",
+	    columns:[
+			{formatter:"rownum", hozAlign:"center", width:40},
+	        {title:"hash_id", field:"hash_id", formatter:"link", formatterParams:{urlPrefix:"../query/hash_id/"}, sorter:"string"},
+			{title:"name", field:"name", sorter:"string"},
+			{title:"sender", field:"sender", sorter:"string"},
+			{title:"time_stamp", field:"time_stamp", sorter:"string"},
+			{title:"email", field:"email", sorter:"string"},
+			{title:"sequence", field:"sequence", sorter:"string"},
+			// {title:"visible", field:"visible", editor:"tickCross", editorParams:{search:true, mask:"AAA-999", elementAttributes:{maxlength:"10"}}},
+	    ],
+	});
+</script>
