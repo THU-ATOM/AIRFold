@@ -10,7 +10,7 @@ from loguru import logger
 
 from lib.constant import *
 from lib.state import State
-from lib.tool import utils
+from lib.tool import tool_utils
 
 from lib.monitor.database_mgr import StateRecord
 from lib.monitor.info_report import *
@@ -54,20 +54,20 @@ def compose_requests(records: List[StateRecord], info_report: InfoReport) -> Lis
 
 def pipelineWorker(request_dicts):
     
-    with utils.tmpdir_manager(base_dir="/tmp") as tmpdir:
+    with tool_utils.tmpdir_manager(base_dir="/tmp") as tmpdir:
         os.path.join(tmpdir, "requests.pkl")
-        pip_request= {"requests" : request_dicts}
+        # pip_request= {"requests" : request_dicts}
         pipeline_url = f"http://10.0.0.12:8081/pipeline"
 
         try:
-            requests.post(pipeline_url , json=pip_request)
+            requests.post(pipeline_url , json={'requests': request_dicts})
         except e:
             logger.error(str(e))
 
 
 if __name__ == "__main__":
     logger.configure(**MONITOR_LOGGING_CONFIG)
-    logger.info("Start to monitor...")
+    logger.info("------- Start to monitor...")
 
     info_report = InfoReport(db_path=DB_PATH)
 
@@ -77,12 +77,14 @@ if __name__ == "__main__":
         try:
             _requests = post_utils.pull_visible()  # todo what if this fails
             if len(_requests) > 0:
-                print(f"Find {len(_requests)} requests.")
+                logger.info(f"------- The number of requests: {len(_requests)}")
         except requests.exceptions.RequestException:
             sleep(REQUEST_PERIOD)
             continue
         if len(_requests) == 0:
-            if _cur_time - last_received_time >= WAIT_UNTIL_START:
+            waited_time = _cur_time - last_received_time
+            logger.info(f"------- The time has waited: {waited_time}")
+            if waited_time >= WAIT_UNTIL_START:
                 records = info_report.dbmgr.query(
                     {VISIBLE: 1, STATE: State.RECEIVED.name}
                 )
@@ -102,6 +104,9 @@ if __name__ == "__main__":
                             
                         except:
                             print_exception(*sys.exc_info())
+                        
+                        # For test
+                        break
                 last_received_time = _cur_time
             sleep(REQUEST_PERIOD)
             continue

@@ -1,0 +1,12 @@
+jackhmmer: 
+  #default values by the alphafold model.
+  n_iter: 1
+  e_value: 0.0001
+  filter_f1: 0.0005
+  filter_f2: 0.00005
+  filter_f3: 0.000005
+  # max threads when searching many sequences
+  thread: 8
+  # CPU used per thread
+  cpu: 8
+ 

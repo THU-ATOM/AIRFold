@@ -61,6 +61,7 @@ def parse_overrides(request_dict: dict) -> list:
 def extend_run_config(request_dict: dict) -> dict:
     RUN_CONFIG = "run_config"
     ret_request_dict = copy.copy(request_dict)
+    # print(ret_request_dict)
     if RUN_CONFIG in ret_request_dict:
         return ret_request_dict
     conf_name = get_conf_name(request_dict=ret_request_dict)

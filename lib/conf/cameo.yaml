@@ -1,0 +1,14 @@
+name: cameo
+msa_search:
+  segment: null
+  copy_int_msa_from: null
+template:
+  copy_template_hits_from: null
+  cutomized_template_pdbs: null
+  template_select_strategy: top
+  
+defaults:
+  - _self_
+  - msa_search: search
+  - msa_select: seq_entropy
+  - structure_prediction: alphafold

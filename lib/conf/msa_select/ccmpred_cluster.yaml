@@ -1,0 +1,4 @@
+ccmpred_cluster:
+  column: 0
+  cluster_nums: 3
+  threthold: 0.5

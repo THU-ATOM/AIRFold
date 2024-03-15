@@ -1,0 +1,6 @@
+name: full
+defaults:
+  - _self_
+  - msa_search: search
+  - msa_select: [ccmpred_cluster, cluster, column_entropy, idle, qid_cov, seq_entropy]
+  - structure_prediction: alphafold

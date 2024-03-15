@@ -15,7 +15,7 @@ from pathlib import Path
 import pandas as pd
 
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Body
 from fastapi.responses import FileResponse
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -159,7 +159,7 @@ async def get_group_task_result(group_task_id: str):
 
 
 @app.post("/pipeline")
-async def pipeline_task(requests: List[Dict[str, Any]]):
+async def pipeline_task(requests: List[Dict[str, Any]] = Body(..., embed=True)):
     # msaTasks
     msaSearchTasks = group(
         signature("blast", args=[requests], queue="queue_blast"), 
@@ -534,7 +534,7 @@ async def get_casp_targets(request: Request):
 
 @app.post(f"/insert/request")
 async def insert_request(request: Request):
-    _received = request.json()
+    _received = request.query_params
     logger.info(f"Received request: \n{json.dumps(_received, indent=2)}")
     time = datetime.now().strftime("%Y%m%d_%H%M%S")
     # _received = sorted_dict(_received)

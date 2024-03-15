@@ -1,0 +1,21 @@
+hhblits:
+  # default values used by AlphaFold2
+  iteration: 3
+  e_value: 0.001
+  realign_max: 100000
+  maxfilt: 100000
+  min_prefilter_hits: 1000
+  maxseq: 100000
+  dataset:
+    - uniclust30
+    - bfd
+
+  # Default to search more diverse sequence
+  diff_default: 'inf'
+  diff_fast: 1000
+  timeout: 7200
+
+  # max threads when searching many sequences
+  thread: 8
+  # CPU used per thread
+  cpu: 8
