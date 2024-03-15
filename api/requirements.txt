@@ -1,3 +1,13 @@
 fastapi
 uvicorn
 celery[redis]
+loguru
+pandas
+requests
+psutil
+omegaconf
+hydra-core
+matplotlib
+jsonlines
+rich
+biopython

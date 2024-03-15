@@ -1,5 +1,5 @@
 var API = {
-  api_prefix: 'http://' + window.location.hostname + ':8000/',
+  api_prefix: 'http://' + window.location.hostname + ':8081/',
   get_requests: function () {
     return {
       method: "get",

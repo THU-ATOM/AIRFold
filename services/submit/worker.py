@@ -12,6 +12,7 @@ from email.mime.text import MIMEText
 from email.message import EmailMessage
 
 from lib.base import BaseRunner, PathTreeGroup
+from lib.constant import DB_PATH
 from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.monitor import info_report
@@ -40,8 +41,6 @@ SEQUENCE = "sequence"
 EMAIL = "email"
 NAME = "name"
 TARGET = "target"
-
-DB_PATH = Path("/data/protein/CAMEO/database/cameo_test.db")
 
 @celery.task(name="submit")
 def submitTask(requests: List[Dict[str, Any]]):

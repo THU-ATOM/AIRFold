@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Union
 
 from lib.base import BaseCommandRunner
+from lib.constant import DB_PATH
 from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.utils import misc, pathtool
@@ -26,7 +27,6 @@ celery.conf.task_routes = {
     "worker.*": {"queue": "queue_blast"},
 }
 
-DB_PATH = Path("/data/protein/CAMEO/database/cameo_test.db")
 
 @celery.task(name="blast")
 def blastTask(requests: List[Dict[str, Any]]):

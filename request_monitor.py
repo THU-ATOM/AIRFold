@@ -69,7 +69,6 @@ if __name__ == "__main__":
     logger.configure(**MONITOR_LOGGING_CONFIG)
     logger.info("Start to monitor...")
 
-    DB_PATH = Path("/data/protein/CAMEO/database/cameo_test.db")
     info_report = InfoReport(db_path=DB_PATH)
 
     last_received_time = time()

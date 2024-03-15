@@ -7,17 +7,18 @@ from typing import Any, Dict, List
 from loguru import logger
 from hashlib import sha256
 
-
+# import asyncio
 import requests
 import json, sqlite3, psutil
 from io import StringIO
 from pathlib import Path
 import pandas as pd
 
-import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 
 from lib.monitor.database_mgr import StateRecord
 from lib.monitor.extend_config import (
@@ -29,8 +30,6 @@ from lib.monitor.info_report import *
 from lib.constant import *
 from lib.tool.align import align_pdbs
 import lib.monitor.download_pdb as download_pdb
-
-DB_PATH = Path("/data/protein/CAMEO/database/cameo_test.db")
 
 info_retriever = InfoRetrieve(db_path=DB_PATH)
 info_report = InfoReport(db_path=DB_PATH)
@@ -239,7 +238,7 @@ def kill_process_tree(pid, include_parent=True):
 
 @app.get("/file/png")
 async def get_png(request: Request):
-    _params = dict(request.query_params)
+    _params = request.query_params
     file_path = _params["file_path"]
     file_name = os.path.basename(file_path)
     if Path(file_path).exists():
@@ -252,7 +251,7 @@ async def get_png(request: Request):
 
 @app.get("/file/text")
 async def get_file(request: Request):
-    _params = dict(request.query_params)
+    _params = request.query_params
     file_path = _params["file_path"]
     file_name = os.path.basename(file_path)
     if Path(file_path).exists():
@@ -265,7 +264,7 @@ async def get_file(request: Request):
 
 @app.get("/file/download")
 async def get_file_download(request: Request):
-    _params = dict(request.query_params)
+    _params = request.query_params
     file_path = _params["file_path"]
     file_name = os.path.basename(file_path)
     if Path(file_path).exists():
@@ -276,17 +275,18 @@ async def get_file_download(request: Request):
         return "File not found", 404
 
 
-@app.get("/query/hash_id/<string:hash_id>")
-async def pull_hash_id(hash_id, request: Request):
+@app.get("/query/hash_id/{hash_id}")
+async def pull_hash_id(hash_id: str, request: Request):
     records = info_retriever.pull_hash_id(hash_id=hash_id)
     records = [r._asdict() for r in records]
     logger.info(prefix_ip(f"query {hash_id}", request))
-    return json.dumps([{k: try_json_loads(r[k]) for k in r} for r in records])
+    results = [{k: try_json_loads(r[k]) for k in r} for r in records]
+    return JSONResponse(content=jsonable_encoder(results))
 
-
+        
 @app.get("/query")
 async def pull_with_condition(request: Request):
-    _params = dict(request.query_params)
+    _params = request.query_params
     _params = {
         k: _params[k]
         for k in _params
@@ -299,12 +299,13 @@ async def pull_with_condition(request: Request):
     records = info_retriever.pull_with_condition(_params)
     records = [r._asdict() for r in records]
     logger.info(prefix_ip("sending all records.", request))
-    return json.dumps([{k: try_json_loads(r[k]) for k in r} for r in records])
+    results = [{k: try_json_loads(r[k]) for k in r} for r in records]
+    return JSONResponse(content=jsonable_encoder(results))
 
 
-@app.post(f"/update/visible/<string:hash_id>")
-async def set_visible(hash_id, request: Request):
-    _params = dict(request.query_params)
+@app.post("/update/visible/{hash_id}")
+async def set_visible(hash_id: str, request: Request):
+    _params = request.query_params
     visible = _params.get(VISIBLE, 1)
     info_report.update_visible(hash_id=hash_id, visible=visible)
     results = []
@@ -316,11 +317,11 @@ async def set_visible(hash_id, request: Request):
         results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
     except Exception as e:
         results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
-    return json.dumps(results)
+    return JSONResponse(content=jsonable_encoder(results))
 
-@app.get(f"/update/visible/<string:hash_id>")
-async def set_visible(hash_id, request: Request):
-    _params = dict(request.query_params)
+@app.get("/update/visible/{hash_id}")
+async def set_visible(hash_id: str, request: Request):
+    _params = request.query_params
     visible = _params.get(VISIBLE, 1)
     info_report.update_visible(hash_id=hash_id, visible=visible)
     results = []
@@ -332,12 +333,12 @@ async def set_visible(hash_id, request: Request):
         results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
     except Exception as e:
         results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
-    return json.dumps(results)
+    return JSONResponse(content=jsonable_encoder(results))
 
 
-@app.options(f"/update/visible/<string:hash_id>") 
-async def set_visible(hash_id, request: Request):
-    _params = dict(request.query_params)
+@app.options("/update/visible/{hash_id}") 
+async def set_visible(hash_id: str, request: Request):
+    _params = request.query_params
     visible = _params.get(VISIBLE, 1)
     info_report.update_visible(hash_id=hash_id, visible=visible)
     results = []
@@ -349,18 +350,19 @@ async def set_visible(hash_id, request: Request):
         results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
     except Exception as e:
         results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
-    return json.dumps(results)
+    return JSONResponse(content=jsonable_encoder(results))
 
 
 @app.post(f"/update/lddt")
 async def batch_get_lddt(request: Request):
-    _params = request.json()
+    _params = request.query_params
+    
+    results = []
     if _params is None or HASH_ID not in _params:
-        return json.dumps([])
+        return JSONResponse(content=jsonable_encoder(results))
     hash_ids = _params[HASH_ID]
     if not isinstance(hash_ids, list):
         hash_ids = [hash_ids]
-    results = []
 
     logger.info(prefix_ip(f"update lddt for {hash_ids}", request))
     for hash_id in hash_ids:
@@ -386,19 +388,20 @@ async def batch_get_lddt(request: Request):
             )
             logger.exception("update lddt error")
 
-    return json.dumps(results)
+    return JSONResponse(content=jsonable_encoder(results))
 
 
 @app.post(f"/update/rerun")
 async def batch_rerun(request: Request):
-    _params = request.json()
+    _params = request.query_params
+    
+    results = []
     if _params is None or HASH_ID not in _params:
-        return json.dumps([])
+        return JSONResponse(content=jsonable_encoder(results))
     hash_ids = _params[HASH_ID]
     if not isinstance(hash_ids, list):
         hash_ids = [hash_ids]
-    results = []
-
+    
     logger.info(prefix_ip(f"rerurn {hash_ids}", request))
     for hash_id in hash_ids:
         try:
@@ -418,18 +421,19 @@ async def batch_rerun(request: Request):
         except Exception as e:
             results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
 
-    return json.dumps(results)
+    return JSONResponse(content=jsonable_encoder(results))
 
 
 @app.post(f"/update/submit")
 async def batch_submit(request: Request):
-    _params = request.json()
+    _params = request.query_params
+    
+    results = []
     if _params is None or HASH_ID not in _params:
-        return json.dumps([])
+        return JSONResponse(content=jsonable_encoder(results))
     hash_ids = _params[HASH_ID]
     if not isinstance(hash_ids, list):
         hash_ids = [hash_ids]
-    results = []
 
     logger.info(prefix_ip(f"request to email records: {hash_ids}", request))
     _requests = []
@@ -458,18 +462,19 @@ async def batch_submit(request: Request):
             results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
         except Exception as e:
             results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
-    return json.dumps(results)
+    return JSONResponse(content=jsonable_encoder(results))
 
 
 @app.post(f"/update/gen_analysis")
 async def batch_gen_analysis(request: Request):
-    _params = request.json()
+    _params = request.query_params
+    
+    results = []
     if _params is None or HASH_ID not in _params:
-        return json.dumps([])
+        return JSONResponse(content=jsonable_encoder(results))
     hash_ids = _params[HASH_ID]
     if not isinstance(hash_ids, list):
         hash_ids = [hash_ids]
-    results = []
 
     logger.info(prefix_ip(f"request to email records: {hash_ids}", request))
     _requests = []
@@ -485,6 +490,7 @@ async def batch_gen_analysis(request: Request):
             results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
         except Exception as e:
             results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
+    
     logger.info(f"Email requests: \n{json.dumps(_requests, indent=2)}")
     for r in _requests:
         # analysis
@@ -499,16 +505,18 @@ async def batch_gen_analysis(request: Request):
             results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
         except Exception as e:
             results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
-    return json.dumps(results)
+    return JSONResponse(content=jsonable_encoder(results))
 
 
-@app.get(f"/cameo_data/<string:to_date>")
-async def get_cameo_data(to_date, request: Request):
+@app.get("/cameo_data/{to_date}")
+async def get_cameo_data(to_date: str, request: Request):
     logger.info(prefix_ip(f"get recent cameo data to {to_date}", request))
     try:
-        return json.dumps(requests.get(cameo_api + to_date).json())
+        results = requests.get(cameo_api + to_date).json()
+        return JSONResponse(content=jsonable_encoder(results))
     except Exception:
-        return json.dumps({"aaData": []})
+        results = {"aaData": []}
+        return JSONResponse(content=jsonable_encoder(results))
 
 
 @app.get(f"/casp_data")
@@ -520,7 +528,8 @@ async def get_casp_targets(request: Request):
             [line.replace(";", "\t", 8) for line in content.split("\n")]
         )
     data = pd.read_csv(StringIO(content), sep="\t")
-    return data.to_json(orient="records")
+    results = data.to_dict(orient="records")
+    return JSONResponse(content=jsonable_encoder(results))
 
 
 @app.post(f"/insert/request")
@@ -569,47 +578,50 @@ async def insert_request(request: Request):
             }
         )
 
-    return json.dumps(results)
+    return JSONResponse(content=jsonable_encoder(results))
 
 
 @app.post(f"/align")
 async def align_structures(request: Request):
-    _params = request.json()
+    _params = request.query_params
     logger.info(f"Received align request: \n{json.dumps(_params, indent=2)}")
 
     PDBS = "pdbs"
     if _params is None or PDBS not in _params:
-        return json.dumps([])
+        results = []
+        return JSONResponse(content=jsonable_encoder(results))
     pdbs = _params[PDBS]
     if not isinstance(pdbs, list):
         pdbs = [pdbs]
 
-    res = align_pdbs(*pdbs)
-    for key, val in res.items():
+    results = align_pdbs(*pdbs)
+    for key, val in results.items():
         if hasattr(val, "tolist"):
-            res[key] = val.tolist()
-    return json.dumps(res)
+            results[key] = val.tolist()
+    return JSONResponse(content=jsonable_encoder(results))
 
 
-@app.get(f"/genconf/<string:conf_name>")
-async def gen_default_conf(conf_name, request: Request):
+@app.get("/genconf/{conf_name}")
+async def gen_default_conf(conf_name: str, request: Request):
     logger.info(prefix_ip(f"generate default config for {conf_name}", request))
-    return json.dumps(generate_default_config(conf_name=conf_name))
+    results = generate_default_config(conf_name=conf_name)
+    return JSONResponse(content=jsonable_encoder(results))
 
 
 @app.get(f"/genconf")
 async def gen_conf_default(request: Request):
     logger.info(prefix_ip(f"generate default config", request))
-    return json.dumps(generate_default_config())
+    results = generate_default_config()
+    return JSONResponse(content=jsonable_encoder(results))
 
 
-@app.get(f"/stop/<string:hash_id>")
-async def stop_process(hash_id, request: Request):
+@app.get("/stop/{hash_id}")
+async def stop_process(hash_id: str, request: Request):
     reserved_dict = info_retriever.get_reserved(hash_id=hash_id)
     results = []
     if "pid" not in reserved_dict:
         results.append({HASH_ID: hash_id, ERROR: f"kill process for {hash_id} failed"})
-        return json.dumps(results)
+        return JSONResponse(content=jsonable_encoder(results))
 
     pid = reserved_dict["pid"]
     ret = kill_process_tree(pid=pid)
@@ -622,7 +634,7 @@ async def stop_process(hash_id, request: Request):
         results.append({k: try_json_loads(rcd[k]) for k in rcd})
 
     else:
-        logger.info(prefix_ip(f"kill process {pid} for {hash_id} failed", request))
+        logger.info(prefix_ip(f"kill process {pid} for {hash_id} failed"))
         info_report.update_state(hash_id=hash_id, state=State.RUNTIME_ERROR)
         info_report.update_error_message(
             hash_id=hash_id,
@@ -634,19 +646,20 @@ async def stop_process(hash_id, request: Request):
                 ERROR: f"kill process {pid} for {hash_id} failed",
             }
         )
-    return json.dumps(results)
+    return JSONResponse(content=jsonable_encoder(results))
 
 
-@app.post(f"/update/reserved/<string:hash_id>")
-async def update_reserved(hash_id, request: Request):
-    _params = request.json()
+@app.post("/update/reserved/{hash_id}")
+async def update_reserved(hash_id: str, request: Request):
+    _params = request.query_params
+    
+    results = []
     if _params is None:
-        return json.dumps([])
+        return JSONResponse(content=jsonable_encoder(results))
     logger.info(
         prefix_ip(f"update reserved for {hash_id}: \n{json.dumps(_params, indent=2)}", request)
     )
-
-    results = []
+    
     try:
         rcd = info_retriever.pull_hash_id(hash_id=hash_id)[0]
         reserved_dict = json.loads(rcd.reserved) if rcd.reserved else {}
@@ -660,18 +673,19 @@ async def update_reserved(hash_id, request: Request):
     except Exception as e:
         results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
         logger.exception("update reserved failed")
-    return json.dumps(results)
+    return JSONResponse(content=jsonable_encoder(results))
 
 
 @app.post("/update/tags")
 async def batch_update_tags(request: Request):
-    _params = request.json()
+    _params = request.query_params
+    
+    results = []
     if _params is None or HASH_ID not in _params:
-        return json.dumps([])
+        return JSONResponse(content=jsonable_encoder(results))
     hash_ids = _params[HASH_ID]
     if not isinstance(hash_ids, list):
         hash_ids = [hash_ids]
-    results = []
 
     def strip_tags(tags):
         return [tag.strip() for tag in tags if tag.strip()]
@@ -704,15 +718,14 @@ async def batch_update_tags(request: Request):
         except Exception as e:
             results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
 
-    return json.dumps(results)
+    return JSONResponse(content=jsonable_encoder(results))
 
 
-@app.get("/update/cameo_gt/<string:to_date>")
-async def cameo_gt_download(to_date):
+@app.get("/update/cameo_gt/{to_date}")
+async def cameo_gt_download(to_date: str):
     downloader = download_pdb.CameoPDBDownloader(to_date=to_date)
     downloader.start()
-    return json.dumps({"status": "in progress"})
+    results = {"status": "in progress"}
+    return JSONResponse(content=jsonable_encoder(results))
 
 
-if __name__ == "__main__":
-    uvicorn.run(app='api:app', host='0.0.0.0', port=8082, reload=True)

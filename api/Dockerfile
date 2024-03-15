@@ -1,4 +1,4 @@
-FROM python:3.9-alpine
+FROM python:3.9
 
 ENV CELERY_BROKER_URL pyamqp://guest:guest@localhost:5672/
 ENV CELERY_RESULT_BACKEND rpc://
@@ -8,12 +8,13 @@ ENV HOST 0.0.0.0
 ENV PORT 8000
 ENV DEBUG True
 
-COPY . /api
-WORKDIR /api
+COPY requirements.txt /tmp/requirements.txt
 
 RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 RUN pip install -U setuptools pip
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+WORKDIR /app
 
 EXPOSE ${PORT}
 

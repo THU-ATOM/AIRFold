@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Union
 
 from lib.base import BaseRunner
+from lib.constant import DB_PATH
 from lib.state import State
 from lib.pathtree import get_pathtree
 import lib.utils.datatool as dtool
@@ -29,7 +30,6 @@ celery.conf.task_routes = {
 
 SEQUENCE = "sequence"
 TARGET = "target"
-DB_PATH = Path("/data/protein/CAMEO/database/cameo_test.db")
 
 @celery.task(name="searchtpl")
 def searchtplTask(requests: List[Dict[str, Any]]):

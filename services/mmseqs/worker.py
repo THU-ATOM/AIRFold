@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Union
 
 from lib.base import BaseCommandRunner
+from lib.constant import DB_PATH
 from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.monitor import info_report
@@ -27,7 +28,6 @@ celery.conf.task_routes = {
     "worker.*": {"queue": "queue_mmseqs"},
 }
 
-DB_PATH = Path("/data/protein/CAMEO/database/cameo_test.db")
 
 @celery.task(name="mmseqs")
 def mmseqsTask(requests: List[Dict[str, Any]]):

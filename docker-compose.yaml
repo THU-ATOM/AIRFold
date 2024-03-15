@@ -32,6 +32,8 @@ services:
       - redis
     volumes:
       - ./api:/app
+      - /data:/data
+      - ./lib:/app/lib
     environment:
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
       - CELERY_RESULT_BACKEND=redis://redis

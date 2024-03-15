@@ -1,4 +1,0 @@
-fastapi
-uvicorn
-celery[redis]
-sqlite3

@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from loguru import logger
 
 from lib.base import BaseRunner
+from lib.constant import DB_PATH
 from lib.state import State
 from lib.pathtree import get_pathtree
 import lib.utils.datatool as dtool
@@ -32,7 +33,6 @@ celery.conf.task_routes = {
 
 SEQUENCE = "sequence"
 TARGET = "target"
-DB_PATH = Path("/data/protein/CAMEO/database/cameo_test.db")
 
 @celery.task(name="monostructure")
 def monostructureTask(requests: List[Dict[str, Any]]):
