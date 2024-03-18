@@ -285,13 +285,13 @@ services:
     image: redis:latest
 
   # Optionally, you can also include Flower for monitoring the Celery tasks
-  # flower:
-  #   image: mher/flower
-  #   command: celery --broker=amqp://rabbitmq:5672 flower --port=5555
-  #   ports:
-  #     - "5556:5555"
-  #   depends_on:
-  #     - rabbitmq
+  flower:
+    image: mher/flower
+    command: celery --broker=amqp://rabbitmq:5672 flower --port=5555
+    ports:
+      - "5556:5555"
+    depends_on:
+      - rabbitmq
 
 networks:
   default:

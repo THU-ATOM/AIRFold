@@ -188,7 +188,7 @@ async def pipeline_task(requests: List[Dict[str, Any]] = Body(..., embed=True)):
     pipelineTask = (msaSearchTasks | msaMergeTask | msaSelctTask | templateSearchTask | templateFeatureTask | templateSelectTask | 
                     structureTask | analysisTask | submitTask)()
 
-    pipelineTask.save()
+    # pipelineTask.save()
 
     return {"pipelineTask_id": pipelineTask.id}
 
@@ -618,6 +618,7 @@ async def gen_conf_default(request: Request):
 @app.get("/stop/{hash_id}")
 async def stop_process(hash_id: str, request: Request):
     reserved_dict = info_retriever.get_reserved(hash_id=hash_id)
+    logger.info(f"reserved_dict: {reserved_dict}")
     results = []
     if "pid" not in reserved_dict:
         results.append({HASH_ID: hash_id, ERROR: f"kill process for {hash_id} failed"})

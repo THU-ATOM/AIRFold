@@ -83,7 +83,7 @@ if __name__ == "__main__":
             continue
         if len(_requests) == 0:
             waited_time = _cur_time - last_received_time
-            logger.info(f"------- The time has waited: {waited_time}")
+            # logger.info(f"------- The time has waited: {waited_time}")
             if waited_time >= WAIT_UNTIL_START:
                 records = info_report.dbmgr.query(
                     {VISIBLE: 1, STATE: State.RECEIVED.name}
