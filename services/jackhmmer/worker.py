@@ -33,7 +33,7 @@ celery.conf.task_routes = {
 
 @celery.task(name="jackhmmer")
 def jackhmmerTask(requests: List[Dict[str, Any]]):
-    JackhmmerRunner(requests=requests, db_path=DB_PATH, tmpdir=TMP_ROOT).run()
+    JackhmmerRunner(requests=requests, db_path=DB_PATH, tmpdir=TMP_ROOT)()
 
 
 class JackhmmerRunner(BaseGroupCommandRunner):

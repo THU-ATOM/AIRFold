@@ -32,7 +32,7 @@ celery.conf.task_routes = {
 
 @celery.task(name="selectmsa")
 def selectmsaTask(requests: List[Dict[str, Any]]):
-    MSASelectRunner(requests=requests, db_path=DB_PATH).select()
+    MSASelectRunner(requests=requests, db_path=DB_PATH)()
 
 
 class MSASelectRunner(BaseCommandRunner):
@@ -88,7 +88,7 @@ class MSASelectRunner(BaseCommandRunner):
         logger.info(f"The output file for msa selection procedure: {self.output_path}")
         return "&& ".join(command_list)
 
-    def select(self, dry=False):
+    def run(self, dry=False):
         # Check if the integrated_search_a3m file exists or not!
         ptree = get_pathtree(request=self.requests[0])
         integrated_search_a3m = str(ptree.search.integrated_search_a3m)

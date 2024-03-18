@@ -60,6 +60,7 @@ def pipelineWorker(request_dicts):
         pipeline_url = f"http://10.0.0.12:8081/pipeline"
 
         try:
+            logger.info(f"------- Requests of pipeline task: {request_dicts}")
             requests.post(pipeline_url , json={'requests': request_dicts})
         except e:
             logger.error(str(e))

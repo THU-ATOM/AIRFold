@@ -37,7 +37,7 @@ celery.conf.task_routes = {
 
 @celery.task(name="mergemsa")
 def mergemsaTask(requests: List[Dict[str, Any]]):
-    integrated_search_a3m, template_msa_a3m = MSAMergeRunner(requests=requests, db_path=DB_PATH).run()
+    integrated_search_a3m, template_msa_a3m = MSAMergeRunner(requests=requests, db_path=DB_PATH)()
 
     return integrated_search_a3m, template_msa_a3m
 
@@ -220,12 +220,7 @@ class MSAMergeRunner(BaseRunner):
                 logger.info(
                     f"copying from {copy_int_msa_from}  failed, fall back to searching logic"
                 )
-            # # excute the runner
-            # for G_c in self.Groupc:
-            #     G_c.run(dry=dry)
-            # for S_c in self.Singlec:
-            #     S_c.run(dry=dry)
-
+                
             segment_merge = lambda path: self.merge_segmented_a3m_files(
                 target_path=path,
                 target_sequence=self.requests[0][SEQUENCE],

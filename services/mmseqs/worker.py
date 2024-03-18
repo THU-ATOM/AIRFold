@@ -31,7 +31,7 @@ celery.conf.task_routes = {
 
 @celery.task(name="mmseqs")
 def mmseqsTask(requests: List[Dict[str, Any]]):
-    command = MMseqRunner(requests=requests, db_path=DB_PATH).run()
+    command = MMseqRunner(requests=requests, db_path=DB_PATH)()
 
     return command
 

@@ -36,7 +36,7 @@ TARGET = "target"
 
 @celery.task(name="monostructure")
 def monostructureTask(requests: List[Dict[str, Any]]):
-    AirFoldRunner(requests=requests, db_path=DB_PATH).run()
+    AirFoldRunner(requests=requests, db_path=DB_PATH)()
 
 
 class MonoFeatureRunner(BaseRunner):
@@ -298,7 +298,7 @@ class AirFoldRunner(BaseRunner):
             return
         
         for m_name in models:
-            processed_feature = self.mono_msa2feature.run(
+            processed_feature = self.mono_msa2feature(
                 msa_paths=selected_msa_path,
                 template_feat=selected_template_feat,
                 af2_config=af2_config,
@@ -310,7 +310,7 @@ class AirFoldRunner(BaseRunner):
             )
             if not processed_feature:
                 return
-            unrelaxed_pdb_str = self.mono_structure.run(
+            unrelaxed_pdb_str = self.mono_structure(
                 processed_feat=processed_feature,
                 af2_config=af2_config,
                 model_name=m_name,
@@ -319,7 +319,7 @@ class AirFoldRunner(BaseRunner):
             if not unrelaxed_pdb_str:
                 return
 
-            relaxed_pdb_str = self.amber_relax.run(
+            relaxed_pdb_str = self.amber_relax(
                 unrelaxed_pdb_str=unrelaxed_pdb_str, model_name=m_name
             )
             if not relaxed_pdb_str:

@@ -11,3 +11,4 @@ matplotlib
 jsonlines
 rich
 biopython
+py3Dmol

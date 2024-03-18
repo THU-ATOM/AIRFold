@@ -32,7 +32,7 @@ TARGET = "target"
 
 @celery.task(name="selecttpl")
 def selecttplTask(requests: List[Dict[str, Any]]):
-    TPLTSelectRunner(requests=requests, db_path=DB_PATH).run()
+    TPLTSelectRunner(requests=requests, db_path=DB_PATH)()
 
 
 class TPLTSelectRunner(BaseCommandRunner):

@@ -30,7 +30,7 @@ celery.conf.task_routes = {
 
 @celery.task(name="blast")
 def blastTask(requests: List[Dict[str, Any]]):
-    BlastRunner(requests=requests, db_path=DB_PATH).run()
+    BlastRunner(requests=requests, db_path=DB_PATH)()
 
 
 class BlastRunner(BaseCommandRunner):

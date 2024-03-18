@@ -189,8 +189,14 @@ async def pipeline_task(requests: List[Dict[str, Any]] = Body(..., embed=True)):
                     structureTask | analysisTask | submitTask)()
 
     # pipelineTask.save()
+    task_id = pipelineTask.id
+    info_reportor = info_report.InfoReport(db_path=DB_PATH)
+    info_reportor.update_reserved(
+            hash_id=requests[0]["hash_id"], update_dict={"task_id": task_id}
+    )
+    logger.info(f"------- the task id is {task_id}")
 
-    return {"pipelineTask_id": pipelineTask.id}
+    return {"pipelineTask_id": task_id}
 
 
 # ----------------------------
@@ -210,30 +216,6 @@ def try_json_loads(x):
         return json.loads(x)
     except:
         return x
-
-
-def kill_process_tree(pid, include_parent=True):
-    """Kill a process tree (including grandchildren) with signal
-    "sig" and return a (gone, still_alive) tuple.
-    "on_terminate", if specified, is a callabck function which is
-    called as soon as a child terminates.
-    """
-    try:
-        if pid == os.getpid():
-            logger.error("I refuse to kill myself")
-            return False
-
-        parent = psutil.Process(pid)
-        children = parent.children(recursive=True)
-        if include_parent:
-            children.append(parent)
-
-            for p in children:
-                p.kill()
-    except:
-        return False
-
-    return True
 
 
 @app.get("/file/png")
@@ -618,35 +600,39 @@ async def gen_conf_default(request: Request):
 @app.get("/stop/{hash_id}")
 async def stop_process(hash_id: str, request: Request):
     reserved_dict = info_retriever.get_reserved(hash_id=hash_id)
-    logger.info(f"reserved_dict: {reserved_dict}")
+    # logger.info(f"reserved_dict: {reserved_dict}")
     results = []
-    if "pid" not in reserved_dict:
-        results.append({HASH_ID: hash_id, ERROR: f"kill process for {hash_id} failed"})
+    if "task_id" not in reserved_dict:
+        results.append({HASH_ID: hash_id, ERROR: f"kill task for {hash_id} failed"})
         return JSONResponse(content=jsonable_encoder(results))
 
-    pid = reserved_dict["pid"]
-    ret = kill_process_tree(pid=pid)
-
-    if ret:
-        logger.info(prefix_ip(f"kill process {pid} for {hash_id} success", request))
+    # stop task via revoke
+    task_id = reserved_dict["task_id"]
+    result = AsyncResult(task_id)
+    try:
+        result.revoke(terminate=True)
         info_report.update_state(hash_id=hash_id, state=State.KILLED)
-        ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
-        rcd = ret._asdict()
-        results.append({k: try_json_loads(rcd[k]) for k in rcd})
-
-    else:
-        logger.info(prefix_ip(f"kill process {pid} for {hash_id} failed"))
+        results.append(
+            {
+                HASH_ID: hash_id,
+                ERROR: f"kill process {task_id} for {hash_id} success",
+            }
+        )
+        logger.info(prefix_ip(f"kill task {task_id} for {hash_id} success", request))
+    except Exception as e:
         info_report.update_state(hash_id=hash_id, state=State.RUNTIME_ERROR)
         info_report.update_error_message(
             hash_id=hash_id,
-            error_msg=f"kill process {pid} for {hash_id} failed",
+            error_msg=f"kill task {task_id} for {hash_id} failed",
         )
         results.append(
             {
                 HASH_ID: hash_id,
-                ERROR: f"kill process {pid} for {hash_id} failed",
+                ERROR: f"kill process {task_id} for {hash_id} failed because of {e}",
             }
         )
+        logger.info(prefix_ip(f"kill task {task_id} for {hash_id} failed", request))
+        
     return JSONResponse(content=jsonable_encoder(results))
 
 

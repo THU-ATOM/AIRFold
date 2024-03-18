@@ -33,7 +33,7 @@ TARGET = "target"
 
 @celery.task(name="searchtpl")
 def searchtplTask(requests: List[Dict[str, Any]]):
-    TemplateSearchRunner(requests=requests, db_path=DB_PATH).run()
+    TemplateSearchRunner(requests=requests, db_path=DB_PATH)()
 
 
 class TemplateSearchRunner(BaseRunner):

@@ -35,7 +35,7 @@ TARGET = "target"
 
 @celery.task(name="tplfeature")
 def tplfeatureTask(requests: List[Dict[str, Any]]):
-    TemplateFeaturizationRunner(requests=requests, db_path=DB_PATH).run()
+    TemplateFeaturizationRunner(requests=requests, db_path=DB_PATH)()
 
 
 class TemplateFeaturizationRunner(BaseRunner):

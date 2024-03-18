@@ -44,7 +44,7 @@ TARGET = "target"
 
 @celery.task(name="submit")
 def submitTask(requests: List[Dict[str, Any]]):
-    UniforSubmitRunner(requests=requests, db_path=DB_PATH).run()
+    UniforSubmitRunner(requests=requests, db_path=DB_PATH)()
 
 
 class CAMEOSubmitRunner(BaseRunner):

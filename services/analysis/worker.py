@@ -39,7 +39,7 @@ celery.conf.task_routes = {
 
 @celery.task(name="analysis")
 def analysisTask(requests: List[Dict[str, Any]]):
-    GenAnalysisRunner(requests=requests, db_path=DB_PATH).run()
+    GenAnalysisRunner(requests=requests, db_path=DB_PATH)()
 
 
 class GenAnalysisRunner(BaseRunner):
