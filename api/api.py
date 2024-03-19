@@ -50,57 +50,62 @@ info_report = InfoReport(db_path=DB_PATH)
 # Single task
 # ----------------------------
 
-@app.post("/blast")
+@app.post("/preprocess/")
+async def preprocess_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("preprocess", args=[requests], queue="queue_preprocess")
+    return {"task_id": task.id}
+
+@app.post("/blast/")
 async def blast_task(requests: List[Dict[str, Any]]):
     task = celery_client.send_task("blast", args=[requests], queue="queue_blast")
     return {"task_id": task.id}
 
-@app.post("/jackhmmer")
+@app.post("/jackhmmer/")
 async def jackhmmer_task(requests: List[Dict[str, Any]]):
     task = celery_client.send_task("jackhmmer", args=[requests], queue="queue_jackhmmer")
     return {"task_id": task.id}
 
-@app.post("/hhblits")
+@app.post("/hhblits/")
 async def hhblits_task(requests: List[Dict[str, Any]]):
     task = celery_client.send_task("hhblits", args=[requests], queue="queue_hhblits")
     return {"task_id": task.id}
 
-@app.post("/mergemsa")
+@app.post("/mergemsa/")
 async def mergemsa_task(requests: List[Dict[str, Any]]):
     task = celery_client.send_task("mergemsa", args=[requests], queue="queue_mergemsa")
     return {"task_id": task.id}
 
-@app.post("/selectmsa")
+@app.post("/selectmsa/")
 async def selectmsa_task(requests: List[Dict[str, Any]]):
     task = celery_client.send_task("selectmsa", args=[requests], queue="queue_selectmsa")
     return {"task_id": task.id}
 
-@app.post("/searchtpl")
+@app.post("/searchtpl/")
 async def searchtpl_task(requests: List[Dict[str, Any]]):
     task = celery_client.send_task("searchtpl", args=[requests], queue="queue_searchtpl")
     return {"task_id": task.id}
 
-@app.post("/tplfeature")
+@app.post("/tplfeature/")
 async def tplfeature_task(requests: List[Dict[str, Any]]):
     task = celery_client.send_task("tplfeature", args=[requests], queue="queue_tplfeature")
     return {"task_id": task.id}
 
-@app.post("/selecttpl")
+@app.post("/selecttpl/")
 async def selecttpl_task(requests: List[Dict[str, Any]]):
     task = celery_client.send_task("selecttpl", args=[requests], queue="queue_selecttpl")
     return {"task_id": task.id}
 
-@app.post("/monostructure")
+@app.post("/monostructure/")
 async def monostructure_task(requests: List[Dict[str, Any]]):
     task = celery_client.send_task("monostructure", args=[requests], queue="queue_monostructure")
     return {"task_id": task.id}
 
-@app.post("/analysis")
+@app.post("/analysis/")
 async def analysis_task(requests: List[Dict[str, Any]]):
     task = celery_client.send_task("analysis", args=[requests], queue="queue_analysis")
     return {"task_id": task.id}
 
-@app.post(f"/submit")
+@app.post(f"/submit/")
 async def submit_task(requests: List[Dict[str, Any]]):
     task = celery_client.send_task("submit", args=[requests], queue="queue_submit")
     return {"task_id": task.id}
@@ -127,7 +132,7 @@ async def get_task_result(task_id: str):
 # Group/Graph task
 # ----------------------------
 
-@app.post("/msaGen")
+@app.post("/msaGen/")
 async def msaGen_task(requests: List[Dict[str, Any]]):
     # msaTasks
     msaSearchTasks = group(
@@ -159,13 +164,15 @@ async def get_group_task_result(group_task_id: str):
         }
 
 
-@app.post("/pipeline")
+@app.post("/pipeline/")
 async def pipeline_task(requests: List[Dict[str, Any]] = Body(..., embed=True)):
+    # preprocessTask
+    preprocessTask = signature("preprocess", args=[requests], queue="queue_preprocess", immutable=True)
     # msaTasks
     msaSearchTasks = group(
-        signature("blast", args=[requests], queue="queue_blast"), 
-        signature("jackhmmer", args=[requests], queue="queue_jackhmmer"),
-        signature("hhblits", args=[requests], queue="queue_hhblits"),
+        signature("blast", args=[requests], queue="queue_blast", immutable=True), 
+        signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
+        signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
     )
     msaMergeTask = signature("mergemsa", args=[requests], queue="queue_mergemsa", immutable=True)
     msaSelctTask = signature("selectmsa", args=[requests], queue="queue_selectmsa", immutable=True)
@@ -186,13 +193,12 @@ async def pipeline_task(requests: List[Dict[str, Any]] = Body(..., embed=True)):
 
 
     # pipelineTask
-    pipelineTask = (msaSearchTasks | msaMergeTask | msaSelctTask | templateSearchTask | templateFeatureTask | templateSelectTask | 
-                    structureTask | analysisTask | submitTask)()
+    pipelineTask = (preprocessTask | msaSearchTasks | msaMergeTask | msaSelctTask | templateSearchTask | 
+                    templateFeatureTask | templateSelectTask | structureTask | analysisTask | submitTask)()
 
     # pipelineTask.save()
     task_id = pipelineTask.id
-    info_reportor = info_report.InfoReport(db_path=DB_PATH)
-    info_reportor.update_reserved(
+    info_report.update_reserved(
             hash_id=requests[0]["hash_id"], update_dict={"task_id": task_id}
     )
     logger.info(f"------- the task id is {task_id}")
@@ -203,6 +209,17 @@ async def pipeline_task(requests: List[Dict[str, Any]] = Body(..., embed=True)):
 # ----------------------------
 # API BACKEND
 # ----------------------------
+
+async def get_request(request): 
+    try :
+        ret = await request.json()
+        print(f'-------- request json: {ret}')
+        return ret
+    except Exception as err:
+        # could not parse json
+        print(f'------- request body: {await request.body()}')
+        return None
+
 
 def prefix_ip(message: str, request: Request):
     client_host = request.client.host
@@ -221,6 +238,7 @@ def try_json_loads(x):
 @app.get("/file/png")
 async def get_png(request: Request):
     _params = request.query_params
+    
     file_path = _params["file_path"]
     file_name = os.path.basename(file_path)
     if Path(file_path).exists():
@@ -234,6 +252,7 @@ async def get_png(request: Request):
 @app.get("/file/text")
 async def get_file(request: Request):
     _params = request.query_params
+    
     file_path = _params["file_path"]
     file_name = os.path.basename(file_path)
     if Path(file_path).exists():
@@ -247,6 +266,7 @@ async def get_file(request: Request):
 @app.get("/file/download")
 async def get_file_download(request: Request):
     _params = request.query_params
+    
     file_path = _params["file_path"]
     file_name = os.path.basename(file_path)
     if Path(file_path).exists():
@@ -269,6 +289,7 @@ async def pull_hash_id(hash_id: str, request: Request):
 @app.get("/query")
 async def pull_with_condition(request: Request):
     _params = request.query_params
+    
     _params = {
         k: _params[k]
         for k in _params
@@ -287,7 +308,11 @@ async def pull_with_condition(request: Request):
 
 @app.post("/update/visible/{hash_id}")
 async def set_visible(hash_id: str, request: Request):
-    _params = request.query_params
+    try:
+        _params = await get_request(request)
+    except Exception as err:
+        logger.error(f'could not print REQUEST: {err}')
+    
     visible = _params.get(VISIBLE, 1)
     info_report.update_visible(hash_id=hash_id, visible=visible)
     results = []
@@ -304,6 +329,7 @@ async def set_visible(hash_id: str, request: Request):
 @app.get("/update/visible/{hash_id}")
 async def set_visible(hash_id: str, request: Request):
     _params = request.query_params
+    
     visible = _params.get(VISIBLE, 1)
     info_report.update_visible(hash_id=hash_id, visible=visible)
     results = []
@@ -320,7 +346,11 @@ async def set_visible(hash_id: str, request: Request):
 
 @app.options("/update/visible/{hash_id}") 
 async def set_visible(hash_id: str, request: Request):
-    _params = request.query_params
+    try:
+        _params = await get_request(request)
+    except Exception as err:
+        logger.error(f'could not print REQUEST: {err}')
+    
     visible = _params.get(VISIBLE, 1)
     info_report.update_visible(hash_id=hash_id, visible=visible)
     results = []
@@ -335,9 +365,12 @@ async def set_visible(hash_id: str, request: Request):
     return JSONResponse(content=jsonable_encoder(results))
 
 
-@app.post(f"/update/lddt")
+@app.post(f"/update/lddt/")
 async def batch_get_lddt(request: Request):
-    _params = request.query_params
+    try:
+        _params = await get_request(request)
+    except Exception as err:
+        logger.error(f'could not print REQUEST: {err}')
     
     results = []
     if _params is None or HASH_ID not in _params:
@@ -375,8 +408,11 @@ async def batch_get_lddt(request: Request):
 
 @app.post(f"/update/rerun/")
 async def batch_rerun(request: Request):
-    print(request)
-    _params = request.query_params
+        
+    try:
+        _params = await get_request(request)
+    except Exception as err:
+        logger.error(f'could not print REQUEST: {err}')
     
     results = []
     if _params is None or HASH_ID not in _params:
@@ -407,9 +443,12 @@ async def batch_rerun(request: Request):
     return JSONResponse(content=jsonable_encoder(results))
 
 
-@app.post(f"/update/submit")
+@app.post(f"/update/submit/")
 async def batch_submit(request: Request):
-    _params = request.query_params
+    try:
+        _params = await get_request(request)
+    except Exception as err:
+        logger.error(f'could not print REQUEST: {err}')
     
     results = []
     if _params is None or HASH_ID not in _params:
@@ -448,9 +487,12 @@ async def batch_submit(request: Request):
     return JSONResponse(content=jsonable_encoder(results))
 
 
-@app.post(f"/update/gen_analysis")
+@app.post(f"/update/gen_analysis/")
 async def batch_gen_analysis(request: Request):
-    _params = request.query_params
+    try:
+        _params = await get_request(request)
+    except Exception as err:
+        logger.error(f'could not print REQUEST: {err}')
     
     results = []
     if _params is None or HASH_ID not in _params:
@@ -517,20 +559,23 @@ async def get_casp_targets(request: Request):
     return JSONResponse(content=jsonable_encoder(results))
 
 
-@app.post(f"/insert/request")
+@app.post(f"/insert/request/")
 async def insert_request(request: Request):
-    _received = request.query_params
-    logger.info(f"Received request: \n{json.dumps(_received, indent=2)}")
+    try:
+        _params = await get_request(request)
+    except Exception as err:
+        logger.error(f'could not print REQUEST: {err}')
+
     time = datetime.now().strftime("%Y%m%d_%H%M%S")
     # _received = sorted_dict(_received)
-    hash_id = sha256(json.dumps(_received).encode()).hexdigest()
-    _received[TIME_STAMP] = time
-    _received[HASH_ID] = hash_id
+    hash_id = sha256(json.dumps(_params).encode()).hexdigest()
+    _params[TIME_STAMP] = time
+    _params[HASH_ID] = hash_id
 
     results = []
     try:
         _request = (
-            extend_run_config(_received) if "run_config" not in _received else _received
+            extend_run_config(_params) if "run_config" not in _params else _params
         )
         info_report.insert_new_request(_request)
 
@@ -566,10 +611,12 @@ async def insert_request(request: Request):
     return JSONResponse(content=jsonable_encoder(results))
 
 
-@app.post(f"/align")
+@app.post(f"/align/")
 async def align_structures(request: Request):
-    _params = request.query_params
-    logger.info(f"Received align request: \n{json.dumps(_params, indent=2)}")
+    try:
+        _params = await get_request(request)
+    except Exception as err:
+        logger.error(f'could not print REQUEST: {err}')
 
     PDBS = "pdbs"
     if _params is None or PDBS not in _params:
@@ -641,7 +688,10 @@ async def stop_process(hash_id: str, request: Request):
 
 @app.post("/update/reserved/{hash_id}")
 async def update_reserved(hash_id: str, request: Request):
-    _params = request.query_params
+    try:
+        _params = await get_request(request)
+    except Exception as err:
+        logger.error(f'could not print REQUEST: {err}')
     
     results = []
     if _params is None:
@@ -666,9 +716,12 @@ async def update_reserved(hash_id: str, request: Request):
     return JSONResponse(content=jsonable_encoder(results))
 
 
-@app.post("/update/tags")
+@app.post("/update/tags/")
 async def batch_update_tags(request: Request):
-    _params = request.query_params
+    try:
+        _params = await get_request(request)
+    except Exception as err:
+        logger.error(f'could not print REQUEST: {err}')
     
     results = []
     if _params is None or HASH_ID not in _params:
