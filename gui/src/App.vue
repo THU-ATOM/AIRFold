@@ -63,7 +63,7 @@
       </div>
     </a-layout-content>
     <a-layout-footer style="text-align: center">
-      Air-Health ©2022
+      Air-Health ©2024
     </a-layout-footer>
   </a-layout>
 </template>

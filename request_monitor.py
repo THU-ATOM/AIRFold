@@ -89,6 +89,7 @@ if __name__ == "__main__":
                 records = info_report.dbmgr.query(
                     {VISIBLE: 1, STATE: State.RECEIVED.name}
                 )
+                logger.info(f"------- Received records: {records}")
                 
                 if len(records) > 0:
                     for rcds in misc.chunk_generate(records, chunk_size=1):

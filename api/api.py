@@ -9,7 +9,7 @@ from hashlib import sha256
 
 # import asyncio
 import requests
-import json, sqlite3, psutil
+import json, sqlite3
 from io import StringIO
 from pathlib import Path
 import pandas as pd
@@ -31,18 +31,20 @@ from lib.constant import *
 from lib.tool.align import align_pdbs
 import lib.monitor.download_pdb as download_pdb
 
-info_retriever = InfoRetrieve(db_path=DB_PATH)
-info_report = InfoReport(db_path=DB_PATH)
-
-cameo_api = "https://www.cameo3d.org/modeling/targets/1-month/ajax/?to_date="
-casp_target_list = "https://predictioncenter.org/casp15/targetlist.cgi?type=csv"
-
 # configuration
 DEBUG = True
 app = FastAPI()
 # enable CORS
-origins = ["*"]
-app.add_middleware(CORSMiddleware, allow_origins=origins)
+app.add_middleware(
+CORSMiddleware,
+allow_origins=["*"], # Allows all origins
+allow_credentials=True,
+allow_methods=["*"], # Allows all methods
+allow_headers=["*"], # Allows all headers
+)
+
+info_retriever = InfoRetrieve(db_path=DB_PATH)
+info_report = InfoReport(db_path=DB_PATH)
 
 # ----------------------------
 # Single task
@@ -125,7 +127,6 @@ async def get_task_result(task_id: str):
 # Group/Graph task
 # ----------------------------
 
-
 @app.post("/msaGen")
 async def msaGen_task(requests: List[Dict[str, Any]]):
     # msaTasks
@@ -202,7 +203,6 @@ async def pipeline_task(requests: List[Dict[str, Any]] = Body(..., embed=True)):
 # ----------------------------
 # API BACKEND
 # ----------------------------
-
 
 def prefix_ip(message: str, request: Request):
     client_host = request.client.host
@@ -373,8 +373,9 @@ async def batch_get_lddt(request: Request):
     return JSONResponse(content=jsonable_encoder(results))
 
 
-@app.post(f"/update/rerun")
+@app.post(f"/update/rerun/")
 async def batch_rerun(request: Request):
+    print(request)
     _params = request.query_params
     
     results = []
@@ -492,6 +493,7 @@ async def batch_gen_analysis(request: Request):
 
 @app.get("/cameo_data/{to_date}")
 async def get_cameo_data(to_date: str, request: Request):
+    cameo_api = "https://www.cameo3d.org/modeling/targets/1-month/ajax/?to_date="
     logger.info(prefix_ip(f"get recent cameo data to {to_date}", request))
     try:
         results = requests.get(cameo_api + to_date).json()
@@ -503,6 +505,7 @@ async def get_cameo_data(to_date: str, request: Request):
 
 @app.get(f"/casp_data")
 async def get_casp_targets(request: Request):
+    casp_target_list = "https://predictioncenter.org/casp15/targetlist.cgi?type=csv"
     logger.info(prefix_ip(f"get casp targets", request))
     with requests.Session() as s:
         content = s.get(casp_target_list).content.decode("utf-8")
