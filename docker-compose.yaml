@@ -41,6 +41,27 @@ services:
       - PORT=8081
     command: uvicorn api:app --host 0.0.0.0 --port 8081
   
+  worker_monitor:
+    build:
+      context: ./services/monitor
+      dockerfile: Dockerfile
+      args:
+        - http_proxy=${http_proxy}
+        - https_proxy=${https_proxy}
+        - USER_ID=${UID}
+        - GROUP_ID=${GID}
+        - USER_NAME=${USER_NAME}
+    depends_on:
+      - rabbitmq
+    environment:
+      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_RESULT_BACKEND=redis://redis
+    volumes:
+      - ./services/monitor:/worker
+      - /data:/data
+      - ./lib:/worker/lib
+    command: celery -A worker worker --loglevel=info -Q queue_monitor --concurrency=4
+
   worker_preprocess:
     build:
       context: ./services/preprocess

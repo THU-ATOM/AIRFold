@@ -7,6 +7,7 @@ from traceback import print_exception
 from typing import List
 from datetime import datetime, timedelta
 from loguru import logger
+from celery import Celery
 
 from lib.constant import *
 from lib.state import State
@@ -18,12 +19,29 @@ from lib.monitor.cameo_server import post_utils
 from lib.utils import misc
 from lib.monitor.extend_config import extend_run_config
 
-
-# MAX_CONCURRENT_PIPELINE_NUM = 20
-# WAIT_UNTIL_START = 15 * 60
 WAIT_UNTIL_START = 30
-# REQUEST_PERIOD = 60
 REQUEST_PERIOD = 10
+
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "rpc://")
+CELERY_BROKER_URL = (
+    os.environ.get("CELERY_BROKER_URL", "pyamqp://guest:guest@localhost:5672/"),
+)
+
+celery = Celery(
+    __name__,
+    broker=CELERY_BROKER_URL,
+    backend=CELERY_RESULT_BACKEND,
+)
+
+celery.conf.task_routes = {
+    "worker.*": {"queue": "queue_monitor"},
+}
+
+
+@celery.task(name="monitor")
+def monitorTask():
+    request_monitor()
+
 
 
 def request_due(r, d=3):
@@ -57,7 +75,7 @@ def pipelineWorker(request_dicts):
     with tool_utils.tmpdir_manager(base_dir="/tmp") as tmpdir:
         os.path.join(tmpdir, "requests.pkl")
         # pip_request= {"requests" : request_dicts}
-        pipeline_url = f"http://10.0.0.12:8081/pipeline"
+        pipeline_url = f"http://10.0.0.12:8081/pipeline/"
 
         try:
             logger.info(f"------- Requests of pipeline task: {request_dicts}")
@@ -66,7 +84,7 @@ def pipelineWorker(request_dicts):
             logger.error(str(e))
 
 
-if __name__ == "__main__":
+def request_monitor():
     logger.configure(**MONITOR_LOGGING_CONFIG)
     logger.info("------- Start to monitor...")
 
