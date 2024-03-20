@@ -37,10 +37,7 @@ celery.conf.task_routes = {
 
 @celery.task(name="mergemsa")
 def mergemsaTask(requests: List[Dict[str, Any]]):
-    integrated_search_a3m, template_msa_a3m = MSAMergeRunner(requests=requests, db_path=DB_PATH)()
-
-    return integrated_search_a3m, template_msa_a3m
-
+    MSAMergeRunner(requests=requests, db_path=DB_PATH)()
 
 
 class MSAMergeRunner(BaseRunner):
