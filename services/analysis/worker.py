@@ -287,19 +287,19 @@ class GenAnalysisRunner(BaseRunner):
         model2plddts, _ = self.get_plddts_from_dir(
             dirname=dirname, pdb_pattern="rank_*.pdb"
         )
-        # template_infos = self.get_template_info_from_ptree(ptree)
-        # self.info_reportor.update_reserved(
-        #     hash_id=self.requests[0][info_report.HASH_ID], update_dict=template_infos
-        # )
-        # self.info_reportor.update_metric(
-        #     hash_id=self.requests[0][info_report.HASH_ID],
-        #     value=model2plddts,
-        #     metric="plddt",
-        # )
+        template_infos = self.get_template_info_from_ptree(ptree)
+        self.info_reportor.update_reserved(
+            hash_id=self.requests[0][info_report.HASH_ID], update_dict=template_infos
+        )
+        self.info_reportor.update_metric(
+            hash_id=self.requests[0][info_report.HASH_ID],
+            value=model2plddts,
+            metric="plddt",
+        )
 
-        # self.info_reportor.update_path_tree(
-        #     hash_id=self.requests[0][info_report.HASH_ID], path_tree=ptree.tree
-        # )
+        self.info_reportor.update_path_tree(
+            hash_id=self.requests[0][info_report.HASH_ID], path_tree=ptree.tree
+        )
         result_path = os.path.join(dirname, "plddt_results.json")
         dtool.write_json(result_path, data=model2plddts)
         return str(result_path)
