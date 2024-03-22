@@ -14,8 +14,6 @@ RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 RUN pip install -U setuptools pip
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-# Install MMseqs2
-RUN conda install -c conda-forge -c bioconda mmseqs2
 
 # add user
 RUN if [ $USER_NAME != "root" ] ; \
@@ -30,4 +28,4 @@ USER ${USER_NAME}
 WORKDIR /worker
 
 # Specify the command to run on container start
-CMD ["celery", "-A", "mmseqs", "worker", "--loglevel=info", "-Q", "queue_mmseqs"]
+CMD ["celery", "-A", "deepmsa", "worker", "--loglevel=info", "-Q", "queue_deepmsa"]

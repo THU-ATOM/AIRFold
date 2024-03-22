@@ -51,8 +51,8 @@ info_report = InfoReport(db_path=DB_PATH)
 # ----------------------------
 
 @app.post("/monitor/")
-async def monitor_task(requests: List[Dict[str, Any]]):
-    task = celery_client.send_task("monitor", args=[requests], queue="queue_monitor")
+async def monitor_task():
+    task = celery_client.send_task("monitor", args=[], queue="queue_monitor")
     return {"task_id": task.id}
 
 @app.post("/preprocess/")

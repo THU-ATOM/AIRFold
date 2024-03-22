@@ -31,10 +31,7 @@ celery.conf.task_routes = {
 
 @celery.task(name="mmseqs")
 def mmseqsTask(requests: List[Dict[str, Any]]):
-    command = MMseqRunner(requests=requests, db_path=DB_PATH)()
-
-    return command
-
+    MMseqRunner(requests=requests, db_path=DB_PATH)()
 
 
 class MMseqRunner(BaseCommandRunner):
@@ -49,12 +46,12 @@ class MMseqRunner(BaseCommandRunner):
 
     def build_command(self, request: Dict[str, Any]) -> str:
         ptree = get_pathtree(request=request)
-        command = (
-            f"python {get_module_path(mmseqs)} "
-            f"-i={ptree.seq.fasta} "
-            f"-o={ptree.search.mmseqs_a3m} "
-            f"-fo={ptree.search.mmseqs_fa} "
-        )
+        executed_file = (
+                Path(__file__).resolve().parent / "lib" / "tool" / "mmseqs" / "search.py")
+        params = []
+        params.append(f"-s {self.input_path} ")
+        params.append(f"-t {self.output_path} ")
+        command = f"python {executed_file} " + "".join(params)
         return command
 
     def on_run_end(self):
