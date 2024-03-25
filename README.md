@@ -1,8 +1,4 @@
-# Microservices Demo
-
-A microservices demo built with [Celery](https://github.com/celery/celery) and [FastAPI](https://github.com/celery/celery).
-
-<img src="demo.svg" width=320 align="right">
+# AIRFold
 
 **Features:**
 

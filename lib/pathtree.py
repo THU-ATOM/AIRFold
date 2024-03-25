@@ -122,13 +122,14 @@ class SearchPathTree(BasePathTree):
     def hhblist_bfd_uniclust_fa(self) -> Path:
         return self.root / "hhblist_bfd_ucl_fa" / f"{self.id}.fasta"
 
+    # mmseqs output path
+    @property
+    def mmseqs_base(self) -> Path:
+        return self.root / "mmseqs" / f"{self.id}"
+    
     @property
     def mmseqs_a3m(self):
-        return self.root / "mmseqs_a3m" / f"{self.id}.a3m"
-
-    @property
-    def mmseqs_fa(self):
-        return self.root / "mmseqs_fa" / f"{self.id}.fasta"
+        return self.root / "mmseqs_a3m" / f"{self.id}" / "final.a3m"
 
     # blast output path
     @property

@@ -442,17 +442,17 @@ def mmseqs_search_pair(
 def main():
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument(
-        "query",
+        "--query",
         type=Path,
         help="fasta files with the queries.",
     )
     parser.add_argument(
-        "dbbase",
+        "--dbbase",
         type=Path,
         help="The path to the database and indices you downloaded and created with setup_databases.sh",
     )
     parser.add_argument(
-        "base", type=Path, help="Directory for the results (and intermediate files)"
+        "--base", type=Path, help="Directory for the results (and intermediate files)"
     )
     parser.add_argument(
         "-s",
