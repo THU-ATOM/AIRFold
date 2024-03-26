@@ -163,9 +163,6 @@ def blast_main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-b", "--blast_type", type=str, default="psiblast")
-    # parser.add_argument(
-    #     "-url", "--host_url", type=str, default="https://a3m.mmseqs.com"
-    # )
     parser.add_argument("-db", "--database", type=str, default=str(BLAST_ROOT))
     parser.add_argument(
         "-of", "--outfmt", type=str, default="6 sseqid  qstart qend qseq sseq"

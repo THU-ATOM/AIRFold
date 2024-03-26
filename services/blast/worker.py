@@ -68,12 +68,7 @@ class BlastRunner(BaseCommandRunner):
                 else "",
             ]
         )
-        # command = (
-        #     f"python {get_module_path(blast)} "
-        #     f"-i={ptree.seq.fasta} "
-        #     f"-o={ptree.search.blast_a3m} "
-        #     # f"-fo={ptree.search.mmseqs_fa} "
-        # )
+
         return command
 
     def on_run_end(self):

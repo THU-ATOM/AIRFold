@@ -78,7 +78,7 @@ class MMseqRunner(BaseCommandRunner):
         if self.info_reportor is not None:
             for request in self.requests:
                 tree = get_pathtree(request=request)
-                if tree.search.mmseqs_a3m.exists() and tree.search.mmseqs_fa.exists():
+                if tree.search.mmseqs_a3m.exists():
                     self.info_reportor.update_state(
                         hash_id=request[info_report.HASH_ID],
                         state=State.MMSEQS_SUCCESS,

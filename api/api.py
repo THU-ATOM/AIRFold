@@ -462,7 +462,7 @@ async def batch_submit(request: Request):
     if not isinstance(hash_ids, list):
         hash_ids = [hash_ids]
 
-    logger.info(prefix_ip(f"request to email records: {hash_ids}", hash_ids))
+    logger.info(prefix_ip(f"request to email records: {hash_ids}", request))
     _requests = []
     for hash_id in hash_ids:
         try:
