@@ -34,25 +34,9 @@ databasesrootpath = os.path.join(rootpath,"database")
 
 para_json = dict(
     # main program parameter
-    programrootpath=rootpath,
-    
     qMSApkg=os.path.join(rootpath, "bin/qMSA"),
     dMSApkg=os.path.join(rootpath, "bin/dMSA"),
-    python_DeepPotential=os.path.join(rootpath, "anaconda3/bin/python"),
-
-    # submit job parameter
-    run_type='local',  # 'local' or 'sbatch'
-    partition='xxx_cpu',
-    gpu_partition='xxx_gpu',
-    account='xxx',
-    mMSAcpu=10,
-    qMSAcpu=10,
-    dMSAcpu=10,
-
     # database parameter 
-    # If you modified the following databases with different version
-    # please go to the alphafold and alphafold_multimer folders in bin folder
-    # change the corresponding databases in run_alphafold_*.sh
     dMSAhhblitsdb=os.path.join(databasesrootpath, 'uniclust30_2017_04/uniclust30_2017_04'),
     dMSAjackhmmerdb=os.path.join(databasesrootpath, 'uniref90/uniref90.fasta'),
     dMSAhmmsearchdb=os.path.join(databasesrootpath, 'metaclust/metaclust.fasta'),
@@ -69,6 +53,7 @@ para_json = dict(
 def deepmsaTask(requests: List[Dict[str, Any]]):
     DeepqMSARunner(requests=requests, db_path=DB_PATH)()
     DeepdMSARunner(requests=requests, db_path=DB_PATH)()
+    DeepmMSARunner(requests=requests, db_path=DB_PATH)()
 
 
 class DeepqMSARunner(BaseCommandRunner):
@@ -79,7 +64,7 @@ class DeepqMSARunner(BaseCommandRunner):
 
     @property
     def start_stage(self) -> int:
-        return State.DEEPMSA_START
+        return State.DEEPqMSA_START
 
     def build_command(self, request: Dict[str, Any]) -> str:
         # /home/casp15/code/AIRFold/lib/tool/deepmsa2/bin/qMSA/scripts/qMSA.py
@@ -115,12 +100,12 @@ class DeepqMSARunner(BaseCommandRunner):
                 if tree.search.deepmsa_qa3m.exists():
                     self.info_reportor.update_state(
                         hash_id=request[info_report.HASH_ID],
-                        state=State.DEEPMSA_SUCCESS,
+                        state=State.DEEPqMSA_SUCCESS,
                     )
                 else:
                     self.info_reportor.update_state(
                         hash_id=request[info_report.HASH_ID],
-                        state=State.DEEPMSA_ERROR,
+                        state=State.DEEPqMSA_ERROR,
                     )
 
 class DeepdMSARunner(BaseCommandRunner):
@@ -131,7 +116,7 @@ class DeepdMSARunner(BaseCommandRunner):
 
     @property
     def start_stage(self) -> int:
-        return State.DEEPMSA_START
+        return State.DEEPdMSA_START
 
     def build_command(self, request: Dict[str, Any]) -> str:
         # /home/casp15/code/AIRFold/lib/tool/deepmsa2/bin/dMSA/scripts/build_MSA.py
@@ -165,12 +150,12 @@ class DeepdMSARunner(BaseCommandRunner):
                 if tree.search.deepmsa_da3m.exists():
                     self.info_reportor.update_state(
                         hash_id=request[info_report.HASH_ID],
-                        state=State.DEEPMSA_SUCCESS,
+                        state=State.DEEPdMSA_SUCCESS,
                     )
                 else:
                     self.info_reportor.update_state(
                         hash_id=request[info_report.HASH_ID],
-                        state=State.DEEPMSA_ERROR,
+                        state=State.DEEPdMSA_ERROR,
                     )
 
 
@@ -182,7 +167,7 @@ class DeepmMSARunner(BaseCommandRunner):
 
     @property
     def start_stage(self) -> int:
-        return State.DEEPMSA_START
+        return State.DEEPmMSA_START
 
     def build_command(self, request: Dict[str, Any]) -> str:
         # query fasta
@@ -224,10 +209,10 @@ class DeepmMSARunner(BaseCommandRunner):
                 if tree.search.deepmsa_da3m.exists():
                     self.info_reportor.update_state(
                         hash_id=request[info_report.HASH_ID],
-                        state=State.DEEPMSA_SUCCESS,
+                        state=State.DEEPmMSA_SUCCESS,
                     )
                 else:
                     self.info_reportor.update_state(
                         hash_id=request[info_report.HASH_ID],
-                        state=State.DEEPMSA_ERROR,
+                        state=State.DEEPmMSA_ERROR,
                     )
