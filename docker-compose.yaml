@@ -146,6 +146,48 @@ services:
       - ./lib:/worker/lib
     command: celery -A worker worker --loglevel=info -Q queue_hhblits --concurrency=8
 
+  worker_mmseqs:
+    build:
+      context: ./services/mmseqs
+      dockerfile: Dockerfile
+      args:
+        - http_proxy=${http_proxy}
+        - https_proxy=${https_proxy}
+        - USER_ID=${UID}
+        - GROUP_ID=${GID}
+        - USER_NAME=${USER_NAME}
+    depends_on:
+      - rabbitmq
+    environment:
+      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_RESULT_BACKEND=redis://redis
+    volumes:
+      - ./services/mmseqs:/worker
+      - /data:/data
+      - ./lib:/worker/lib
+    command: celery -A worker worker --loglevel=info -Q queue_mmseqs --concurrency=8
+
+  worker_deepmsa:
+    build:
+      context: ./services/deepmsa
+      dockerfile: Dockerfile
+      args:
+        - http_proxy=${http_proxy}
+        - https_proxy=${https_proxy}
+        - USER_ID=${UID}
+        - GROUP_ID=${GID}
+        - USER_NAME=${USER_NAME}
+    depends_on:
+      - rabbitmq
+    environment:
+      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_RESULT_BACKEND=redis://redis
+    volumes:
+      - ./services/deepmsa:/worker
+      - /data:/data
+      - ./lib:/worker/lib
+    command: celery -A worker worker --loglevel=info -Q queue_deepmsa --concurrency=8
+
   worker_mergemsa:
     build:
       context: ./services/mergemsa

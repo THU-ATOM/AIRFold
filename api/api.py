@@ -75,6 +75,17 @@ async def hhblits_task(requests: List[Dict[str, Any]]):
     task = celery_client.send_task("hhblits", args=[requests], queue="queue_hhblits")
     return {"task_id": task.id}
 
+
+@app.post("/mmseqs/")
+async def mmseqs_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("mmseqs", args=[requests], queue="queue_mmseqs")
+    return {"task_id": task.id}
+
+@app.post("/deepmsa/")
+async def deepmsa_task(requests: List[Dict[str, Any]]):
+    task = celery_client.send_task("deepmsa", args=[requests], queue="queue_deepmsa")
+    return {"task_id": task.id}
+
 @app.post("/mergemsa/")
 async def mergemsa_task(requests: List[Dict[str, Any]]):
     task = celery_client.send_task("mergemsa", args=[requests], queue="queue_mergemsa")
@@ -144,7 +155,8 @@ async def msaGen_task(requests: List[Dict[str, Any]]):
         signature("blast", args=[requests], queue="queue_blast"),
         signature("jackhmmer", args=[requests], queue="queue_jackhmmer"),
         signature("hhblits", args=[requests], queue="queue_hhblits"),
-        # signature("mmseqs", args=[requests], queue="queue_mmseqs"),
+        signature("mmseqs", args=[requests], queue="queue_mmseqs"),
+        signature("deepmsa", args=[requests], queue="queue_deepmsa"),
     )
     msaMergeTask = signature("mergemsa", args=[requests], queue="queue_mergemsa", immutable=True)
     msaGenTask = chord(msaSearchTasks)(msaMergeTask)()
