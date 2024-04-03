@@ -309,7 +309,8 @@ async def pull_with_condition(request: Request):
     
     _params = {
         k: _params[k]
-        for k in _params
+        # for k in _params
+        for k in _params[200:]
         if k in StateRecord._fields
         or "_".join(k.split("_")[:-1]) in StateRecord._fields
         or k == "limit"
