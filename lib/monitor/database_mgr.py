@@ -121,6 +121,10 @@ class DBManager:
         _update_str = ", ".join([f"{k} = '{update_dict[k]}'" for k in update_dict])
         _sql_update = f""" UPDATE {self.state_table_name} SET {_update_str} WHERE {self.stcolnames.hash_id}='{hash_id}' """
         db.execute(_sql_update)
+    
+    def _delete(self, name: str, db: Database) -> None:
+        _sql_update = f""" DELETE FROM {self.state_table_name} WHERE {self.stcolnames.name}='{name}' """
+        db.execute(_sql_update)
 
     def _record_in_db(self, hash_id: str, db: Database) -> bool:
         res = self._query(query_dict={self.stcolnames.hash_id: hash_id}, db=db)
@@ -163,6 +167,10 @@ class DBManager:
         with Database(self._db_path) as db:
             resulsts = self._query(query_dict=query_dict, db=db)
         return [item for item in map(StateRecord._make, resulsts)]
+    
+    def delete(self, name: str) -> List[StateRecord]:
+        with Database(self._db_path) as db:
+            self._delete(name, db=db)
 
     def update(self, hash_id: str, update_dict: dict) -> None:
         def dump(item):

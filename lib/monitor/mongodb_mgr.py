@@ -8,9 +8,8 @@ from lib.constant import DB_PATH
 
 from pymongo import MongoClient
 
-client = MongoClient('mongodb://localhost:27017/')
+client = MongoClient('mongodb://10.0.0.12:27017/')
 db = client.cameo_2024
-
 
 
 StateRecord = namedtuple(
@@ -41,7 +40,7 @@ def sorted_dict(d: dict):
 
 class DBManager:
     def __init__(self):
-        self.transactions = db.transactions
+        self.jobs = db.jobs
 
     def _insert(self, state_item: StateRecord):
         _fields = StateRecord._fields
@@ -49,15 +48,15 @@ class DBManager:
         for k in _fields:
             insert_value = state_item.__getattribute__(k)
             insert_data[k] = insert_value
-        self.transactions.insert_one(insert_data)
+        self.jobs.insert_one(insert_data)
 
     def _query(self, query_dict: dict):
-        resulsts = self.transactions.find(query_dict)
+        resulsts = self.jobs.find(query_dict)
         return resulsts
 
     def _update(self, hash_id: str, update_dict: dict):
-        # transactions.update( {'account_id': 'sns_03821023'}, {'$set': {'purchase_method': 'account'}})
-        self.transactions.update( {'hash_id': hash_id}, {'$set': update_dict})
+        # jobs.update( {'account_id': 'sns_03821023'}, {'$set': {'purchase_method': 'account'}})
+        self.jobs.update( {'hash_id': hash_id}, {'$set': update_dict})
 
     def _record_in_db(self, hash_id: str, db: Database) -> bool:
         res = self._query(query_dict={self.stcolnames.hash_id: hash_id}, db=db)

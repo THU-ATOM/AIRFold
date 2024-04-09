@@ -310,13 +310,16 @@ async def pull_with_condition(request: Request):
     _params = {
         k: _params[k]
         # for k in _params
-        for k in _params[200:]
+        for k in _params
         if k in StateRecord._fields
         or "_".join(k.split("_")[:-1]) in StateRecord._fields
         or k == "limit"
     }
     _params = {k: _params[k].replace(".*", "%") for k in _params}
 
+    import itertools
+    _params = dict(itertools.islice(_params.items(), 200))
+    
     records = info_retriever.pull_with_condition(_params)
     records = [r._asdict() for r in records]
     logger.info(prefix_ip("sending all records.", request))
@@ -592,9 +595,7 @@ async def insert_request(request: Request):
 
     results = []
     try:
-        _request = (
-            extend_run_config(_params) if "run_config" not in _params else _params
-        )
+        _request = extend_run_config(_params)
         info_report.insert_new_request(_request)
 
         target = _request["target"]

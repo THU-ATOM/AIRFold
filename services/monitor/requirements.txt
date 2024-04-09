@@ -10,3 +10,4 @@ psutil
 gpustat
 tqdm
 absl-py
+hydra-core
