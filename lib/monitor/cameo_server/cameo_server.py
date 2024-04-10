@@ -1,4 +1,4 @@
-import sqlite3
+import pymongo
 import json
 
 from flask import Flask, request, render_template
@@ -24,9 +24,9 @@ ERROR = "error"
 SEQUENCE = "sequence"
 RAW_SEQUENCE = "raw_sequence"
 
-request_db_path = "request.db"
+# request_db_path = "request.db"
 keymap = {TITLE: NAME}
-dbmgr = RequestRecordDBMGR(request_db_path)
+dbmgr = RequestRecordDBMGR()
 
 
 @app.route(f"{PUSH_PATH}", methods=["POST", "GET", "OPTIONS"])
@@ -53,7 +53,7 @@ def _cameo_server():
     )
     try:
         dbmgr.insert(record)
-    except sqlite3.IntegrityError as e:
+    except pymongo.errors.PyMongoError as e:
         return json.dumps(
             {
                 ERROR: f"Error when insert record under the primary key {record.hash_id} : {str(e)}"
@@ -96,7 +96,7 @@ def _casp_server():
     )
     try:
         dbmgr.insert(record)
-    except sqlite3.IntegrityError as e:
+    except pymongo.errors.PyMongoError as e:
         return json.dumps(
             {
                 ERROR: f"Error when insert record under the primary key {record.hash_id} : {str(e)}"
@@ -114,7 +114,7 @@ def _query_record():
 
     try:
         req_res = dbmgr.query(_params)
-    except sqlite3.IntegrityError as e:
+    except pymongo.errors.PyMongoError as e:
         return json.dumps(
             {ERROR: f"Error when query with params {json.dumps(_params)} : {str(e)}"}
         )
@@ -137,7 +137,7 @@ def _query_by_hash(hash_id: str):
     _params[HASH_ID] = hash_id
     try:
         req_res = dbmgr.query(_params)
-    except sqlite3.IntegrityError as e:
+    except pymongo.errors.PyMongoError as e:
         return json.dumps(
             {ERROR: f"Error when query with params {json.dumps(_params)} : {str(e)}"}
         )
@@ -161,7 +161,7 @@ def _update_record():
             update_dict={k: _params[k] for k in _params if k != HASH_ID},
         )
         req_res = dbmgr.query(query_dict={HASH_ID: _params[HASH_ID]})
-    except sqlite3.IntegrityError as e:
+    except pymongo.errors.PyMongoError as e:
         return json.dumps(
             {ERROR: f"Error when update with params {json.dumps(_params)} : {str(e)}"}
         )
@@ -189,7 +189,7 @@ def _update_by_hash(hash_id: str):
             update_dict={k: _params[k] for k in _params if k != HASH_ID},
         )
         req_res = dbmgr.query(query_dict={HASH_ID: hash_id})
-    except sqlite3.IntegrityError as e:
+    except pymongo.errors.PyMongoError as e:
         return json.dumps(
             {ERROR: f"Error when update with params {json.dumps(_params)} : {str(e)}"}
         )

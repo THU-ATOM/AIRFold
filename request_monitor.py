@@ -1,6 +1,6 @@
 import json
 import sys
-import sqlite3
+import pymongo
 import requests
 from time import sleep, time
 from traceback import print_exception
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     logger.configure(**MONITOR_LOGGING_CONFIG)
     logger.info("------- Start to monitor...")
 
-    info_report = InfoReport(db_path=DB_PATH)
+    info_report = InfoReport()
 
     last_received_time = time()
     while True:
@@ -118,7 +118,7 @@ if __name__ == "__main__":
             try:
                 if not r[SENDER].startswith("test"):
                     info_report.insert_new_request(extend_run_config(r))
-            except sqlite3.IntegrityError as e:
+            except pymongo.errors.PyMongoError as e:
                 logger.warning(
                     f"Error when update with hash_id {r[HASH_ID]} : {str(e)}\n "
                     f"retrying to reset existing record",

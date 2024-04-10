@@ -1,4 +1,4 @@
-import sqlite3
+import pymongo
 import logging
 import time
 class Database:
@@ -13,10 +13,10 @@ class Database:
     def open(self, name):
 
         try:
-            self.conn = sqlite3.connect(name, timeout=10)
+            self.conn = pymongo.connect(name, timeout=10)
             self.cursor = self.conn.cursor()
 
-        except sqlite3.Error as e:
+        except pymongo.errors.PyMongoError as e:
             raise ValueError("Error connecting to database!")
 
     def close(self):
@@ -38,7 +38,7 @@ class Database:
         
         try:
             self.cursor.execute(query)
-        except sqlite3.OperationalError as e:
+        except pymongo.errors.PyMongoError as e:
             if retry_num > 0:
                 logging.log(level=logging.WARNING, msg=f'{str(e)}\n retrying execution of the query ...')
                 time.sleep(3.)

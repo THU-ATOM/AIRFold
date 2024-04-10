@@ -26,7 +26,7 @@ class CameoPDBDownloader(Process):
         self.pdb_base_url = "https://www.cameo3d.org/static/data/modeling"
         self.release_date = ""
         self._pdb_path = exp_pdb_dir
-        self.info_reporter = InfoReport(db_path=DB_PATH)
+        self.info_reporter = InfoReport()
         if to_date:
             self._to_date = to_date
         else:

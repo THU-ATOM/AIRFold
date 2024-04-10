@@ -9,7 +9,7 @@ from hashlib import sha256
 
 # import asyncio
 import requests
-import json, sqlite3
+import json, pymongo
 from io import StringIO
 from pathlib import Path
 import pandas as pd
@@ -43,8 +43,8 @@ allow_methods=["*"], # Allows all methods
 allow_headers=["*"], # Allows all headers
 )
 
-info_retriever = InfoRetrieve(db_path=DB_PATH)
-info_report = InfoReport(db_path=DB_PATH)
+info_retriever = InfoRetrieve()
+info_report = InfoReport()
 
 # ----------------------------
 # Single task
@@ -341,7 +341,7 @@ async def set_visible(hash_id: str, request: Request):
         ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
         rcd = ret._asdict()
         results.append({k: try_json_loads(rcd[k]) for k in rcd})
-    except sqlite3.IntegrityError as e:
+    except pymongo.errors.PyMongoError as e:
         results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
     except Exception as e:
         results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
@@ -358,7 +358,7 @@ async def set_visible(hash_id: str, request: Request):
         ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
         rcd = ret._asdict()
         results.append({k: try_json_loads(rcd[k]) for k in rcd})
-    except sqlite3.IntegrityError as e:
+    except pymongo.errors.PyMongoError as e:
         results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
     except Exception as e:
         results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
@@ -379,7 +379,7 @@ async def set_visible(hash_id: str, request: Request):
         ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
         rcd = ret._asdict()
         results.append({k: try_json_loads(rcd[k]) for k in rcd})
-    except sqlite3.IntegrityError as e:
+    except pymongo.errors.PyMongoError as e:
         results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
     except Exception as e:
         results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
@@ -407,7 +407,7 @@ async def batch_get_lddt(request: Request):
             ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
             rcd = ret._asdict()
             results.append({k: try_json_loads(rcd[k]) for k in rcd})
-        except sqlite3.IntegrityError as e:
+        except pymongo.errors.PyMongoError as e:
             results.append(
                 {
                     HASH_ID: hash_id,
@@ -456,7 +456,7 @@ async def batch_rerun(request: Request):
             ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
             rcd = ret._asdict()
             results.append({k: try_json_loads(rcd[k]) for k in rcd})
-        except sqlite3.IntegrityError as e:
+        except pymongo.errors.PyMongoError as e:
             results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
         except Exception as e:
             results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
@@ -488,7 +488,7 @@ async def batch_submit(request: Request):
             r = try_json_loads(ret.request_json)
             r["submit"] = True
             _requests.append(r)
-        except sqlite3.IntegrityError as e:
+        except pymongo.errors.PyMongoError as e:
             results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
         except Exception as e:
             results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
@@ -501,7 +501,7 @@ async def batch_submit(request: Request):
             ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
             rcd = ret._asdict()
             results.append({k: try_json_loads(rcd[k]) for k in rcd})
-        except sqlite3.IntegrityError as e:
+        except pymongo.errors.PyMongoError as e:
             results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
         except Exception as e:
             results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
@@ -532,7 +532,7 @@ async def batch_gen_analysis(request: Request):
             r = try_json_loads(ret.request_json)
             r["submit"] = True
             _requests.append(r)
-        except sqlite3.IntegrityError as e:
+        except pymongo.errors.PyMongoError as e:
             results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
         except Exception as e:
             results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
@@ -547,7 +547,7 @@ async def batch_gen_analysis(request: Request):
             ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
             rcd = ret._asdict()
             results.append({k: try_json_loads(rcd[k]) for k in rcd})
-        except sqlite3.IntegrityError as e:
+        except pymongo.errors.PyMongoError as e:
             results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
         except Exception as e:
             results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
@@ -612,7 +612,7 @@ async def insert_request(request: Request):
         ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
         rcd = ret._asdict()
         results.append({k: try_json_loads(rcd[k]) for k in rcd})
-    except sqlite3.IntegrityError as e:
+    except pymongo.errors.PyMongoError as e:
         results.append(
             {
                 HASH_ID: hash_id,
@@ -727,7 +727,7 @@ async def update_reserved(hash_id: str, request: Request):
         ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
         rcd = ret._asdict()
         results.append({k: try_json_loads(rcd[k]) for k in rcd})
-    except sqlite3.IntegrityError as e:
+    except pymongo.errors.PyMongoError as e:
         results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
     except Exception as e:
         results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
@@ -775,7 +775,7 @@ async def batch_update_tags(request: Request):
             ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
             rcd = ret._asdict()
             results.append({k: try_json_loads(rcd[k]) for k in rcd})
-        except sqlite3.IntegrityError as e:
+        except pymongo.errors.PyMongoError as e:
             results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
         except Exception as e:
             results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})

@@ -1,7 +1,7 @@
 import argparse
 import json
 import sys
-import sqlite3
+import pymongo
 import requests
 from traceback import print_exception
 from typing import List
@@ -48,7 +48,7 @@ def insert_request(r: dict, info_report: InfoReport):
             r[HASH_ID] = hash_id
             new_r = extend_run_config(r)
             info_report.insert_new_request(new_r)
-    except sqlite3.IntegrityError as e:
+    except pymongo.errors.PyMongoError as e:
         logger.warning(
             f"Error when update with hash_id {r[HASH_ID]} : {str(e)}\n "
             f"retrying to reset existing record",
@@ -104,7 +104,7 @@ def pipelineWorker(request_dicts):
 
 def main(argv):
 
-    info_report = InfoReport(db_path=DB_PATH)
+    info_report = InfoReport()
     
     json_file = argv.input_path
     with open(json_file, 'r') as jf:

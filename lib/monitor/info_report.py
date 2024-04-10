@@ -5,7 +5,7 @@ import os
 from typing import Union, Dict, Any, List
 from pathlib import Path
 
-import sqlite3
+import pymongo
 import matplotlib.pyplot as plt
 import numpy as np
 import requests
@@ -42,13 +42,13 @@ def report_to_feishu_bot(content, msg_type="text"):
 
 
 class InfoReport:
-    def __init__(self, db_path: Union[str, Path] = None) -> None:
-        self.dbmgr = DBManager(db_path=str(db_path))
+    def __init__(self) -> None:
+        self.dbmgr = DBManager()
 
     def get_state_msg(self, hash_id: str) -> list:
         _res = self.dbmgr.query({HASH_ID: hash_id})
         if len(_res) != 1:
-            raise sqlite3.IntegrityError(f"no record with hash_id={hash_id}")
+            raise pymongo.errors.PyMongoError(f"no record with hash_id={hash_id}")
         state_msg = json.loads(_res[0].state_msg)
         return state_msg[-100:]
 
@@ -59,7 +59,7 @@ class InfoReport:
     def get_request(self, hash_id: str) -> dict:
         _res = self.dbmgr.query({HASH_ID: hash_id})
         if len(_res) != 1:
-            raise sqlite3.IntegrityError(f"no record with hash_id={hash_id}")
+            raise pymongo.errors.PyMongoError(f"no record with hash_id={hash_id}")
         request = json.loads(_res[0].request_json)
         return request
 
@@ -146,7 +146,7 @@ class InfoReport:
     def update_reserved(self, hash_id: str, update_dict: dict):
         _res = self.dbmgr.query({HASH_ID: hash_id})
         if len(_res) != 1:
-            raise sqlite3.IntegrityError(f"no record with hash_id={hash_id}")
+            raise pymongo.errors.PyMongoError(f"no record with hash_id={hash_id}")
         reserved_string = _res[0].reserved
         reserved_dict = json.loads(reserved_string) if len(reserved_string) > 0 else {}
         reserved_dict.update(update_dict)
@@ -195,8 +195,8 @@ class InfoReport:
 
 
 class InfoRetrieve:
-    def __init__(self, db_path: Union[str, Path] = None) -> None:
-        self.dbmgr = DBManager(db_path=str(db_path))
+    def __init__(self) -> None:
+        self.dbmgr = DBManager()
 
     def pull_all(self) -> dict:
         records = self.dbmgr.query({})
@@ -213,7 +213,7 @@ class InfoRetrieve:
     def get_reserved(self, hash_id: str):
         _res = self.dbmgr.query({HASH_ID: hash_id})
         if len(_res) != 1:
-            raise sqlite3.IntegrityError(f"no record with hash_id={hash_id}")
+            raise pymongo.errors.PyMongoError(f"no record with hash_id={hash_id}")
         reserved_string = _res[0].reserved
         reserved_dict = json.loads(reserved_string) if len(reserved_string) > 0 else {}
         return reserved_dict

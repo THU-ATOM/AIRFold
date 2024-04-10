@@ -166,7 +166,7 @@ class BaseRunner:
     @property
     def info_reportor(self) -> info_report.InfoReport:
         if self._info_reportor is None and self.db_path is not None:
-            self._info_reportor = info_report.InfoReport(db_path=self.db_path)
+            self._info_reportor = info_report.InfoReport()
         return self._info_reportor
 
     def add_runner(self, name, runner: "BaseRunner"):

@@ -15,7 +15,7 @@ def delete_error_request(info_report: InfoReport):
 
 
 if __name__ == "__main__":
-    info_report = InfoReport(db_path=DB_PATH)
+    info_report = InfoReport()
     delete_error_request(info_report=info_report)
     
     
