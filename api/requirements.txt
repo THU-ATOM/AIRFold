@@ -1,6 +1,7 @@
 fastapi
 uvicorn
 celery[redis]
+pymongo
 loguru
 pandas
 requests
