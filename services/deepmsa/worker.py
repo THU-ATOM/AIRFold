@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Union
 
 from lib.base import BaseCommandRunner
-from lib.constant import DB_PATH
 from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.utils import misc, pathtool
@@ -51,16 +50,16 @@ para_json = dict(
 
 @celery.task(name="deepmsa")
 def deepmsaTask(requests: List[Dict[str, Any]]):
-    DeepqMSARunner(requests=requests, db_path=DB_PATH)()
-    DeepdMSARunner(requests=requests, db_path=DB_PATH)()
-    DeepmMSARunner(requests=requests, db_path=DB_PATH)()
+    DeepqMSARunner(requests=requests)()
+    DeepdMSARunner(requests=requests)()
+    DeepmMSARunner(requests=requests)()
 
 
 class DeepqMSARunner(BaseCommandRunner):
     def __init__(
-        self, requests: List[Dict[str, Any]], db_path: Union[str, Path] = None
+        self, requests: List[Dict[str, Any]]
     ):
-        super().__init__(requests, db_path)
+        super().__init__(requests)
 
     @property
     def start_stage(self) -> int:
@@ -110,9 +109,9 @@ class DeepqMSARunner(BaseCommandRunner):
 
 class DeepdMSARunner(BaseCommandRunner):
     def __init__(
-        self, requests: List[Dict[str, Any]], db_path: Union[str, Path] = None
+        self, requests: List[Dict[str, Any]]
     ):
-        super().__init__(requests, db_path)
+        super().__init__(requests)
 
     @property
     def start_stage(self) -> int:
@@ -161,9 +160,9 @@ class DeepdMSARunner(BaseCommandRunner):
 
 class DeepmMSARunner(BaseCommandRunner):
     def __init__(
-        self, requests: List[Dict[str, Any]], db_path: Union[str, Path] = None
+        self, requests: List[Dict[str, Any]]
     ):
-        super().__init__(requests, db_path)
+        super().__init__(requests)
 
     @property
     def start_stage(self) -> int:

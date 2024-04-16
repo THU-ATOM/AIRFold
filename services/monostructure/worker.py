@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 from loguru import logger
 
 from lib.base import BaseRunner
-from lib.constant import DB_PATH
 from lib.state import State
 from lib.pathtree import get_pathtree
 import lib.utils.datatool as dtool
@@ -36,16 +35,15 @@ TARGET = "target"
 
 @celery.task(name="monostructure")
 def monostructureTask(requests: List[Dict[str, Any]]):
-    AirFoldRunner(requests=requests, db_path=DB_PATH)()
+    AirFoldRunner(requests=requests)()
 
 
 class MonoFeatureRunner(BaseRunner):
     def __init__(
         self,
         requests: List[Dict[str, Any]],
-        db_path: Union[str, Path] = None,
     ) -> None:
-        super().__init__(requests, db_path)
+        super().__init__(requests)
         self.error_code = State.MSA2FEATURE_ERROR
         self.success_code = State.MSA2FEATURE_SUCCESS
         self.start_code = State.MSA2FEATURE_START
@@ -114,10 +112,9 @@ class MonoFeatureRunner(BaseRunner):
 class MonoStructureRunner(BaseRunner):
     def __init__(
         self,
-        requests: List[Dict[str, Any]],
-        db_path: Union[str, Path] = None,
+        requests: List[Dict[str, Any]]
     ) -> None:
-        super().__init__(requests, db_path)
+        super().__init__(requests)
         self.error_code = State.STRUCTURE_ERROR
         self.success_code = State.STRUCTURE_SUCCESS
         self.start_code = State.STRUCTURE_START
@@ -186,10 +183,9 @@ class MonoStructureRunner(BaseRunner):
 class AmberRelaxationRunner(BaseRunner):
     def __init__(
         self,
-        requests: List[Dict[str, Any]],
-        db_path: Union[str, Path] = None,
+        requests: List[Dict[str, Any]]
     ) -> None:
-        super().__init__(requests, db_path)
+        super().__init__(requests)
         self.error_code = State.RELAX_ERROR
         self.success_code = State.RELAX_SUCCESS
         self.start_code = State.RELAX_START
@@ -233,7 +229,7 @@ class AmberRelaxationRunner(BaseRunner):
 
 class AirFoldRunner(BaseRunner):
     def __init__(
-        self, requests: List[Dict[str, Any]], db_path: Union[str, Path] = None
+        self, requests: List[Dict[str, Any]]
     ) -> None:
         """_summary_
 
@@ -245,7 +241,7 @@ class AirFoldRunner(BaseRunner):
             as well as the strategy for structure prediction.
             See `sample_request.jsonl` as an example.
         """
-        super().__init__(requests, db_path)
+        super().__init__(requests)
         """
         Here we make a request, cut the request according to the segment part.
         """
@@ -254,16 +250,10 @@ class AirFoldRunner(BaseRunner):
         # )
         # logger.info(f"#### the process id is {os.getpid()}")
 
-        self.mono_msa2feature = MonoFeatureRunner(
-            requests=self.requests, db_path=db_path
-        )
+        self.mono_msa2feature =  MonoFeatureRunner(requests=self.requests)
 
-        self.mono_structure = MonoStructureRunner(
-            requests=self.requests, db_path=db_path
-        )
-        self.amber_relax = AmberRelaxationRunner(
-            requests=self.requests, db_path=db_path
-        )
+        self.mono_structure   =  MonoStructureRunner(requests=self.requests)
+        self.amber_relax      =  AmberRelaxationRunner(requests=self.requests)
 
     @property
     def start_stage(self) -> int:

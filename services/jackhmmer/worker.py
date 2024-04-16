@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Union
 
 from lib.base import BaseGroupCommandRunner, PathTreeGroup
-from lib.constant import DB_PATH
 from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.tool import jackhmmer
@@ -33,7 +32,7 @@ celery.conf.task_routes = {
 
 @celery.task(name="jackhmmer")
 def jackhmmerTask(requests: List[Dict[str, Any]]):
-    JackhmmerRunner(requests=requests, db_path=DB_PATH, tmpdir=TMP_ROOT)()
+    JackhmmerRunner(requests=requests, tmpdir=TMP_ROOT)()
 
 
 class JackhmmerRunner(BaseGroupCommandRunner):
@@ -44,13 +43,12 @@ class JackhmmerRunner(BaseGroupCommandRunner):
     def __init__(
         self,
         requests: List[Dict[str, Any]],
-        db_path: Union[str, Path] = None,
         tmpdir: Union[str, Path] = None,
         thread: int = 4,
         cpu_per_thread: int = 8,
         timeout: float = 3600,
     ):
-        super().__init__(requests, db_path, tmpdir)
+        super().__init__(requests, tmpdir)
         self.thread = thread
         self.cpu_per_thread = cpu_per_thread
         self.timeout = timeout

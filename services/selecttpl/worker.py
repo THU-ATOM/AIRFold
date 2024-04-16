@@ -1,10 +1,9 @@
 import os
 from celery import Celery
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
 
 from lib.base import BaseCommandRunner
-from lib.constant import DB_PATH
 from lib.state import State
 from lib.pathtree import get_pathtree
 import lib.utils.datatool as dtool
@@ -32,17 +31,16 @@ TARGET = "target"
 
 @celery.task(name="selecttpl")
 def selecttplTask(requests: List[Dict[str, Any]]):
-    TPLTSelectRunner(requests=requests, db_path=DB_PATH)()
+    TPLTSelectRunner(requests=requests)()
 
 
 class TPLTSelectRunner(BaseCommandRunner):
     def __init__(
         self,
         requests: List[Dict[str, Any]],
-        db_path: Union[str, Path] = None,
         cpu: int = 4,
     ) -> None:
-        super().__init__(requests, db_path)
+        super().__init__(requests)
         self.cpu = cpu
         self.success_code = State.TPLT_SELECT_SUCCESS
         self.error_code = State.TPLT_SELECT_ERROR

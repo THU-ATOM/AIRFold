@@ -2,10 +2,9 @@ import os
 from celery import Celery
 
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
 
 from lib.base import BaseCommandRunner
-from lib.constant import DB_PATH
 from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.monitor import info_report
@@ -30,14 +29,14 @@ celery.conf.task_routes = {
 
 @celery.task(name="mmseqs")
 def mmseqsTask(requests: List[Dict[str, Any]]):
-    MMseqRunner(requests=requests, db_path=DB_PATH)()
+    MMseqRunner(requests=requests)()
 
 
 class MMseqRunner(BaseCommandRunner):
     def __init__(
-        self, requests: List[Dict[str, Any]], db_path: Union[str, Path] = None
+        self, requests: List[Dict[str, Any]]
     ):
-        super().__init__(requests, db_path)
+        super().__init__(requests)
 
     @property
     def start_stage(self) -> int:

@@ -35,16 +35,15 @@ TARGET = "target"
 
 @celery.task(name="tplfeature")
 def tplfeatureTask(requests: List[Dict[str, Any]]):
-    TemplateFeaturizationRunner(requests=requests, db_path=DB_PATH)()
+    TemplateFeaturizationRunner(requests=requests)()
 
 
 class TemplateFeaturizationRunner(BaseRunner):
     def __init__(
         self,
-        requests: List[Dict[str, Any]],
-        db_path: Union[str, Path] = None,
+        requests: List[Dict[str, Any]]
     ) -> None:
-        super().__init__(requests, db_path)
+        super().__init__(requests)
         self.error_code = State.TPLT_FEAT_ERROR
         self.success_code = State.TPLT_FEAT_SUCCESS
         self.start_code = State.TPLT_FEAT_START

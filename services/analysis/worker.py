@@ -3,7 +3,7 @@ import glob
 from celery import Celery
 
 from pathlib import Path
-from typing import Any, Dict, List, OrderedDict, Union
+from typing import Any, Dict, List, OrderedDict
 import matplotlib.pyplot as plt
 import numpy as np
 import Bio.PDB
@@ -11,7 +11,6 @@ from scipy.special import softmax
 from loguru import logger
 
 from lib.base import BaseRunner
-from lib.constant import DB_PATH
 from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.monitor import info_report
@@ -39,16 +38,15 @@ celery.conf.task_routes = {
 
 @celery.task(name="analysis")
 def analysisTask(requests: List[Dict[str, Any]]):
-    GenAnalysisRunner(requests=requests, db_path=DB_PATH)()
+    GenAnalysisRunner(requests=requests)()
 
 
 class GenAnalysisRunner(BaseRunner):
     def __init__(
         self,
-        requests: List[Dict[str, Any]],
-        db_path: Union[str, Path] = None,
+        requests: List[Dict[str, Any]]
     ) -> None:
-        super().__init__(requests, db_path)
+        super().__init__(requests)
         self.stage = State.ANALYSIS_GEN
 
     @property

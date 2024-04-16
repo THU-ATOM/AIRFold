@@ -2,11 +2,10 @@ import os
 from celery import Celery
 
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
 from loguru import logger
 
 from lib.base import BaseCommandRunner
-from lib.constant import DB_PATH
 from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.monitor import info_report
@@ -32,7 +31,7 @@ celery.conf.task_routes = {
 
 @celery.task(name="selectmsa")
 def selectmsaTask(requests: List[Dict[str, Any]]):
-    MSASelectRunner(requests=requests, db_path=DB_PATH)()
+    MSASelectRunner(requests=requests)()
 
 
 class MSASelectRunner(BaseCommandRunner):
@@ -43,10 +42,9 @@ class MSASelectRunner(BaseCommandRunner):
     def __init__(
         self,
         requests: List[Dict[str, Any]],
-        db_path: Union[str, Path] = None,
         cpu: int = 4,
     ) -> None:
-        super().__init__(requests, db_path)
+        super().__init__(requests)
         self.cpu = cpu
         self.success_code = State.SELECT_SUCCESS
         self.error_code = State.SELECT_ERROR

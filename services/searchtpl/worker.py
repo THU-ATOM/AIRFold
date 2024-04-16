@@ -3,10 +3,9 @@ import shutil
 from celery import Celery
 from loguru import logger
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
 
 from lib.base import BaseRunner
-from lib.constant import DB_PATH
 from lib.state import State
 from lib.pathtree import get_pathtree
 import lib.utils.datatool as dtool
@@ -33,16 +32,15 @@ TARGET = "target"
 
 @celery.task(name="searchtpl")
 def searchtplTask(requests: List[Dict[str, Any]]):
-    TemplateSearchRunner(requests=requests, db_path=DB_PATH)()
+    TemplateSearchRunner(requests=requests)()
 
 
 class TemplateSearchRunner(BaseRunner):
     def __init__(
         self,
-        requests: List[Dict[str, Any]],
-        db_path: Union[str, Path] = None,
+        requests: List[Dict[str, Any]]
     ) -> None:
-        super().__init__(requests, db_path)
+        super().__init__(requests)
         self.error_code = State.TPLT_SEARCH_ERROR
         self.success_code = State.TPLT_SEARCH_SUCCESS
         self.start_code = State.TPLT_SEARCH_START

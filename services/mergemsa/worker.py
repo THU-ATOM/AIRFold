@@ -6,7 +6,7 @@ import sys
 from celery import Celery
 
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
 from loguru import logger
 from traceback import print_exception
 
@@ -37,7 +37,7 @@ celery.conf.task_routes = {
 
 @celery.task(name="mergemsa")
 def mergemsaTask(requests: List[Dict[str, Any]]):
-    MSAMergeRunner(requests=requests, db_path=DB_PATH)()
+    MSAMergeRunner(requests=requests)()
 
 
 class MSAMergeRunner(BaseRunner):
@@ -48,11 +48,9 @@ class MSAMergeRunner(BaseRunner):
 
     def __init__(
         self,
-        requests: List[Dict[str, Any]],
-        # search_requests: List[Dict[str, Any]],
-        db_path: Union[str, Path] = None,
+        requests: List[Dict[str, Any]]
     ) -> None:
-        super().__init__(requests, db_path)
+        super().__init__(requests)
         # self.search_requests = search_requests
 
     @property

@@ -153,11 +153,10 @@ class PathTreeGroup:
 
 class BaseRunner:
     def __init__(
-        self, requests: List[Dict[str, Any]], db_path: Union[str, Path] = None
+        self, requests: List[Dict[str, Any]]
     ) -> None:
 
         self.requests = requests
-        self.db_path = db_path
         self._runners = OrderedDict()
         self.run_time = 0.0
 
@@ -165,19 +164,19 @@ class BaseRunner:
 
     @property
     def info_reportor(self) -> info_report.InfoReport:
-        if self._info_reportor is None and self.db_path is not None:
+        if self._info_reportor is None:
             self._info_reportor = info_report.InfoReport()
         return self._info_reportor
 
     def add_runner(self, name, runner: "BaseRunner"):
         # set child runner's db_path to parent's db_path
-        self.set_defaults(runner, "db_path", self.db_path)
+        # self.set_defaults(runner, "db_path", self.db_path)
         self._runners[name] = runner
 
-    def set_defaults(self, runner, key, value):
-        setattr(runner, key, value)
-        for r in runner._runners.values():
-            self.set_defaults(r, key, value)
+    # def set_defaults(self, runner, key, value):
+    #     setattr(runner, key, value)
+    #     for r in runner._runners.values():
+    #         self.set_defaults(r, key, value)
 
     def remove_runner(self, name):
         del self._runners[name]
@@ -193,7 +192,7 @@ class BaseRunner:
 
     def __repr__(self) -> str:
         str_repr = ""
-        str_repr += f"{self.__class__.__name__} ({len(self.requests)}, {self.db_path})"
+        str_repr += f"{self.__class__.__name__} ({len(self.requests)})"
         if len(self._runners) > 0:
             str_repr += "\n["
             for runner in self._runners.values():
@@ -293,10 +292,9 @@ class BaseGroupCommandRunner(BaseCommandRunner):
     def __init__(
         self,
         requests: List[Dict[str, Any]],
-        db_path: Union[str, Path] = None,
         tmpdir: Union[str, Path] = "/tmp",
     ):
-        super().__init__(requests, db_path)
+        super().__init__(requests)
         self.groups = self.group_requests(self.requests)
         self.tmpdir = Path(tmpdir)
 

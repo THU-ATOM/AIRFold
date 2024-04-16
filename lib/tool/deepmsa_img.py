@@ -5,7 +5,7 @@ import subprocess
 import time
 
 rootpath = "/home/casp15/code/MSA/DeepMSA2"
-databasesrootpath = os.path.join(rootpath,"database")
+databasesrootpath = "/data/protein/datasets_2024"
 
 para_json = dict(
     # main program parameter

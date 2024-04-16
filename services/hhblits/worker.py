@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Union
 
 from lib.base import BaseGroupCommandRunner, PathTreeGroup
-from lib.constant import DB_PATH, TMP_ROOT
+from lib.constant import TMP_ROOT
 from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.utils import misc
@@ -33,17 +33,16 @@ celery.conf.task_routes = {
 
 @celery.task(name="hhblits")
 def hhblitsTask(requests: List[Dict[str, Any]]):
-    HHblitsRunner(requests=requests, db_path=DB_PATH, tmpdir=TMP_ROOT)()
+    HHblitsRunner(requests=requests, tmpdir=TMP_ROOT)()
 
 
 class HHblitsRunner(BaseGroupCommandRunner):
     def __init__(
         self,
         requests: List[Dict[str, Any]],
-        db_path: Union[str, Path] = None,
         tmpdir: Union[str, Path] = None,
     ):
-        super().__init__(requests, db_path, tmpdir)
+        super().__init__(requests, tmpdir)
 
     @property
     def start_stage(self) -> int:

@@ -1,4 +1,16 @@
 services:
+  mongodb:
+    image: mongodb/mongodb-community-server:latest
+    container_name: mongodb
+    volumes:
+      - ./src:/project
+      - /data/protein/CAMEO/mongodb:/data/db
+    environment:
+      - MONGODB_INITDB_ROOT_USERNAME=admin
+      - MONGODB_INITDB_ROOT_PASSWORD=admin123
+    ports:
+      - 27017:27017
+  
   gui:
     build:
       context: ./gui
@@ -58,7 +70,7 @@ services:
       - ./services/monitor:/worker
       - /data:/data
       - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_monitor --concurrency=8
+    command: celery -A worker worker --loglevel=info -Q queue_monitor --concurrency=1
 
   worker_preprocess:
     build:

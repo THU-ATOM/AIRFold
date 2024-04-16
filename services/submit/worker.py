@@ -1,6 +1,5 @@
 import os
-from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
 
 from celery import Celery
 from loguru import logger
@@ -12,7 +11,6 @@ from email.mime.text import MIMEText
 from email.message import EmailMessage
 
 from lib.base import BaseRunner, PathTreeGroup
-from lib.constant import DB_PATH
 from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.monitor import info_report
@@ -44,27 +42,20 @@ TARGET = "target"
 
 @celery.task(name="submit")
 def submitTask(requests: List[Dict[str, Any]]):
-    UniforSubmitRunner(requests=requests, db_path=DB_PATH)()
+    UniforSubmitRunner(requests=requests)()
 
 
 class CAMEOSubmitRunner(BaseRunner):
     def __init__(
         self,
         requests: List[Dict[str, Any]],
-        db_path: Union[str, Path] = None,
         loop_forever=True,
     ) -> None:
-        super().__init__(requests, db_path)
-        self.smtp_ssl_host = "smtp.office365.com"  # smtp.mail.yahoo.com
+        super().__init__(requests)
+        self.smtp_ssl_host = "smtp.office365.com"
         self.smtp_ssl_port = 587
-        # self.username = "air_psp@outlook.com"
-        # self.username = "airfold_2023@outlook.com"
         self.username = "airfold_add_2023@outlook.com"
-        # self.password = "xyvgec-6riDdu-tunfaw"
-        # self.password = "airfold_reset@2023"
         self.password = "airfold_add@2023"
-        # self.sender = "air_psp@outlook.com"
-        # self.sender = "airfold_2023@outlook.com"
         self.sender = "airfold_add_2023@outlook.com"
         self.loop_forever = loop_forever
 
@@ -162,12 +153,11 @@ class CASPSubmitRunner(BaseRunner):
     def __init__(
         self,
         requests: List[Dict[str, Any]],
-        db_path: Union[str, Path] = None,
         loop_forever=True,
         group_name="Shennong",
         author_code="9458-3041-1177",
     ) -> None:
-        super().__init__(requests, db_path)
+        super().__init__(requests)
         self.smtp_ssl_host = "smtp.office365.com"  # smtp.mail.yahoo.com
         self.smtp_ssl_port = 587
         self.username = "air_psp@outlook.com"
@@ -297,10 +287,9 @@ class UniforSubmitRunner(BaseRunner):
     def __init__(
         self,
         requests: List[Dict[str, Any]],
-        db_path: Union[str, Path] = None,
         loop_forever=True,
     ) -> None:
-        super().__init__(requests, db_path)
+        super().__init__(requests)
         self.loop_forever = loop_forever
 
         self.groups = self.group_requests(self.requests)
