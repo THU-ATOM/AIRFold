@@ -100,7 +100,7 @@ class InfoReport:
 
         if exp_pdb_path is not None:
             logger.info(f"Using {exp_pdb_path} to evaluate.")
-            path_tree = json.loads(record.path_tree)
+            path_tree = json.loads(record['path_tree'])
             target_dir = path_tree["alphafold"]["root"]
             logger.info(
                 f"ground truth: {exp_pdb_path}, computing lddt for pdbs in {target_dir}"

@@ -1,8 +1,8 @@
 import argparse
 import os
-import re
 import subprocess
 import time
+from lib.tool import tool_utils
 
 rootpath = "/home/casp15/code/MSA/DeepMSA2"
 databasesrootpath = "/data/protein/datasets_2024"
@@ -16,18 +16,9 @@ para_json = dict(
     python_DeepPotential=os.path.join(rootpath, "anaconda3/bin/python"),
 
     # submit job parameter
-    run_type='local',  # 'local' or 'sbatch'
-    partition='xxx_cpu',
-    gpu_partition='xxx_gpu',
-    account='xxx',
     mMSAcpu=10,
-    qMSAcpu=10,
-    dMSAcpu=10,
 
     # database parameter 
-    # If you modified the following databases with different version
-    # please go to the alphafold and alphafold_multimer folders in bin folder
-    # change the corresponding databases in run_alphafold_*.sh
     dMSAhhblitsdb=os.path.join(databasesrootpath, 'uniclust30_2017_04/uniclust30_2017_04'),
     dMSAjackhmmerdb=os.path.join(databasesrootpath, 'uniref90/uniref90.fasta'),
     dMSAhmmsearchdb=os.path.join(databasesrootpath, 'metaclust/metaclust.fasta'),
@@ -38,82 +29,29 @@ para_json = dict(
     mMSAJGI=os.path.join(databasesrootpath, 'JGIclust')
 )
 
-def fasta2len(filename):
-    sequence = ""
-    seqfile=open(filename,'r')
-    seqlines=seqfile.readlines()
-    seqfile.close()
-    for seqline in seqlines:
-        if not seqline.startswith(">"):
-            sequence+=seqline.strip("\n")
-    Lch = len(sequence)
-    return Lch
 
-def command_header(tag, jobname, partition, mem, cpu, account):
-    cmd_header = f"#!/bin/bash\n"\
-                 f"#SBATCH --job-name={tag}\n" \
-                 f"#SBATCH --output={jobname}.out\n" \
-                 f"#SBATCH --error={jobname}.err\n" \
-                 f"#SBATCH --partition={partition}\n" \
-                 f"#SBATCH --nodes=1\n" \
-                 f"#SBATCH --mem={mem}\n" \
-                 f"#SBATCH --ntasks-per-node={cpu}\n" \
-                 f"#SBATCH --export=ALL\n" \
-                 f"#SBATCH -t 24:00:00\n" \
-                 f"#SBATCH --account={account}\n"
-    return cmd_header
-
-def job_queue(run_type):
-    user_id = os.environ["USER"]
-
-    if run_type == 2:
-        # run under slurm system
-        qzy = subprocess.run(["squeue", '-u', user_id, "-o", "%j"], stdout=subprocess.PIPE).stdout.decode("utf-8")
-    else:
-        # run under standalone machine
-        cmd = f"ps -u {user_id} -c"
-        qzy = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True).stdout.decode("utf-8")
-
-    return qzy
-
-
-def submitjob(jobname, run_type):
+def submitjob(jobname):
     bsub = ""
     while len(bsub) == 0:
-        if run_type == 2:
-            # run under slurm
-            bsub = subprocess.run(["sbatch", jobname], stdout=subprocess.PIPE).stdout.decode("utf-8")
-        else:
-            # run under standalone machine
-            bsub = subprocess.run(["bash", jobname], stdout=subprocess.PIPE).stdout.decode("utf-8")
-
+        # run under standalone machine
+        bsub = subprocess.run(["bash", jobname], stdout=subprocess.PIPE).stdout.decode("utf-8")
         bsub = bsub.strip("\n")
-
         if len(bsub):
             break
 
         time.sleep(60)
-
     return bsub
 
 
 def img_main(args):
-    run_type = 1
+    #
+    missing = 0
     JGI = para_json['mMSAJGI']
     HHLIB = f"{para_json['qMSApkg']}"
-    DMSALIB = f"{para_json['dMSApkg']}"
-    cpu = para_json['mMSAcpu']
-    account = para_json['account']
-    partition = para_json['partition']
-    
-    Lch = fasta2len(f"{args.input_fasta}")
-    if Lch > 300:
-        mem = '15GB'
-    else:
-        mem = '10GB'
-    
-    s = os.path.basename(args.outdir)
-    recorddir = f"{args.datadir}/record"
+    hhblitsdb = para_json['qMSAhhblitsdb']
+    jackhmmerdb = para_json['qMSAjackhmmerdb']
+    hhblits3db = para_json['qMSAhhblits3db']
+
     content = subprocess.run(["cat", f"{JGI}/list"], stdout=subprocess.PIPE).stdout.decode("utf-8").split("\n")
     for j in range(len(content)):
             DBfasta = content[j].strip('\n')
@@ -121,50 +59,47 @@ def img_main(args):
                 break
             if os.path.exists(f"{args.datadir}/JGI/{DBfasta}.cdhit"):
                 continue
+            
             missing += 1
-            tag = f"{DBfasta}_{s.strip('/')}"
-            jobname = f"{args.datadir}/record/{tag}"
-            user_id = os.environ["USER"]
-            tmpdir = f"/tmp/{user_id}/{tag}"
-            cmdheader = command_header(tag=tag, jobname=jobname, partition=partition, mem=mem, cpu=cpu, account=account)
-            cmdcontent = f"mkdir -p {tmpdir}\n" \
-                        f"cd {tmpdir}\n\n" \
-                        f"echo hostname: `hostname`  >>{recorddir}/ware_{tag}\n" \
-                        f"echo starting time: `date` >>{recorddir}/ware_{tag}\n" \
-                        f"echo pwd `pwd`             >>{recorddir}/ware_{tag}\n\n" \
-                        f"cp {args.datadir}/MSA/qMSA.hh3aln seq.hh3aln\n" \
-                        f"if [ ! -s 'seq.hh3aln' ];then\n" \
-                        f"    cp {args.datadir}/MSA/dMSA.jacaln seq.hh3aln\n" \
-                        f"fi\n" \
-                        f"if [ ! -s 'seq.hh3aln' ];then\n" \
-                        f"    cp {args.datadir}/MSA/dMSA.hhbaln seq.hh3aln\n" \
-                        f"fi\n\n" \
-                        f"sed = seq.hh3aln |sed 'N;s/\\n/\\t/'|sed 's/^/>/g'|sed 's/\\t/\\n/g'| {HHLIB}/bin/qhmmbuild -n aln --amino -O seq.afq --informat afa seq.hmm -\n\n" \
-                        f"{HHLIB}/bin/qhmmsearch --cpu 1 -E 10 --incE 1e-3 -A {DBfasta}.match --tblout {DBfasta}.tbl -o {DBfasta}.out seq.hmm {JGI}/{DBfasta}\n" \
-                        f"{HHLIB}/bin/esl-sfetch -f {JGI}/{DBfasta} {DBfasta}.tbl|sed 's/*//g' > {DBfasta}.fseqs\n" \
-                        f"{HHLIB}/bin/cd-hit -i {DBfasta}.fseqs -o {args.datadir}/JGI/{DBfasta}.cdhit -c 1 -M 3000\n\n" \
-                        f"sync\n" \
-                        f"rm -rf {tmpdir}\n" \
-                        f"echo ending time: `date`   >>{recorddir}/ware_{tag}\n"
+            with tool_utils.tmpdir_manager(base_dir="/tmp") as query_tmp_dir:
+                deepm_path = os.path.join(query_tmp_dir, "deepm.sh")
+                cmd_header = f"#!/bin/bash\n"
 
-            jobcontent = f"{cmdheader}\n\n{cmdcontent}\n"
+                cmd_content = f"cp {args.datadir}/MSA/qMSA.hh3aln seq.hh3aln\n" \
+                            f"if [ ! -s 'seq.hh3aln' ];then\n" \
+                            f"    cp {args.datadir}/MSA/dMSA.jacaln seq.hh3aln\n" \
+                            f"fi\n" \
+                            f"if [ ! -s 'seq.hh3aln' ];then\n" \
+                            f"    cp {args.datadir}/MSA/dMSA.hhbaln seq.hh3aln\n" \
+                            f"fi\n\n" \
+                            f"sed = seq.hh3aln |sed 'N;s/\\n/\\t/'|sed 's/^/>/g'|sed 's/\\t/\\n/g'| {HHLIB}/bin/qhmmbuild -n aln --amino -O seq.afq --informat afa seq.hmm -\n\n" \
+                            f"{HHLIB}/bin/qhmmsearch --cpu 1 -E 10 --incE 1e-3 -A {DBfasta}.match --tblout {DBfasta}.tbl -o {DBfasta}.out seq.hmm {JGI}/{DBfasta}\n" \
+                            f"{HHLIB}/bin/esl-sfetch -f {JGI}/{DBfasta} {DBfasta}.tbl|sed 's/*//g' > {DBfasta}.fseqs\n" \
+                            f"{HHLIB}/bin/cd-hit -i {DBfasta}.fseqs -o {args.datadir}/JGI/{DBfasta}.cdhit -c 1 -M 3000\n\n"
 
-            with open(jobname, "w") as fp:
-                fp.write(jobcontent)
+                job_content = f"{cmd_header}\n\n{cmd_content}\n"
 
-            os.system(f"chmod a+x {jobname}")
+                with open(deepm_path, "w") as fp:
+                    fp.write(job_content)
 
-            qzy = job_queue(run_type)
-            test_job = re.search(f"{tag}", qzy)
-            if test_job:
-                print(f"{tag} was submitted. skip")
-            else:
-                bsub = submitjob(jobname, run_type)
+                os.system(f"chmod a+x {deepm_path}")
+                submitjob(deepm_path)
 
-            date = subprocess.run(["date"], stdout=subprocess.PIPE).stdout.decode("utf-8").strip('\n')
-            with open(f"{recorddir}/note.txt", "a") as f:
-                print(f"{jobname}\t at {date} {bsub}")
-                f.write(f"{jobname}\t at {date} {bsub}\n")
+    
+    if missing > 0:
+        print(f"{missing} JGI search still running. Skip combination")
+        exit(5)
+    
+    if os.path.exists(f"{args.datadir}/JGI/DeepJGI.a3m") and os.path.exists(f"{args.datadir}/JGI/q3JGI.a3m") and os.path.exists(f"{args.datadir}/JGI/q4JGI.a3m"):
+        print(f"DeepMSA2_IMG is finished.")
+        exit(6)
+    
+    print("2rd step/JGI combination is starting!\n")
+    Q = "urgent"
+    if Q == "default":
+        Q = "normal"
+
+    comb_cmd = f"python JGImod.py {args.datadir} /tmp {hhblitsdb} {jackhmmerdb} {hhblits3db} {Q}\n" \
 
 
 if __name__ == "__main__":
