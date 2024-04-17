@@ -1,7 +1,6 @@
 services:
   mongodb:
     image: mongodb/mongodb-community-server:latest
-    container_name: mongodb
     volumes:
       - ./src:/project
       - /data/protein/CAMEO/mongodb:/data/db

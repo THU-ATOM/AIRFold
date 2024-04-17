@@ -1,9 +1,7 @@
-from ctypes import Union
 import json, copy, base64
 from datetime import datetime
 import os
-from typing import Union, Dict, Any, List
-from pathlib import Path
+from typing import Dict, Any, List
 
 import pymongo
 import matplotlib.pyplot as plt
@@ -47,9 +45,16 @@ class InfoReport:
 
     def get_state_msg(self, hash_id: str) -> list:
         _res = self.dbmgr.query({HASH_ID: hash_id})
-        if len(_res) != 1:
+        _res = list(_res)
+        logger.info(f"query result: {_res}")
+        print("state_msg:", _res[0]["state_msg"])
+
+        if len(_res) == 0:
             raise pymongo.errors.PyMongoError(f"no record with hash_id={hash_id}")
-        state_msg = json.loads(_res[0].state_msg)
+        elif len(_res) > 1:
+            self.dbmgr.delete({HASH_ID: hash_id})
+            raise pymongo.errors.PyMongoError(f"more than one record with hash_id={hash_id}")
+        state_msg = json.loads(_res[0]["state_msg"])
         return state_msg[-100:]
 
     def get_hash_ids(self, query_dict: dict) -> List[str]:
@@ -58,15 +63,17 @@ class InfoReport:
 
     def get_request(self, hash_id: str) -> dict:
         _res = self.dbmgr.query({HASH_ID: hash_id})
+        _res = list(_res)
         if len(_res) != 1:
             raise pymongo.errors.PyMongoError(f"no record with hash_id={hash_id}")
-        request = json.loads(_res[0].request_json)
+        request = json.loads(_res[0]['request_json'])
         return request
 
     def update_lddt_metric(self, hash_id: str) -> None:
         exp_pdb_path = None
 
         _res = self.dbmgr.query(query_dict={HASH_ID: hash_id})
+        _res = list(_res)
         if len(_res) != 1:
             logger.error(f"no such hash: {hash_id}")
             return None
@@ -129,7 +136,11 @@ class InfoReport:
 
     def update_state(self, hash_id: str, state: State) -> None:
         state_msg = self.get_state_msg(hash_id)
+        # print("state_msg: ", state_msg)
+        
         state_msg.append(get_state2message(state))
+        # print("new_state_msg: ", state_msg)
+        
         update_dict = {STATE: state.name, STATE_MESSAGE: state_msg}
         self.dbmgr.update(hash_id=hash_id, update_dict=update_dict)
         _r = self.get_request(hash_id=hash_id)
@@ -145,6 +156,7 @@ class InfoReport:
 
     def update_reserved(self, hash_id: str, update_dict: dict):
         _res = self.dbmgr.query({HASH_ID: hash_id})
+        _res = list(_res)
         if len(_res) != 1:
             raise pymongo.errors.PyMongoError(f"no record with hash_id={hash_id}")
         reserved_string = _res[0].reserved
@@ -212,6 +224,7 @@ class InfoRetrieve:
 
     def get_reserved(self, hash_id: str):
         _res = self.dbmgr.query({HASH_ID: hash_id})
+        _res = list(_res)
         if len(_res) != 1:
             raise pymongo.errors.PyMongoError(f"no record with hash_id={hash_id}")
         reserved_string = _res[0].reserved

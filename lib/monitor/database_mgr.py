@@ -37,6 +37,7 @@ class DBManager:
     def __init__(self):
         # collection: cameo_2024
         self.collection = db.cameo_2024
+        self.stcolnames = StateRecord._make(StateRecord._fields)
 
     def _insert(self, state_item: StateRecord):
         _fields = StateRecord._fields
@@ -51,7 +52,7 @@ class DBManager:
         return resulsts
 
     def _update(self, hash_id: str, update_dict: dict):
-        self.collection.update( {'hash_id': hash_id}, {'$set': update_dict})
+        self.collection.update_one({'hash_id': hash_id}, {'$set': update_dict})
 
     def _record_in_db(self, hash_id: str) -> bool:
         res = self._query(query_dict={self.stcolnames.hash_id: hash_id})
@@ -90,10 +91,13 @@ class DBManager:
         
         self._insert(StateRecord(**state_dict))
 
-    def query(self, query_dict: dict) -> List[StateRecord]:
-        
+    def query(self, query_dict: dict):
         resulsts = self._query(query_dict=query_dict)
-        return [item for item in map(StateRecord._make, resulsts)]
+        return resulsts
+    
+    def delete(self, query_dict: dict):
+        print("delete num: ", self.collection.count_documents(query_dict))
+        self.collection.delete_many(query_dict)
 
     def update(self, hash_id: str, update_dict: dict) -> None:
         def dump(item):
@@ -113,7 +117,7 @@ class DBManager:
                 raise ValueError(f"{item} with unknown value type: {type(item)}")
 
         update_dict = {k: dump(update_dict[k]) for k in update_dict}
-
+        # print("update dict: ", update_dict)
         self._update(hash_id, update_dict=update_dict)
 
     def record_in_db(self, hash_id: str) -> bool:

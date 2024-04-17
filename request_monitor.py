@@ -36,7 +36,7 @@ def compose_requests(records: List[StateRecord], info_report: InfoReport) -> Lis
         return []
     res = []
     for r in records:
-        r_dict = json.loads(r.request_json)
+        r_dict = json.loads(r['request_json'])
         try:
             # _r_dict = extend_run_config(r_dict)
             info_report.update_state(hash_id=r_dict[HASH_ID], state=State.POST_RECEIVE)
@@ -89,6 +89,7 @@ if __name__ == "__main__":
                 records = info_report.dbmgr.query(
                     {VISIBLE: 1, STATE: State.RECEIVED.name}
                 )
+                records = list(records)
                 logger.info(f"------- Received records: {records}")
                 
                 if len(records) > 0:

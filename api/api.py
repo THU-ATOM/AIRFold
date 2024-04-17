@@ -309,24 +309,31 @@ async def pull_with_condition(request: Request):
     
     _params = {
         k: _params[k]
-        # for k in _params
         for k in _params
         if k in StateRecord._fields
         or "_".join(k.split("_")[:-1]) in StateRecord._fields
         or k == "limit"
     }
     _params = {k: _params[k].replace(".*", "%") for k in _params}
-
-    import itertools
-    _params = dict(itertools.islice(_params.items(), 200))
     
     records = info_retriever.pull_with_condition(_params)
-    records = [r._asdict() for r in records]
+    # records = [r._asdict() for r in records]
     logger.info(prefix_ip("sending all records.", request))
-    results = [{k: try_json_loads(r[k]) for k in r} for r in records]
+    results = [{k: try_json_load4query(r, k) for k in r} for r in records]
     return JSONResponse(content=jsonable_encoder(results))
 
 
+def try_json_load4query(record, key):
+    x = record[key]
+    if key == "_id":
+        return str(x)
+    if not isinstance(x, str):
+        return x
+    try:
+        return json.loads(x)
+    except:
+        return x
+    
 @app.post("/update/visible/{hash_id}")
 async def set_visible(hash_id: str, request: Request):
     try:
@@ -444,6 +451,7 @@ async def batch_rerun(request: Request):
     
     logger.info(prefix_ip(f"rerurn {hash_ids}", request))
     for hash_id in hash_ids:
+        logger.info(f"hash_id: {hash_id}")
         try:
             info_report.update_state(hash_id=hash_id, state=State.RECEIVED)
             ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
@@ -494,7 +502,6 @@ async def batch_submit(request: Request):
             results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
     logger.info(f"Email requests: \n{json.dumps(_requests, indent=2)}")
     # submit
-    # UniforSubmitRunner(requests=_requests, db_path=DB_PATH, loop_forever=False)()
     celery_client.send_task("submit", args=[_requests], queue="queue_submit")
     for hash_id in hash_ids:
         try:
@@ -540,7 +547,6 @@ async def batch_gen_analysis(request: Request):
     logger.info(f"Email requests: \n{json.dumps(_requests, indent=2)}")
     for r in _requests:
         # analysis
-        # GenAnalysisRunner(requests=[r], db_path=DB_PATH)()
         celery_client.send_task("analysis", args=[[r]], queue="queue_analysis")
     for hash_id in hash_ids:
         try:

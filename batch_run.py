@@ -23,7 +23,7 @@ def compose_requests(records: List[StateRecord], info_report: InfoReport) -> Lis
         return []
     res = []
     for r in records:
-        r_dict = json.loads(r.request_json)
+        r_dict = json.loads(r['request_json'])
         try:
             info_report.update_state(hash_id=r_dict[HASH_ID], state=State.POST_RECEIVE)
             res.append(r_dict)
@@ -70,6 +70,7 @@ def call_pipeline(info_report: InfoReport):
     records = info_report.dbmgr.query(
         {VISIBLE: 1, STATE: State.RECEIVED.name}
                 )
+    records = list(records)
     logger.info(f"------- Received records: {records}")
                 
     if len(records) > 0:
@@ -89,6 +90,21 @@ def call_pipeline(info_report: InfoReport):
             break
 
 
+def load_fasta(file_path, dir_name, data_suffix):
+    # data_suffix: 2024-04-09
+    seq_name = ""
+    sequence = ""
+    with open(file_path, 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            if line.startswith(">"):
+                seq_name = data_suffix + "_" + dir_name
+            else:
+                sequence = line.strip()
+                
+    return seq_name, sequence
+                
+
 def pipelineWorker(request_dicts):
     
     with tool_utils.tmpdir_manager(base_dir="/tmp") as tmpdir:
@@ -102,27 +118,37 @@ def pipelineWorker(request_dicts):
         except Exception as e:
             logger.error(str(e))
 
-def main(argv):
+def main():
 
     info_report = InfoReport()
     
-    json_file = argv.input_path
-    with open(json_file, 'r') as jf:
+    # json_file = argv.input_path
+    with open("./tmp/temp.json", 'r') as jf:
         request_dict = json.load(jf)
-    logger.info(f"------- Received request: {request_dict}")
-    # exit()
-    insert_request(r=request_dict, info_report=info_report)
-    call_pipeline(info_report=info_report)
+    
+    cameo_dir = "/data/protein/datasets_2024/modeling/2024.04.06/"
+    data_suffix = "2024-04-18"
+    dir_names = os.listdir(cameo_dir)
+    for dir_name in  dir_names:
+        seq_file = cameo_dir + dir_name + "/" + "target.fasta"
+        seq_name, sequence = load_fasta(seq_file, dir_name, data_suffix)
+        request_dict["sequence"] = sequence
+        request_dict["name"] = seq_name + "_" + "base"
+        request_dict["target"] = seq_name
+        logger.info(f"------- Received request: {request_dict}")
+        # exit()
+        insert_request(r=request_dict, info_report=info_report)
+        call_pipeline(info_report=info_report)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--input_path", type=str, required=True)
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("-i", "--input_path", type=str, required=True)
+    # args = parser.parse_args()
     
     logger.configure(**MONITOR_LOGGING_CONFIG)
     logger.info("------- Start to monitor -------")
     
-    # main(args)
+    main()
     
     
 
