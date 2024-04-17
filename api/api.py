@@ -455,7 +455,7 @@ async def batch_rerun(request: Request):
         try:
             info_report.update_state(hash_id=hash_id, state=State.RECEIVED)
             ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
-            r = try_json_loads(ret.request_json)
+            r = try_json_loads(ret['request_json'])
             if "run_config" not in r:
                 r = extend_run_config(r)
             r["submit"] = False
@@ -491,9 +491,8 @@ async def batch_submit(request: Request):
     for hash_id in hash_ids:
         try:
             ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
-            rcd = ret._asdict()
             results.append({k: try_json_loads(rcd[k]) for k in rcd})
-            r = try_json_loads(ret.request_json)
+            r = try_json_loads(ret['request_json'])
             r["submit"] = True
             _requests.append(r)
         except pymongo.errors.PyMongoError as e:
@@ -534,9 +533,8 @@ async def batch_gen_analysis(request: Request):
     for hash_id in hash_ids:
         try:
             ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
-            rcd = ret._asdict()
             results.append({k: try_json_loads(rcd[k]) for k in rcd})
-            r = try_json_loads(ret.request_json)
+            r = try_json_loads(ret['request_json'])
             r["submit"] = True
             _requests.append(r)
         except pymongo.errors.PyMongoError as e:
@@ -609,7 +607,7 @@ async def insert_request(request: Request):
         if hash_ids:
             ref_hash = hash_ids[0]
             ref_rcd = info_retriever.pull_hash_id(hash_id=ref_hash)[0]
-            ref_reserved = json.loads(ref_rcd.reserved)
+            ref_reserved = json.loads(ref_rcd['reserved'])
             exp_pdb_path = ref_reserved.get("exp_pdb_path", None)
             if exp_pdb_path:
                 info_report.update_reserved(
@@ -727,7 +725,7 @@ async def update_reserved(hash_id: str, request: Request):
     
     try:
         rcd = info_retriever.pull_hash_id(hash_id=hash_id)[0]
-        reserved_dict = json.loads(rcd.reserved) if rcd.reserved else {}
+        reserved_dict = json.loads(rcd['reserved']) if rcd['reserved'] else {}
         reserved_dict.update(_params)
         info_report.update_reserved(hash_id=hash_id, update_dict=reserved_dict)
         ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
@@ -763,7 +761,7 @@ async def batch_update_tags(request: Request):
         mode = _params.get(TAG_EDIT_MODE, "add")  # add, remove, or replace
         try:
             rcd = info_retriever.pull_hash_id(hash_id=hash_id)[0]
-            reserved_dict = json.loads(rcd.reserved) if rcd.reserved else {}
+            reserved_dict = json.loads(rcd['reserved']) if rcd['reserved'] else {}
             tags = set(strip_tags(_params.get(TAGS, "").split(TAG_SEP)))
             old_tags = set(
                 strip_tags(reserved_dict.get(TAGS).split(TAG_SEP))

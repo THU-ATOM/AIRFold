@@ -121,7 +121,7 @@ def _query_record():
 
     results = []
     for item in req_res:
-        request_dict = json.loads(item.request_json)
+        request_dict = json.loads(item['request_json'])
         results.append(request_dict)
 
     return json.dumps(results)
@@ -144,7 +144,7 @@ def _query_by_hash(hash_id: str):
 
     results = []
     for item in req_res:
-        request_dict = json.loads(item.request_json)
+        request_dict = json.loads(item['request_json'])
         results.append(request_dict)
 
     return json.dumps(results)
@@ -168,7 +168,7 @@ def _update_record():
 
     results = []
     for item in req_res:
-        request_dict = json.loads(item.request_json)
+        request_dict = json.loads(item['request_json'])
         request_dict["visible"] = item.visible
         results.append(request_dict)
 

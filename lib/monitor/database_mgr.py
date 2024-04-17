@@ -49,6 +49,7 @@ class DBManager:
 
     def _query(self, query_dict: dict):
         resulsts = self.collection.find(query_dict)
+        # to do: curse type to list type
         return resulsts
 
     def _update(self, hash_id: str, update_dict: dict):

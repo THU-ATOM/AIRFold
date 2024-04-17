@@ -23,7 +23,7 @@ def compose_requests(records: List[StateRecord], info_report: InfoReport) -> Lis
         return []
     res = []
     for r in records:
-        r_dict = json.loads(r.request_json)
+        r_dict = json.loads(r['request_json'])
         try:
             info_report.update_state(hash_id=r_dict[HASH_ID], state=State.POST_RECEIVE)
             res.append(r_dict)

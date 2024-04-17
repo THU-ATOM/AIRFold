@@ -46,9 +46,6 @@ class InfoReport:
     def get_state_msg(self, hash_id: str) -> list:
         _res = self.dbmgr.query({HASH_ID: hash_id})
         _res = list(_res)
-        logger.info(f"query result: {_res}")
-        print("state_msg:", _res[0]["state_msg"])
-
         if len(_res) == 0:
             raise pymongo.errors.PyMongoError(f"no record with hash_id={hash_id}")
         elif len(_res) > 1:
@@ -59,7 +56,8 @@ class InfoReport:
 
     def get_hash_ids(self, query_dict: dict) -> List[str]:
         _res = self.dbmgr.query(query_dict=query_dict)
-        return [item.hash_id for item in _res]
+        _res = list(_res)
+        return [item['hash_id'] for item in _res]
 
     def get_request(self, hash_id: str) -> dict:
         _res = self.dbmgr.query({HASH_ID: hash_id})
@@ -79,8 +77,8 @@ class InfoReport:
             return None
 
         record = _res[0]
-        if record.reserved:
-            reserved = json.loads(record.reserved)
+        if record['reserved']:
+            reserved = json.loads(record['reserved'])
             if "exp_pdb_path" in reserved:
                 exp_pdb_path = reserved["exp_pdb_path"]
         else:
@@ -89,13 +87,14 @@ class InfoReport:
             original_name = record.name.split(POSTFIX_SPLT)[0]
             logger.info(f"Find pdb path from {original_name}.")
             result = self.dbmgr.query(query_dict={NAME: original_name})
+            result = list(result)
             if len(result) > 0:
                 original_record = result[0]
-                original_reserved = json.loads(original_record.reserved)
+                original_reserved = json.loads(original_record['reserved'])
                 if "exp_pdb_path" in original_reserved:
                     exp_pdb_path = original_reserved["exp_pdb_path"]
                     self.update_reserved(
-                        hash_id=record.hash_id,
+                        hash_id=record['hash_id'],
                         update_dict={"exp_pdb_path": exp_pdb_path},
                     )
 
@@ -159,7 +158,7 @@ class InfoReport:
         _res = list(_res)
         if len(_res) != 1:
             raise pymongo.errors.PyMongoError(f"no record with hash_id={hash_id}")
-        reserved_string = _res[0].reserved
+        reserved_string = _res[0]['reserved']
         reserved_dict = json.loads(reserved_string) if len(reserved_string) > 0 else {}
         reserved_dict.update(update_dict)
         reserved_string = json.dumps(reserved_dict)
@@ -212,21 +211,21 @@ class InfoRetrieve:
 
     def pull_all(self) -> dict:
         records = self.dbmgr.query({})
-        return records
+        return list(records)
 
     def pull_hash_id(self, hash_id) -> dict:
         records = self.dbmgr.query({HASH_ID: hash_id})
-        return records
+        return list(records)
 
     def pull_with_condition(self, cond_dict) -> dict:
         records = self.dbmgr.query(cond_dict)
-        return records
+        return list(records)
 
     def get_reserved(self, hash_id: str):
         _res = self.dbmgr.query({HASH_ID: hash_id})
         _res = list(_res)
         if len(_res) != 1:
             raise pymongo.errors.PyMongoError(f"no record with hash_id={hash_id}")
-        reserved_string = _res[0].reserved
+        reserved_string = _res[0]['reserved']
         reserved_dict = json.loads(reserved_string) if len(reserved_string) > 0 else {}
         return reserved_dict
