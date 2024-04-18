@@ -51,6 +51,11 @@ class DBManager:
         resulsts = self.collection.find(query_dict)
         # to do: curse type to list type
         return resulsts
+    
+    def query_page(self, page, per_page, query_dict: dict):
+        skip_page = (page - 1) * per_page
+        resulsts = self.collection.find(query_dict, skip=skip_page, limit=per_page)
+        return resulsts
 
     def _update(self, hash_id: str, update_dict: dict):
         self.collection.update_one({'hash_id': hash_id}, {'$set': update_dict})

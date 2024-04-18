@@ -209,17 +209,22 @@ class InfoRetrieve:
     def __init__(self) -> None:
         self.dbmgr = DBManager()
 
-    def pull_all(self) -> dict:
+    def pull_all(self):
         records = self.dbmgr.query({})
         return list(records)
 
-    def pull_hash_id(self, hash_id) -> dict:
+    def pull_hash_id(self, hash_id):
         records = self.dbmgr.query({HASH_ID: hash_id})
         return list(records)
 
-    def pull_with_condition(self, cond_dict) -> dict:
+    def pull_with_condition(self, cond_dict):
         records = self.dbmgr.query(cond_dict)
         return list(records)
+    
+    def pull_with_page(self, page, per_page, cond_dict):
+        # items = mongo.db.items.find().skip((page-1)*per_page).limit(per_page)
+        records = self.dbmgr.query_page(page, per_page, cond_dict)
+        return records
 
     def get_reserved(self, hash_id: str):
         _res = self.dbmgr.query({HASH_ID: hash_id})
