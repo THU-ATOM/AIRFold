@@ -106,15 +106,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-b", "--blast_type", type=str, default="psiblast")
     parser.add_argument("-db", "--database", type=str, default="")
-    parser.add_argument(
-        "-of", "--outfmt", type=str, default="6 sseqid  qstart qend qseq sseq"
-    )
-    parser.add_argument("-cpu", "--threads", type=int, default=64)
-    parser.add_argument("-e", "--evalue", type=float, default=1e-3)
-    parser.add_argument("-n", "--num_iterations", type=int, default=3)
-    parser.add_argument("-i", "--fasta_path", type=str, required=True)
-    parser.add_argument("-o", "--a3m_path", type=str, required=True)
-    parser.add_argument("-w", "--whole_seq_path", type=str, required=True)
 
     args = parser.parse_args()
 

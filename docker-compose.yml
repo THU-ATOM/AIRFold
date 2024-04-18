@@ -90,7 +90,7 @@ services:
       - ./services/preprocess:/worker
       - /data:/data
       - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_preprocess --concurrency=8
+    command: celery -A worker worker --loglevel=info -Q queue_preprocess --concurrency=32
   
   worker_blast:
     build:
@@ -111,7 +111,7 @@ services:
       - ./services/blast:/worker
       - /data:/data
       - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_blast --concurrency=8
+    command: celery -A worker worker --loglevel=info -Q queue_blast --concurrency=32
 
   worker_jackhmmer:
     build:
@@ -132,7 +132,7 @@ services:
       - ./services/jackhmmer:/worker
       - /data:/data
       - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_jackhmmer --concurrency=8
+    command: celery -A worker worker --loglevel=info -Q queue_jackhmmer --concurrency=32
 
   worker_hhblits:
     build:
@@ -153,7 +153,7 @@ services:
       - ./services/hhblits:/worker
       - /data:/data
       - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_hhblits --concurrency=8
+    command: celery -A worker worker --loglevel=info -Q queue_hhblits --concurrency=32
 
   worker_mmseqs:
     build:
@@ -174,7 +174,7 @@ services:
       - ./services/mmseqs:/worker
       - /data:/data
       - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_mmseqs --concurrency=8
+    command: celery -A worker worker --loglevel=info -Q queue_mmseqs --concurrency=32
 
   worker_deepmsa:
     build:
@@ -195,7 +195,7 @@ services:
       - ./services/deepmsa:/worker
       - /data:/data
       - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_deepmsa --concurrency=8
+    command: celery -A worker worker --loglevel=info -Q queue_deepmsa --concurrency=32
 
   worker_mergemsa:
     build:
@@ -216,7 +216,7 @@ services:
       - ./services/mergemsa:/worker
       - /data:/data
       - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_mergemsa --concurrency=8
+    command: celery -A worker worker --loglevel=info -Q queue_mergemsa --concurrency=32
 
   worker_selectmsa:
     build:
@@ -237,7 +237,7 @@ services:
       - ./services/selectmsa:/worker
       - /data:/data
       - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_selectmsa --concurrency=8
+    command: celery -A worker worker --loglevel=info -Q queue_selectmsa --concurrency=32
 
   worker_searchtpl:
     build:
@@ -259,7 +259,7 @@ services:
       - ./services/searchtpl:/worker
       - /data:/data
       - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_searchtpl --concurrency=8
+    command: celery -A worker worker --loglevel=info -Q queue_searchtpl --concurrency=16
 
   worker_selecttpl:
     build:
@@ -280,7 +280,7 @@ services:
       - ./services/selecttpl:/worker
       - /data:/data
       - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_selecttpl --concurrency=8
+    command: celery -A worker worker --loglevel=info -Q queue_selecttpl --concurrency=16
 
   worker_tplfeature:
     build:
@@ -302,7 +302,7 @@ services:
       - ./services/tplfeature:/worker
       - /data:/data
       - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_tplfeature --concurrency=8
+    command: celery -A worker worker --loglevel=info -Q queue_tplfeature --concurrency=16
 
   worker_monostructure:
     build:
@@ -345,7 +345,7 @@ services:
       - ./services/analysis:/worker
       - /data:/data
       - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_analysis --concurrency=8
+    command: celery -A worker worker --loglevel=info -Q queue_analysis --concurrency=16
 
   worker_submit:
     build:
@@ -366,7 +366,7 @@ services:
       - ./services/submit:/worker
       - /data:/data
       - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_submit --concurrency=8
+    command: celery -A worker worker --loglevel=info -Q queue_submit --concurrency=32
 
   rabbitmq:
     image: "rabbitmq:3-management"
