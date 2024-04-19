@@ -1,7 +1,6 @@
 import json
 from collections import namedtuple, OrderedDict
-from typing import List
-from pymongo import MongoClient
+from pymongo import MongoClient, DESCENDING
 
 client = MongoClient('mongodb://10.0.0.12:27017/', username='admin', password='admin123')
 db = client.cameo
@@ -99,6 +98,10 @@ class DBManager:
 
     def query(self, query_dict: dict):
         resulsts = self._query(query_dict=query_dict)
+        return resulsts
+    
+    def query_latest(self, query_dict: dict):
+        resulsts = self.collection.find(query_dict, sort=[( '_id', DESCENDING)])
         return resulsts
     
     def delete(self, query_dict: dict):

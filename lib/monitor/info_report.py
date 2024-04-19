@@ -220,11 +220,15 @@ class InfoRetrieve:
     def pull_with_condition(self, cond_dict):
         records = self.dbmgr.query(cond_dict)
         return list(records)
+
+    def pull_with_limit(self, limit_num=250, cond_dict={}):
+        records = self.dbmgr.query_latest(cond_dict)
+        return list(records)[: limit_num]
     
     def pull_with_page(self, page, per_page, cond_dict):
         # items = mongo.db.items.find().skip((page-1)*per_page).limit(per_page)
         records = self.dbmgr.query_page(page, per_page, cond_dict)
-        return records
+        return list(records)
 
     def get_reserved(self, hash_id: str):
         _res = self.dbmgr.query({HASH_ID: hash_id})

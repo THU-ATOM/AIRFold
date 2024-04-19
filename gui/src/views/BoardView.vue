@@ -244,17 +244,22 @@
     </div>
 
     <div class="mt-5">
-      <a-table :dataSource="filtered_data" :columns="columns" :row-selection="{
-        selectedRowKeys: selected_hash_ids,
-        onChange: on_select_change,
-      }" :pagination="{ defaultPageSize: 25 }" size="middle" :row-class-name="
+      <a-table 
+        :dataSource="filtered_data" 
+        :columns="columns" 
+        :row-selection="{
+          selectedRowKeys: selected_hash_ids,
+          onChange: on_select_change,
+        }"
+        :pagination="{ defaultPageSize: 25 }" size="middle" 
+        :row-class-name="
         (record, _index) =>
           (days_to_ddl(record) == 0
             ? 'bg-purple-50'
             : days_to_ddl(record) == 1
             ? 'bg-yellow-50'
-            : '') + (record.visible == 0 ? ' opacity-50' : '')
-      ">
+            : '') + (record.visible == 0 ? ' opacity-50' : '')"
+      >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'last_update_time'">
             <div class="flex items-center">

@@ -314,6 +314,8 @@ services:
         - USER_ID=${UID}
         - GROUP_ID=${GID}
         - USER_NAME=${USER_NAME}
+        - DOCKER_CLIENT_TIMEOUT=${DOCKER_CLIENT_TIMEOUT}
+        - COMPOSE_HTTP_TIMEOUT=${COMPOSE_HTTP_TIMEOUT}
     depends_on:
       - rabbitmq
     environment:

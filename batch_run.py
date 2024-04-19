@@ -126,7 +126,7 @@ def main():
     with open("./tmp/temp.json", 'r') as jf:
         request_dict = json.load(jf)
     
-    cameo_dir = "/data/protein/datasets_2024/modeling/2024.03.16/"
+    cameo_dir = "/data/protein/datasets_2024/modeling/2024.03.02/"
     data_suffix = "2024-04-18"
     dir_names = os.listdir(cameo_dir)
     for dir_name in  dir_names:

@@ -3,8 +3,6 @@ from typing import Any, Dict, Union
 from lib.base import BasePathTree
 from lib.constant import *
 
-# from pipeline.tool.colabfold import AlphaFoldPathTree
-
 
 def get_pathtree(request: Dict[str, Any]):
     if request["sender"].startswith("cameo"):
@@ -152,6 +150,7 @@ class SearchPathTree(BasePathTree):
     def deepmsa_djaca3m(self):
         return self.root / "deepmsa" / f"{self.id}" / "dMSA.jaca3m"
     # mMSA
+    # before mMSA generated, dMSA.jacaln or dMSA.hhbaln needed
     @property
     def deepmsa_ma3m(self):
         return self.root / "deepmsa" / f"{self.id}" / "mMSA.a3m"

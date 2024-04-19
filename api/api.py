@@ -304,7 +304,7 @@ async def pull_hash_id(hash_id: str, request: Request):
 
         
 @app.get("/query")
-async def pull_with_condition(request: Request, page=1, per_page=25):
+async def pull_with_condition(request: Request):
     _params = request.query_params
     
     _params = {
@@ -316,7 +316,9 @@ async def pull_with_condition(request: Request, page=1, per_page=25):
     }
     _params = {k: _params[k].replace(".*", "%") for k in _params}
     
-    records = info_retriever.pull_with_page(page, per_page, _params)
+    # to do:
+    limit_num = 250
+    records = info_retriever.pull_with_limit(limit_num, _params)
     # records = [r._asdict() for r in records]
     logger.info(prefix_ip("sending all records.", request))
     results = [{k: try_json_load4query(r, k) for k in r} for r in records]
