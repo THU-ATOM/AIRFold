@@ -3,6 +3,7 @@ import os
 import subprocess
 import time
 from lib.tool import tool_utils
+from lib.utils.execute import execute
 
 rootpath = "/home/casp15/code/MSA/DeepMSA2"
 databasesrootpath = "/data/protein/datasets_2024"
@@ -99,7 +100,8 @@ def img_main(args):
     if Q == "default":
         Q = "normal"
 
-    comb_cmd = f"python JGImod.py {args.datadir} /tmp {hhblitsdb} {jackhmmerdb} {hhblits3db} {Q}\n" \
+    comb_cmd = f"python JGImod.py {args.datadir} /tmp {hhblitsdb} {jackhmmerdb} {hhblits3db} {Q}\n"
+    execute(" ".join(comb_cmd))
 
 
 if __name__ == "__main__":

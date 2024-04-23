@@ -1,4 +1,3 @@
-import argparse
 import json
 import sys
 import pymongo
@@ -126,14 +125,16 @@ def main():
     with open("./tmp/temp.json", 'r') as jf:
         request_dict = json.load(jf)
     
-    cameo_dir = "/data/protein/datasets_2024/modeling/2024.03.02/"
+    cameo_dir = "/data/protein/datasets_2024/modeling/2024.02.17/"
     data_suffix = "2024-04-18"
+    case_suffix = "base"
+    
     dir_names = os.listdir(cameo_dir)
     for dir_name in  dir_names:
         seq_file = cameo_dir + dir_name + "/" + "target.fasta"
         seq_name, sequence = load_fasta(seq_file, dir_name, data_suffix)
         request_dict["sequence"] = sequence
-        request_dict["name"] = seq_name + "_" + "base"
+        request_dict["name"] = seq_name + "_" + case_suffix
         request_dict["target"] = seq_name
         logger.info(f"------- Received request: {request_dict}")
         # exit()
@@ -150,6 +151,3 @@ if __name__ == "__main__":
     
     main()
     
-    
-
-
