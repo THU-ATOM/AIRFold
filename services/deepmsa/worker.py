@@ -60,6 +60,7 @@ class DeepqMSARunner(BaseCommandRunner):
         self, requests: List[Dict[str, Any]]
     ):
         super().__init__(requests)
+        self.cpu = 4  # to do
 
     @property
     def start_stage(self) -> int:
@@ -75,12 +76,13 @@ class DeepqMSARunner(BaseCommandRunner):
         input_fasta = ptree.seq.fasta
 
         command = f"python {executed_file} " \
+                  f"{input_fasta}" \
                   f"-hhblitsdb={para_json['qMSAhhblitsdb']} " \
                   f"-jackhmmerdb={para_json['qMSAjackhmmerdb']} " \
                   f"-hhblits3db={para_json['qMSAhhblits3db']} " \
                   f"-hmmsearchdb={para_json['qMSAhmmsearchdb']} " \
                   f"-ncpu={self.cpu} " \
-                  f"{input_fasta}"
+                  
                   
         if rlaunch_exists():
             command = rlaunch_wrapper(
@@ -112,6 +114,7 @@ class DeepdMSARunner(BaseCommandRunner):
         self, requests: List[Dict[str, Any]]
     ):
         super().__init__(requests)
+        self.cpu = 4  # to do
 
     @property
     def start_stage(self) -> int:
@@ -127,11 +130,12 @@ class DeepdMSARunner(BaseCommandRunner):
         input_fasta = ptree.seq.fasta
 
         command = f"python {executed_file} " \
+                  f"{input_fasta}" \
                   f"-hhblitsdb={para_json['dMSAhhblitsdb']} " \
                   f"-jackhmmerdb={para_json['dMSAjackhmmerdb']} " \
                   f"-hmmsearchdb={para_json['dMSAhmmsearchdb']} " \
                   f"-ncpu={self.cpu} " \
-                  f"{input_fasta}"
+                  
                   
         if rlaunch_exists():
             command = rlaunch_wrapper(

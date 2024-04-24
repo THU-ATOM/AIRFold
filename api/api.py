@@ -18,7 +18,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Request, Body
 from fastapi.responses import FileResponse
 from fastapi.responses import JSONResponse
-from fastapi.encoders import jsonable_encoder
+# from fastapi.encoders import jsonable_encoder
+from bson import json_util
 
 from lib.monitor.database_mgr import StateRecord
 from lib.monitor.extend_config import (
@@ -297,10 +298,10 @@ async def get_file_download(request: Request):
 @app.get("/query/hash_id/{hash_id}")
 async def pull_hash_id(hash_id: str, request: Request):
     records = info_retriever.pull_hash_id(hash_id=hash_id)
-    records = [r._asdict() for r in records]
+    # records = [r._asdict() for r in records]
     logger.info(prefix_ip(f"query {hash_id}", request))
     results = [{k: try_json_loads(r[k]) for k in r} for r in records]
-    return JSONResponse(content=jsonable_encoder(results))
+    return json.loads(json_util.dumps(results))
 
         
 @app.get("/query")
@@ -322,7 +323,7 @@ async def pull_with_condition(request: Request):
     # records = [r._asdict() for r in records]
     logger.info(prefix_ip("sending all records.", request))
     results = [{k: try_json_load4query(r, k) for k in r} for r in records]
-    return JSONResponse(content=jsonable_encoder(results))
+    return json.loads(json_util.dumps(results))
 
 
 def try_json_load4query(record, key):
@@ -348,13 +349,13 @@ async def set_visible(hash_id: str, request: Request):
     results = []
     try:
         ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
-        rcd = ret._asdict()
-        results.append({k: try_json_loads(rcd[k]) for k in rcd})
+        # rcd = ret._asdict()
+        results.append({k: try_json_loads(ret[k]) for k in ret})
     except pymongo.errors.PyMongoError as e:
         results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
     except Exception as e:
         results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
-    return JSONResponse(content=jsonable_encoder(results))
+    return json.loads(json_util.dumps(results))
 
 @app.get("/update/visible/{hash_id}")
 async def set_visible(hash_id: str, request: Request):
@@ -365,13 +366,13 @@ async def set_visible(hash_id: str, request: Request):
     results = []
     try:
         ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
-        rcd = ret._asdict()
-        results.append({k: try_json_loads(rcd[k]) for k in rcd})
+        # rcd = ret._asdict()
+        results.append({k: try_json_loads(ret[k]) for k in ret})
     except pymongo.errors.PyMongoError as e:
         results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
     except Exception as e:
         results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
-    return JSONResponse(content=jsonable_encoder(results))
+    return json.loads(json_util.dumps(results))
 
 
 @app.options("/update/visible/{hash_id}") 
@@ -386,13 +387,13 @@ async def set_visible(hash_id: str, request: Request):
     results = []
     try:
         ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
-        rcd = ret._asdict()
-        results.append({k: try_json_loads(rcd[k]) for k in rcd})
+        # rcd = ret._asdict()
+        results.append({k: try_json_loads(ret[k]) for k in ret})
     except pymongo.errors.PyMongoError as e:
         results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
     except Exception as e:
         results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
-    return JSONResponse(content=jsonable_encoder(results))
+    return json.loads(json_util.dumps(results))
 
 
 @app.post(f"/update/lddt/")
@@ -404,7 +405,7 @@ async def batch_get_lddt(request: Request):
     
     results = []
     if _params is None or HASH_ID not in _params:
-        return JSONResponse(content=jsonable_encoder(results))
+        return json.loads(json_util.dumps(results))
     hash_ids = _params[HASH_ID]
     if not isinstance(hash_ids, list):
         hash_ids = [hash_ids]
@@ -414,8 +415,8 @@ async def batch_get_lddt(request: Request):
         try:
             info_report.update_lddt_metric(hash_id=hash_id)
             ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
-            rcd = ret._asdict()
-            results.append({k: try_json_loads(rcd[k]) for k in rcd})
+            # rcd = ret._asdict()
+            results.append({k: try_json_loads(ret[k]) for k in ret})
         except pymongo.errors.PyMongoError as e:
             results.append(
                 {
@@ -433,7 +434,7 @@ async def batch_get_lddt(request: Request):
             )
             logger.exception("update lddt error")
 
-    return JSONResponse(content=jsonable_encoder(results))
+    return json.loads(json_util.dumps(results))
 
 
 @app.post(f"/update/rerun/")
@@ -446,7 +447,7 @@ async def batch_rerun(request: Request):
     
     results = []
     if _params is None or HASH_ID not in _params:
-        return JSONResponse(content=jsonable_encoder(results))
+        return json.loads(json_util.dumps(results))
     hash_ids = _params[HASH_ID]
     if not isinstance(hash_ids, list):
         hash_ids = [hash_ids]
@@ -464,14 +465,14 @@ async def batch_rerun(request: Request):
             info_report.update_request(hash_id=hash_id, request=r)
             info_report.update_visible(hash_id=hash_id, visible=1)
             ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
-            rcd = ret._asdict()
-            results.append({k: try_json_loads(rcd[k]) for k in rcd})
+            # rcd = ret._asdict()
+            results.append({k: try_json_loads(ret[k]) for k in ret})
         except pymongo.errors.PyMongoError as e:
             results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
         except Exception as e:
             results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
 
-    return JSONResponse(content=jsonable_encoder(results))
+    return json.loads(json_util.dumps(results))
 
 
 @app.post(f"/update/submit/")
@@ -483,7 +484,7 @@ async def batch_submit(request: Request):
     
     results = []
     if _params is None or HASH_ID not in _params:
-        return JSONResponse(content=jsonable_encoder(results))
+        return json.loads(json_util.dumps(results))
     hash_ids = _params[HASH_ID]
     if not isinstance(hash_ids, list):
         hash_ids = [hash_ids]
@@ -493,7 +494,7 @@ async def batch_submit(request: Request):
     for hash_id in hash_ids:
         try:
             ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
-            results.append({k: try_json_loads(rcd[k]) for k in rcd})
+            results.append({k: try_json_loads(ret[k]) for k in ret})
             r = try_json_loads(ret['request_json'])
             r["submit"] = True
             _requests.append(r)
@@ -507,13 +508,13 @@ async def batch_submit(request: Request):
     for hash_id in hash_ids:
         try:
             ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
-            rcd = ret._asdict()
-            results.append({k: try_json_loads(rcd[k]) for k in rcd})
+            # rcd = ret._asdict()
+            results.append({k: try_json_loads(ret[k]) for k in ret})
         except pymongo.errors.PyMongoError as e:
             results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
         except Exception as e:
             results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
-    return JSONResponse(content=jsonable_encoder(results))
+    return json.loads(json_util.dumps(results))
 
 
 @app.post(f"/update/gen_analysis/")
@@ -525,7 +526,7 @@ async def batch_gen_analysis(request: Request):
     
     results = []
     if _params is None or HASH_ID not in _params:
-        return JSONResponse(content=jsonable_encoder(results))
+        return json.loads(json_util.dumps(results))
     hash_ids = _params[HASH_ID]
     if not isinstance(hash_ids, list):
         hash_ids = [hash_ids]
@@ -535,7 +536,7 @@ async def batch_gen_analysis(request: Request):
     for hash_id in hash_ids:
         try:
             ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
-            results.append({k: try_json_loads(rcd[k]) for k in rcd})
+            results.append({k: try_json_loads(ret[k]) for k in ret})
             r = try_json_loads(ret['request_json'])
             r["submit"] = True
             _requests.append(r)
@@ -551,13 +552,13 @@ async def batch_gen_analysis(request: Request):
     for hash_id in hash_ids:
         try:
             ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
-            rcd = ret._asdict()
-            results.append({k: try_json_loads(rcd[k]) for k in rcd})
+            # rcd = ret._asdict()
+            results.append({k: try_json_loads(ret[k]) for k in ret})
         except pymongo.errors.PyMongoError as e:
             results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
         except Exception as e:
             results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
-    return JSONResponse(content=jsonable_encoder(results))
+    return json.loads(json_util.dumps(results))
 
 
 @app.get("/cameo_data/{to_date}")
@@ -566,10 +567,10 @@ async def get_cameo_data(to_date: str, request: Request):
     logger.info(prefix_ip(f"get recent cameo data to {to_date}", request))
     try:
         results = requests.get(cameo_api + to_date).json()
-        return JSONResponse(content=jsonable_encoder(results))
+        return json.loads(json_util.dumps(results))
     except Exception:
         results = {"aaData": []}
-        return JSONResponse(content=jsonable_encoder(results))
+        return json.loads(json_util.dumps(results))
 
 
 @app.get(f"/casp_data")
@@ -583,7 +584,7 @@ async def get_casp_targets(request: Request):
         )
     data = pd.read_csv(StringIO(content), sep="\t")
     results = data.to_dict(orient="records")
-    return JSONResponse(content=jsonable_encoder(results))
+    return json.loads(json_util.dumps(results))
 
 
 @app.post(f"/insert/request/")
@@ -616,8 +617,8 @@ async def insert_request(request: Request):
                     hash_id=hash_id, update_dict={"exp_pdb_path": exp_pdb_path}
                 )
         ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
-        rcd = ret._asdict()
-        results.append({k: try_json_loads(rcd[k]) for k in rcd})
+        # rcd = ret._asdict()
+        results.append({k: try_json_loads(ret[k]) for k in ret})
     except pymongo.errors.PyMongoError as e:
         results.append(
             {
@@ -633,7 +634,7 @@ async def insert_request(request: Request):
             }
         )
 
-    return JSONResponse(content=jsonable_encoder(results))
+    return json.loads(json_util.dumps(results))
 
 
 @app.post(f"/align/")
@@ -646,7 +647,7 @@ async def align_structures(request: Request):
     PDBS = "pdbs"
     if _params is None or PDBS not in _params:
         results = []
-        return JSONResponse(content=jsonable_encoder(results))
+        return json.loads(json_util.dumps(results))
     pdbs = _params[PDBS]
     if not isinstance(pdbs, list):
         pdbs = [pdbs]
@@ -655,21 +656,21 @@ async def align_structures(request: Request):
     for key, val in results.items():
         if hasattr(val, "tolist"):
             results[key] = val.tolist()
-    return JSONResponse(content=jsonable_encoder(results))
+    return json.loads(json_util.dumps(results))
 
 
 @app.get("/genconf/{conf_name}")
 async def gen_default_conf(conf_name: str, request: Request):
     logger.info(prefix_ip(f"generate default config for {conf_name}", request))
     results = generate_default_config(conf_name=conf_name)
-    return JSONResponse(content=jsonable_encoder(results))
+    return json.loads(json_util.dumps(results))
 
 
 @app.get(f"/genconf")
 async def gen_conf_default(request: Request):
     logger.info(prefix_ip(f"generate default config", request))
     results = generate_default_config()
-    return JSONResponse(content=jsonable_encoder(results))
+    return json.loads(json_util.dumps(results))
 
 
 @app.get("/stop/{hash_id}")
@@ -679,7 +680,7 @@ async def stop_process(hash_id: str, request: Request):
     results = []
     if "task_id" not in reserved_dict:
         results.append({HASH_ID: hash_id, ERROR: f"kill task for {hash_id} failed"})
-        return JSONResponse(content=jsonable_encoder(results))
+        return json.loads(json_util.dumps(results))
 
     # stop task via revoke
     task_id = reserved_dict["task_id"]
@@ -708,7 +709,7 @@ async def stop_process(hash_id: str, request: Request):
         )
         logger.info(prefix_ip(f"kill task {task_id} for {hash_id} failed", request))
         
-    return JSONResponse(content=jsonable_encoder(results))
+    return json.loads(json_util.dumps(results))
 
 
 @app.post("/update/reserved/{hash_id}")
@@ -720,7 +721,7 @@ async def update_reserved(hash_id: str, request: Request):
     
     results = []
     if _params is None:
-        return JSONResponse(content=jsonable_encoder(results))
+        return json.loads(json_util.dumps(results))
     logger.info(
         prefix_ip(f"update reserved for {hash_id}: \n{json.dumps(_params, indent=2)}", request)
     )
@@ -731,14 +732,14 @@ async def update_reserved(hash_id: str, request: Request):
         reserved_dict.update(_params)
         info_report.update_reserved(hash_id=hash_id, update_dict=reserved_dict)
         ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
-        rcd = ret._asdict()
-        results.append({k: try_json_loads(rcd[k]) for k in rcd})
+        # rcd = ret._asdict()
+        results.append({k: try_json_loads(ret[k]) for k in ret})
     except pymongo.errors.PyMongoError as e:
         results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
     except Exception as e:
         results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
         logger.exception("update reserved failed")
-    return JSONResponse(content=jsonable_encoder(results))
+    return json.loads(json_util.dumps(results))
 
 
 @app.post("/update/tags/")
@@ -750,7 +751,7 @@ async def batch_update_tags(request: Request):
     
     results = []
     if _params is None or HASH_ID not in _params:
-        return JSONResponse(content=jsonable_encoder(results))
+        return json.loads(json_util.dumps(results))
     hash_ids = _params[HASH_ID]
     if not isinstance(hash_ids, list):
         hash_ids = [hash_ids]
@@ -779,14 +780,14 @@ async def batch_update_tags(request: Request):
             reserved_dict[TAGS] = TAG_SEP.join(tags)
             info_report.update_reserved(hash_id=hash_id, update_dict=reserved_dict)
             ret = info_retriever.pull_hash_id(hash_id=hash_id)[0]
-            rcd = ret._asdict()
-            results.append({k: try_json_loads(rcd[k]) for k in rcd})
+            # rcd = ret._asdict()
+            results.append({k: try_json_loads(ret[k]) for k in ret})
         except pymongo.errors.PyMongoError as e:
             results.append({HASH_ID: hash_id, ERROR: f"IntegrityError: {str(e)}"})
         except Exception as e:
             results.append({HASH_ID: hash_id, ERROR: f"UnknownError: {str(e)}"})
 
-    return JSONResponse(content=jsonable_encoder(results))
+    return json.loads(json_util.dumps(results))
 
 
 @app.get("/update/cameo_gt/{to_date}")
@@ -794,6 +795,6 @@ async def cameo_gt_download(to_date: str):
     downloader = download_pdb.CameoPDBDownloader(to_date=to_date)
     downloader.start()
     results = {"status": "in progress"}
-    return JSONResponse(content=jsonable_encoder(results))
+    return json.loads(json_util.dumps(results))
 
 
