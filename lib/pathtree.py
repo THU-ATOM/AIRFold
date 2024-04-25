@@ -131,8 +131,20 @@ class SearchPathTree(BasePathTree):
 
     # deepmsa output path
     @property
-    def deepmsa_base(self) -> Path:
-        return self.root / "deepmsa" / f"{self.id}"
+    def deepqmsa_base(self) -> Path:
+        return self.root / "deepqmsa" / f"{self.id}"
+
+    @property
+    def deepqmsa_base_tmp(self) -> Path:
+        return self.root / "deepqmsa" / f"{self.id}" / "tmp"
+    
+    @property
+    def deepdmsa_base(self) -> Path:
+        return self.root / "deepdmsa" / f"{self.id}"
+
+    @property
+    def deepdmsa_base_tmp(self) -> Path:
+        return self.root / "deepdmsa" / f"{self.id}" / "tmp"
     
     # qMSA
     @property

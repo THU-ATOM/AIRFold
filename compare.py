@@ -5,8 +5,9 @@ from typing import Union
 import json
 import json
 from loguru import logger
+import pickle
 
-LDDT_EXECUTE = Path("__file__") / "lib" / "tool" / "lddt-linux" / "lddt"
+LDDT_EXECUTE = Path("__file__").parent / "lib" / "tool" / "lddt-linux" / "lddt"
 
 
 def compute_lddt(
@@ -90,6 +91,7 @@ def a3m_count(a3m_file):
 
 
 def post_process():
+    output_dir = "/data/protein/datasets_2024/prediction/"
     target_dir = "/data/protein/datasets_2024/modeling/"
     weeks = ['2024.02.17', '2024.02.24', '2024.03.02', '2024.03.09', '2024.03.16', '2024.03.23', '2024.03.30', '2024.04.06']
     
@@ -107,10 +109,10 @@ def post_process():
             
             # seq, seq_name, seq_len
             result["seq_name"] = data_suffix + "_" + target + "_" + case_suffix
-            logger.info(f"------- Processing the seq : {result["seq_name"]}")
+            logger.info(f"------- Processing the seq : {result['seq_name']}")
             
-            result["fasta_file"] = ow_dirs + target + "/" + "target.fasta"
-            result["target_pdb"] = ow_dirs + target + "/" + "target.pdb"
+            result["fasta_file"] = week_dir + target + "/" + "target.fasta"
+            result["target_pdb"] = week_dir + target + "/" + "target.pdb"
             
             result["sequence"] = load_fasta(result["fasta_file"])
             result["seq_len"] = len(result["sequence"])
@@ -134,7 +136,10 @@ def post_process():
                     result["lddt"].append(global_lddt)
             
             results.append(result)
-                
+    
+    output_file = output_dir + case_suffix + "_results.pkl"
+    with open(output_file, "wb") as pf:
+        pickle.load(pf, results)
             
 
 if __name__ == "__main__":

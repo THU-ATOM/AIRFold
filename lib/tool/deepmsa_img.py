@@ -5,29 +5,17 @@ import time
 from lib.tool import tool_utils
 from lib.utils.execute import execute
 
-rootpath = "/home/casp15/code/MSA/DeepMSA2"
-databasesrootpath = "/data/protein/datasets_2024"
-
 para_json = dict(
-    # main program parameter
-    programrootpath=rootpath,
     
-    qMSApkg=os.path.join(rootpath, "bin/qMSA"),
-    dMSApkg=os.path.join(rootpath, "bin/dMSA"),
-    python_DeepPotential=os.path.join(rootpath, "anaconda3/bin/python"),
-
-    # submit job parameter
-    mMSAcpu=10,
-
     # database parameter 
-    dMSAhhblitsdb=os.path.join(databasesrootpath, 'uniclust30_2017_04/uniclust30_2017_04'),
-    dMSAjackhmmerdb=os.path.join(databasesrootpath, 'uniref90/uniref90.fasta'),
-    dMSAhmmsearchdb=os.path.join(databasesrootpath, 'metaclust/metaclust.fasta'),
-    qMSAhhblitsdb=os.path.join(databasesrootpath, 'UniRef30_2022_02/UniRef30_2022_02'),
-    qMSAjackhmmerdb=os.path.join(databasesrootpath, 'uniref90/uniref90.fasta'),
-    qMSAhhblits3db=os.path.join(databasesrootpath, 'bfd/bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt'),
-    qMSAhmmsearchdb=os.path.join(databasesrootpath, 'mgnify/mgy_clusters.fasta'),
-    mMSAJGI=os.path.join(databasesrootpath, 'JGIclust')
+    dMSAhhblitsdb=os.path.join("/data/protein/datasets_2024", 'uniclust30_2017_04/uniclust30_2017_04'),
+    dMSAjackhmmerdb=os.path.join("/data/protein/datasets_2022", 'uniref90/uniref90.fasta'),
+    dMSAhmmsearchdb=os.path.join("/data/protein/datasets_2024", 'metaclust/metaclust.fasta'),
+    qMSAhhblitsdb=os.path.join("/data/protein/datasets_2024", 'UniRef30_2302'),
+    qMSAjackhmmerdb=os.path.join("/data/protein/datasets_2022", 'uniref90/uniref90.fasta'),
+    qMSAhhblits3db=os.path.join("/data/protein/alphafold", 'bfd'),
+    qMSAhmmsearchdb=os.path.join("/data/protein/datasets_2022", 'mgnify/mgy_clusters.fa'),
+    mMSAJGI=os.path.join("/data/protein/datasets_2024", 'JGIclust')
 )
 
 

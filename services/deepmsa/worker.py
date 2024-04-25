@@ -2,7 +2,7 @@ import os
 from celery import Celery
 
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
 
 from lib.base import BaseCommandRunner
 from lib.state import State
@@ -28,22 +28,23 @@ celery.conf.task_routes = {
     "worker.*": {"queue": "queue_deepmsa"},
 }
 
-rootpath = "/home/casp15/code/MSA/DeepMSA2"
-databasesrootpath = "/data/casp15/code/MSA/DeepMSA2"
+# rootpath = "/home/casp15/code/MSA/DeepMSA2"
+# databasesrootpath = "/data/casp15/code/MSA/DeepMSA2"
 
 para_json = dict(
     # main program parameter
-    qMSApkg=os.path.join(rootpath, "bin/qMSA"),
-    dMSApkg=os.path.join(rootpath, "bin/dMSA"),
+    # qMSApkg=os.path.join(rootpath, "bin/qMSA"),
+    # dMSApkg=os.path.join(rootpath, "bin/dMSA"),
+    
     # database parameter 
-    dMSAhhblitsdb=os.path.join("/data/protein/datasets_2022", 'uniclust30'),
+    dMSAhhblitsdb=os.path.join("/data/protein/datasets_2024", 'uniclust30_2017_04/uniclust30_2017_04'),
     dMSAjackhmmerdb=os.path.join("/data/protein/datasets_2022", 'uniref90/uniref90.fasta'),
     dMSAhmmsearchdb=os.path.join("/data/protein/datasets_2024", 'metaclust/metaclust.fasta'),
     qMSAhhblitsdb=os.path.join("/data/protein/datasets_2024", 'UniRef30_2302'),
     qMSAjackhmmerdb=os.path.join("/data/protein/datasets_2022", 'uniref90/uniref90.fasta'),
-    qMSAhhblits3db=os.path.join("/data/protein/datasets_2024", 'bfd/bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt'),
-    qMSAhmmsearchdb=os.path.join("/data/protein/datasets_2022", 'mgnify/mgy_clusters.fasta'),
-    mMSAJGI=os.path.join(databasesrootpath, 'JGIclust')
+    qMSAhhblits3db=os.path.join("/data/protein/alphafold", 'bfd'),
+    qMSAhmmsearchdb=os.path.join("/data/protein/datasets_2022", 'mgnify/mgy_clusters.fa'),
+    mMSAJGI=os.path.join("/data/protein/datasets_2024", 'JGIclust')
 )
 
 
@@ -52,7 +53,7 @@ para_json = dict(
 def deepmsaTask(requests: List[Dict[str, Any]]):
     DeepqMSARunner(requests=requests)()
     DeepdMSARunner(requests=requests)()
-    DeepmMSARunner(requests=requests)()
+    # DeepmMSARunner(requests=requests)()
 
 
 class DeepqMSARunner(BaseCommandRunner):
@@ -69,19 +70,20 @@ class DeepqMSARunner(BaseCommandRunner):
     def build_command(self, request: Dict[str, Any]) -> str:
         # /home/casp15/code/AIRFold/lib/tool/deepmsa2/bin/qMSA/scripts/qMSA.py
         executed_file = (
-                Path(__file__).resolve().parent / "lib" / "tool" / "deepmsa2" / "bin" / "qMSA" / "scripts" / "qMSA.py")
+                Path(__file__).resolve().parent / "lib" / "tool" / "deepmsa2" / "bin" / "qMSA" / "scripts" / "qMSA2.py")
         
         # query fasta
         ptree = get_pathtree(request=request)
-        input_fasta = ptree.seq.fasta
-
+        
         command = f"python {executed_file} " \
-                  f"{input_fasta}" \
+                  f"{ptree.seq.fasta}" \
                   f"-hhblitsdb={para_json['qMSAhhblitsdb']} " \
                   f"-jackhmmerdb={para_json['qMSAjackhmmerdb']} " \
                   f"-hhblits3db={para_json['qMSAhhblits3db']} " \
                   f"-hmmsearchdb={para_json['qMSAhmmsearchdb']} " \
-                  f"-ncpu={self.cpu} " \
+                  f"-outdir={ptree.search.deepqmsa_base} " \
+                  f"-tmpdir={ptree.search.deepqmsa_base_tmp} " \
+                  f"-ncpu={self.cpu} "
                   
                   
         if rlaunch_exists():
@@ -127,14 +129,15 @@ class DeepdMSARunner(BaseCommandRunner):
         
         # query fasta
         ptree = get_pathtree(request=request)
-        input_fasta = ptree.seq.fasta
 
         command = f"python {executed_file} " \
-                  f"{input_fasta}" \
+                  f"{ptree.seq.fasta}" \
                   f"-hhblitsdb={para_json['dMSAhhblitsdb']} " \
                   f"-jackhmmerdb={para_json['dMSAjackhmmerdb']} " \
                   f"-hmmsearchdb={para_json['dMSAhmmsearchdb']} " \
-                  f"-ncpu={self.cpu} " \
+                  f"-outdir={ptree.search.deepdmsa_base} " \
+                  f"-tmpdir={ptree.search.deepdmsa_base_tmp} " \
+                  f"-ncpu={self.cpu} "
                   
                   
         if rlaunch_exists():
