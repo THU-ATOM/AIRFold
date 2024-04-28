@@ -10,6 +10,9 @@ from lib.pathtree import get_pathtree
 from lib.monitor import info_report
 from lib.utils import misc
 
+DB_BASE = "/data/protein/datasets_2024"
+UniRef30 = "uniref30_2302/uniref30_2302"
+ColabFoldDB = "colabfold_envdb/colabfold_envdb_202108"
 
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "rpc://")
 CELERY_BROKER_URL = (
@@ -29,10 +32,10 @@ celery.conf.task_routes = {
 
 @celery.task(name="mmseqs")
 def mmseqsTask(requests: List[Dict[str, Any]]):
-    MMseqRunner(requests=requests)()
+    MMseqsRunner(requests=requests)()
 
 
-class MMseqRunner(BaseCommandRunner):
+class MMseqsRunner(BaseCommandRunner):
     def __init__(
         self, requests: List[Dict[str, Any]]
     ):
@@ -51,9 +54,10 @@ class MMseqRunner(BaseCommandRunner):
         ptree = get_pathtree(request=request)
         params.append(f"--query {ptree.seq.fasta} ")
         # database dir: uniref30_2302_db and colabfold_envdb_202108_db
-        params.append(f"--dbbase {self.output_path} ")
-        params.append(f"--db1 {self.output_path} ")
-        params.append(f"--db3 {self.output_path} ")
+        # dbbase: "/data/protein/datasets_2024"
+        params.append(f"--dbbase {DB_BASE} ")
+        params.append(f"--db1 {UniRef30} ")
+        params.append(f"--db3 {ColabFoldDB} ")
         # results dir
         params.append(f"--base {ptree.search.mmseqs_base} ")
         
@@ -64,7 +68,7 @@ class MMseqRunner(BaseCommandRunner):
         # DIFF=3000
         # QSC=-20.0
         # MAX_ACCEPT=1000000
-        args = misc.safe_get(request, ["run_config", "msa_search", "search", "mmseqs"])
+        args = misc.safe_get(request, ["run_config", "msa_search", "mmseqs"])
         params.append(f"-s {misc.safe_get(args, 'sensitivity')} ")
         params.append(f"--align-eval {misc.safe_get(args, 'align_eval')} ")
         params.append(f"--diff {misc.safe_get(args, 'diff')} ")

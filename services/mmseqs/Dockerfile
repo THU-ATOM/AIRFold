@@ -14,12 +14,16 @@ RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 RUN pip install -U setuptools pip
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-# Install MMseqs2
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/install-conda.sh \
-    && chmod +x /tmp/install-conda.sh \
-    && bash /tmp/install-conda.sh -b -f -p /usr/local \
-    && rm -f /tmp/install-conda.sh \
-    && conda install -c conda-forge -c bioconda mmseqs2
+# RUN wget https://mmseqs.com/latest/mmseqs-linux-avx2.tar.gz \
+#     && tar xvfz mmseqs-linux-avx2.tar.gz \
+#     && export PATH=$(pwd)/mmseqs/bin/:$PATH
+
+RUN mkdir /tmp/mmseqs \
+    && cd /tmp/mmseqs \
+    &&  wget -O mmseqs-linux-avx2.tar.gz https://mmseqs.com/latest/mmseqs-linux-avx2.tar.gz \
+    && tar zxvf mmseqs-linux-avx2.tar.gz \
+    && cp mmseqs/bin/* /usr/local/bin/ \
+    && rm -rf /tmp/mmseqs
 
 # add user
 RUN if [ $USER_NAME != "root" ] ; \

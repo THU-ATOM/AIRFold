@@ -277,10 +277,12 @@ def mmseqs_search_monomer(
         used_dbs.append(template_db)
     if use_env:
         used_dbs.append(metagenomic_db)
+        
+    print("used_dbs: ", used_dbs)
 
     for db in used_dbs:
-        if not dbbase.joinpath(f"{db}.dbtype").is_file():
-            raise FileNotFoundError(f"Database {db} does not exist")
+        # if not dbbase.joinpath(f"{db}.dbtype").is_file():
+        #     raise FileNotFoundError(f"Database {db} does not exist")
         if (
             (
                 not dbbase.joinpath(f"{db}.idx").is_file()

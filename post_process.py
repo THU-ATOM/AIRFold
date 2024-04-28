@@ -90,7 +90,7 @@ def a3m_count(a3m_file):
     return count
 
 
-def post_process():
+def process():
     output_dir = "/data/protein/datasets_2024/prediction/"
     target_dir = "/data/protein/datasets_2024/modeling/"
     weeks = ['2024.02.17', '2024.02.24', '2024.03.02', '2024.03.09', '2024.03.16', '2024.03.23', '2024.03.30', '2024.04.06']
@@ -106,6 +106,9 @@ def post_process():
         ow_dirs = os.listdir(week_dir)
         for target in ow_dirs:
             result = {}
+            
+            result["date"] = week
+            result["target"] = target
             
             # seq, seq_name, seq_len
             result["seq_name"] = data_suffix + "_" + target + "_" + case_suffix
@@ -139,7 +142,7 @@ def post_process():
     
     output_file = output_dir + case_suffix + "_results.pkl"
     with open(output_file, "wb") as pf:
-        pickle.load(pf, results)
+        pickle.dump(results, pf)
             
 
 if __name__ == "__main__":
@@ -149,5 +152,5 @@ if __name__ == "__main__":
     
     logger.info("------- Start to post process -------")
     
-    post_process()
+    process()
     

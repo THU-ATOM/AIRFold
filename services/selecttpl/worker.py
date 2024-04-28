@@ -10,6 +10,7 @@ import lib.utils.datatool as dtool
 from lib.monitor import info_report
 from lib.tool import tool_utils as utils
 from lib.utils.execute import rlaunch_exists, rlaunch_wrapper
+import pickle as pkl
 
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "rpc://")
 CELERY_BROKER_URL = (
@@ -86,17 +87,25 @@ class TPLTSelectRunner(BaseCommandRunner):
 
     def run(self, dry=False):
         # get template features
-        ptree = get_pathtree(request=self.requests[0])
+        request = self.requests[0]
+        ptree = get_pathtree(request)
         template_feats_path = str(ptree.alphafold.template_feat)
         template_feats = dtool.read_pickle(template_feats_path)
 
         self.output_path = ptree.alphafold.selected_template_feat
-        with utils.tmpdir_manager() as tmpdir:
-            self.input_path = Path(tmpdir) / "template_feat.pkl"
-            dtool.save_object_as_pickle(template_feats, self.input_path)
-            super().run(dry)
-        ret_obj = dtool.read_pickle(self.output_path)
-        return ret_obj
+        
+        if (
+            "template_select_strategy" in request["run_config"]["template"]
+            and request["run_config"]["template"]["template_select_strategy"] == "none"
+        ):
+            with open(self.output_path, "wb") as fd:
+                pkl.dump(template_feats, fd)
+        else:
+            with utils.tmpdir_manager() as tmpdir:
+                self.input_path = Path(tmpdir) / "template_feat.pkl"
+                dtool.save_object_as_pickle(template_feats, self.input_path)
+                super().run(dry)
+            
 
     def on_run_end(self):
         request = self.requests[0]

@@ -9,11 +9,11 @@ para_json = dict(
     
     # database parameter 
     dMSAhhblitsdb=os.path.join("/data/protein/datasets_2024", 'uniclust30_2017_04/uniclust30_2017_04'),
-    dMSAjackhmmerdb=os.path.join("/data/protein/datasets_2022", 'uniref90/uniref90.fasta'),
+    dMSAjackhmmerdb=os.path.join("/data/protein/datasets_2024", 'uniref90/uniref90.fasta'),
     dMSAhmmsearchdb=os.path.join("/data/protein/datasets_2024", 'metaclust/metaclust.fasta'),
-    qMSAhhblitsdb=os.path.join("/data/protein/datasets_2024", 'UniRef30_2302'),
-    qMSAjackhmmerdb=os.path.join("/data/protein/datasets_2022", 'uniref90/uniref90.fasta'),
-    qMSAhhblits3db=os.path.join("/data/protein/alphafold", 'bfd'),
+    qMSAhhblitsdb=os.path.join("/data/protein/datasets_2024", 'UniRef30_2022_02/UniRef30_2022_02'),
+    qMSAjackhmmerdb=os.path.join("/data/protein/datasets_2024", 'uniref90/uniref90.fasta'),
+    qMSAhhblits3db=os.path.join("/data/protein/alphafold", 'bfd/bfd_metaclust_clu_complete_id30_c90_final_seq.sorted_opt'),
     qMSAhmmsearchdb=os.path.join("/data/protein/datasets_2022", 'mgnify/mgy_clusters.fa'),
     mMSAJGI=os.path.join("/data/protein/datasets_2024", 'JGIclust')
 )

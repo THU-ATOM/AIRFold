@@ -10,3 +10,5 @@ py3Dmol
 psutil
 gpustat
 tqdm
+absl-py
+pandas
