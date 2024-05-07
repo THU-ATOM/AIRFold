@@ -15,7 +15,7 @@ from lib.tool import tool_utils
 
 from lib.monitor.database_mgr import StateRecord
 from lib.monitor.info_report import *
-from lib.monitor.cameo_server import post_utils
+from lib.monitor import post_utils
 from lib.utils import misc
 from lib.monitor.extend_config import extend_run_config
 

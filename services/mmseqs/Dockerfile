@@ -18,12 +18,39 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 #     && tar xvfz mmseqs-linux-avx2.tar.gz \
 #     && export PATH=$(pwd)/mmseqs/bin/:$PATH
 
-RUN mkdir /tmp/mmseqs \
-    && cd /tmp/mmseqs \
-    &&  wget -O mmseqs-linux-avx2.tar.gz https://mmseqs.com/latest/mmseqs-linux-avx2.tar.gz \
-    && tar zxvf mmseqs-linux-avx2.tar.gz \
-    && cp mmseqs/bin/* /usr/local/bin/ \
-    && rm -rf /tmp/mmseqs
+# RUN mkdir /tmp/mmseqs \
+#     && cd /tmp/mmseqs \
+#     &&  wget -O mmseqs-linux-avx2.tar.gz https://mmseqs.com/latest/mmseqs-linux-avx2.tar.gz \
+#     && tar zxvf mmseqs-linux-avx2.tar.gz \
+#     && cp mmseqs/bin/* /usr/local/bin/ \
+#     && rm -rf /tmp/mmseqs
+
+# Install cmake
+RUN wget -O cmake-3.22.5-linux-x86_64.tar.gz https://github.com/Kitware/CMake/releases/download/v3.22.5/cmake-3.22.5-linux-x86_64.tar.gz \
+    && tar zxvf cmake-3.22.5-linux-x86_64.tar.gz \
+    && cd cmake-3.22.5-linux-x86_64 \
+    && cp -r bin/ /usr/local \
+    && cp -r share/ /usr/local \
+    && rm -rf /tmp/cmake-3.22.5-linux-x86_64 \
+    && rm -rf /tmp/cmake-3.22.5-linux-x86_64.tar.gz
+
+# Install HH-suite3
+RUN git clone --recursive https://github.com/soedinglab/MMseqs2.git /tmp/mmseqs2 \
+    && mkdir /tmp/mmseqs2/build \
+    && cd /tmp/mmseqs2/build \
+    && cmake -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=/usr/local .. \
+    && make \
+    && make install\
+    && rm -rf /tmp/mmseqs2
+
+# RUN git clone https://github.com/soedinglab/MMseqs2.git \
+#     && cd MMseqs2 \
+#     && mkdir build \
+#     && cd build \
+#     && cmake -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=. .. \
+#     && make \
+#     && make install \
+#     && export PATH=$(pwd)/bin/:$PATH
 
 # add user
 RUN if [ $USER_NAME != "root" ] ; \

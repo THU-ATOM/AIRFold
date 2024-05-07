@@ -10,9 +10,9 @@ from lib.pathtree import get_pathtree
 from lib.monitor import info_report
 from lib.utils import misc
 
-DB_BASE = "/data/protein/datasets_2024"
-UniRef30 = "uniref30_2302/uniref30_2302"
-ColabFoldDB = "colabfold_envdb/colabfold_envdb_202108"
+DB_BASE = "/data/protein/datasets_2024/database"
+UniRef30 = "uniref30_2302_db"
+ColabFoldDB = "colabfold_envdb_202108_db"
 
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "rpc://")
 CELERY_BROKER_URL = (

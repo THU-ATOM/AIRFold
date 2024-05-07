@@ -96,7 +96,7 @@ def process():
     weeks = ['2024.02.17', '2024.02.24', '2024.03.02', '2024.03.09', '2024.03.16', '2024.03.23', '2024.03.30', '2024.04.06']
     
     data_suffix = "2024-04-18"
-    case_suffix = "base"
+    case_suffix = "base_ns"
     
     results_dir = "/data/protein/CAMEO/data/" + data_suffix + "/"
     
@@ -123,22 +123,28 @@ def process():
             # a3m_num
             a3m_dir = results_dir + "search/intergrated_a3m/"
             a3m_file = a3m_dir + result["seq_name"] + ".a3m"
-            result["msa_depth"] = a3m_count(a3m_file)
             
             # plddt and lddt of five model
-            structure_dir = results_dir + "structure/seq_e_re_0.1_le_5000/" + result["seq_name"] + "/"
+            structure_dir = results_dir + "structure/seq_e_re_1.0_le_5000/" + result["seq_name"] + "/"
             plddt_file = structure_dir + "plddt_results.json"
-            result["plddt"] = []
-            result["lddt"] = []
-            with open(plddt_file, "r") as pf:
-                plddt_dict = json.load(pf)
-                for key, val in plddt_dict.items():
-                    result["plddt"].append(val)
-                    result["predicted_pdb"] = structure_dir + key + "_relaxed.pdb"
-                    global_lddt, _ = get_lddts(result["predicted_pdb"], result["target_pdb"], CA=False)
-                    result["lddt"].append(global_lddt)
             
-            results.append(result)
+            
+            if os.path.exists(a3m_file) and os.path.exists(plddt_file):
+                result["msa_depth"] = a3m_count(a3m_file)
+                result["plddt"] = []
+                result["lddt"] = []
+                with open(plddt_file, "r") as pf:
+                    plddt_dict = json.load(pf)
+                    for key, val in plddt_dict.items():
+                        result["plddt"].append(val)
+                        result["predicted_pdb"] = structure_dir + key + "_relaxed.pdb"
+                        global_lddt, _ = get_lddts(result["predicted_pdb"], result["target_pdb"], CA=False)
+                        result["lddt"].append(global_lddt)
+                
+                results.append(result)
+            else:
+                logger.info(f"------- The structure does't exist : {result['seq_name']}")
+                continue
     
     output_file = output_dir + case_suffix + "_results.pkl"
     with open(output_file, "wb") as pf:
