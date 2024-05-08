@@ -63,8 +63,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--jgi", type=str, default="JGI")
     parser.add_argument("--hhlib", type=str, default="HHLIB")
-    parser.add_argument("--deepmmsa_base", type=str, default="/deepmmsa_base")
-    parser.add_argument("--deepmmsa_base_temp", type=str, default="/deepmmsa_base/temp")
+    parser.add_argument("--deepmmsa_base", type=str, default="./deepmmsa_base")
+    parser.add_argument("--deepmmsa_base_temp", type=str, default="./deepmmsa_base/temp")
     parser.add_argument("--dmsa_hhbaln", type=str, default="dmsa.hhbaln")
 
     args = parser.parse_args()

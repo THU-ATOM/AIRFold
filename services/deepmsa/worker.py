@@ -9,7 +9,7 @@ from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.utils import pathtool
 from lib.monitor import info_report
-from lib.tool import deepmsa_img
+from lib.tool import deepmsa_img, jgi_comb
 from lib.utils.execute import rlaunch_exists, rlaunch_wrapper
 
 
@@ -175,6 +175,7 @@ class DeepmMSARunner(BaseCommandRunner):
         # get args of deepmsa_img
         jgi_path = para_json['mMSAJGI']
         hhlib_path = (Path(__file__).resolve().parent / "lib" / "tool" / "deepmsa2" / "bin" / "qMSA")
+        dmsalib_path = (Path(__file__).resolve().parent / "lib" / "tool" / "deepmsa2" / "bin" / "dMSA")
 
         command_jgi = "".join(
             [
@@ -182,6 +183,7 @@ class DeepmMSARunner(BaseCommandRunner):
                 f"--jgi {jgi_path} ",
                 f"--hhlib {hhlib_path} ",
                 f"--deepmmsa_base {ptree.search.deepmmsa_base} ",
+                f"--deepmmsa_base_temp {ptree.search.deepmmsa_base_tmp} ",
                 f"--dmsa_hhbaln {ptree.search.deepdmsa_hhbaln} "
             ]
         )
@@ -195,20 +197,23 @@ class DeepmMSARunner(BaseCommandRunner):
             )
         
         print("2rd step/JGI combination is starting!\n")
-        Q = "urgent"
-        if Q == "default":
-            Q = "normal"
-        
-        hhblitsdb = para_json['qMSAhhblitsdb']
-        jackhmmerdb = para_json['qMSAjackhmmerdb']
-        hhblits3db = para_json['qMSAhhblits3db']
-        
-        # /home/casp15/code/AIRFold/lib/tool/deepmsa2/bin/JGImod.py
-        executed_file = (
-                Path(__file__).resolve().parent / "lib" / "tool" / "deepmsa2" / "bin" / "JGImod.py")
+    
 
-        command_comb = f"python {executed_file} {ptree.search.deepmmsa_base} " \
-                       f"{ptree.search.deepmmsa_base_tmp} {hhblitsdb} {jackhmmerdb} {hhblits3db} {Q}\n"
+        command_comb = "".join(
+            [
+                f"python {pathtool.get_module_path(jgi_comb)} ",
+                f"--hhlib {hhlib_path} ",
+                f"--dmsalib {dmsalib_path} ",
+                f"--deepmmsa_base {ptree.search.deepmmsa_base} ",
+                f"--deepmmsa_base_temp {ptree.search.deepmmsa_base_tmp} ",
+                f"--seq {ptree.seq.fasta} ",
+                f"--deepqmsa_hhbaln {ptree.search.deepqmsa_hhbaln} ",
+                f"--deepqmsa_hhba3m {ptree.search.deepqmsa_hhba3m} ",
+                f"--deepdmsa_hhbaln {ptree.search.deepdmsa_hhbaln} ",
+                f"--deepdmsa_hhba3m {ptree.search.deepdmsa_hhba3m} "
+            ]
+        )
+        
         if rlaunch_exists():
             command_comb = rlaunch_wrapper(
                 command_comb,

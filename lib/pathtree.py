@@ -140,6 +140,14 @@ class SearchPathTree(BasePathTree):
     @property
     def deepmsa_qa3m(self):
         return self.root / "deepqmsa" / f"{self.id}" / f"{self.id}.a3m"
+    # hhbaln
+    @property
+    def deepqmsa_hhbaln(self):
+        return self.root / "deepqmsa" / f"{self.id}" / f"{self.id}.hhbaln"
+    # hhba3m
+    @property
+    def deepqmsa_hhba3m(self):
+        return self.root / "deepqmsa" / f"{self.id}" / f"{self.id}.hhba3m"
     
     # dmsa
     @property
@@ -155,6 +163,10 @@ class SearchPathTree(BasePathTree):
     @property
     def deepdmsa_hhbaln(self):
         return self.root / "deepdmsa" / f"{self.id}" / f"{self.id}.hhbaln"
+    # hhba3m
+    @property
+    def deepdmsa_hhba3m(self):
+        return self.root / "deepdmsa" / f"{self.id}" / f"{self.id}.hhba3m"
     
     # mmsa
     @property
@@ -165,7 +177,7 @@ class SearchPathTree(BasePathTree):
         return self.root / "deepmmsa" / f"{self.id}" / "tmp"
     @property
     def deepmsa_ma3m(self):
-        return self.root / "deepmmsa" / f"{self.id}" / f"{self.id}.a3m"
+        return self.root / "deepmmsa" / f"{self.id}" / "DeepJGI.a3m"
     
     
     # blast output path
