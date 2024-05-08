@@ -174,15 +174,15 @@ class DeepmMSARunner(BaseCommandRunner):
 
         # get args of deepmsa_img
         jgi_path = para_json['mMSAJGI']
-        hhlib_path = para_json['qMSApkg']
+        hhlib_path = (Path(__file__).resolve().parent / "lib" / "tool" / "deepmsa2" / "bin" / "qMSA")
 
         command_jgi = "".join(
             [
                 f"python {pathtool.get_module_path(deepmsa_img)} ",
-                f"-j {jgi_path} ",
-                f"-h {hhlib_path} ",
-                f"-b {ptree.search.deepmmsa_base} ",
-                f"-b {ptree.search.deepdmsa_hhbaln} "
+                f"--jgi {jgi_path} ",
+                f"--hhlib {hhlib_path} ",
+                f"--deepmmsa_base {ptree.search.deepmmsa_base} ",
+                f"--dmsa_hhbaln {ptree.search.deepdmsa_hhbaln} "
             ]
         )
         
