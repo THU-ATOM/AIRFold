@@ -15,6 +15,7 @@ from lib.constant import DB_PATH
 from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.monitor import info_report
+from lib.utils import proteintool as ptool
 
 SEQUENCE = "sequence"
 TARGET = "target"
@@ -157,7 +158,7 @@ class MSAMergeRunner(BaseRunner):
             fd.write(wstring)
         return True
 
-    def run(self, dry=False):
+    def run(self):
         ptree = get_pathtree(request=self.requests[0])
         copy_int_msa_from = self.requests[0]["run_config"]["msa_search"].get(
             "copy_int_msa_from", "None"
@@ -221,26 +222,33 @@ class MSAMergeRunner(BaseRunner):
                 target_sequence=self.requests[0][SEQUENCE],
                 target=self.requests[0][TARGET],
             )
-            self.merge_a3m_files(
-                target_path=integrated_search_a3m,
-                msa_paths={
-                    "hh_bfd_uni": segment_merge(ptree.search.hhblist_bfd_uniclust_a3m),
-                    "jh_mgn": segment_merge(ptree.search.jackhammer_mgnify_a3m),
-                    "jh_uni": segment_merge(ptree.search.jackhammer_uniref90_a3m),
-                    "bl": segment_merge(ptree.search.blast_a3m),
-                    "dq": segment_merge(ptree.search.deepmsa_qa3m),
-                    "dd": segment_merge(ptree.search.deepmsa_da3m),
-                    "dm": segment_merge(ptree.search.deepmsa_ma3m),
-                },
-                target_sequence=self.requests[0][SEQUENCE],
-                target=self.requests[0][TARGET],
+            # merge two protein files, add source to comment
+            merge_file = ptool.ProteinFile.merge(
+                [ptool.ProteinFile.from_file(segment_merge(ptree.search.hhblist_bfd_uniclust_a3m)), 
+                 ptool.ProteinFile.from_file(segment_merge(ptree.search.jackhammer_mgnify_a3m)),
+                 ptool.ProteinFile.from_file(segment_merge(ptree.search.jackhammer_uniref90_a3m)),
+                 ptool.ProteinFile.from_file(segment_merge(ptree.search.blast_a3m)),
+                 ptool.ProteinFile.from_file(segment_merge(ptree.search.deepqmsa_hh3a3m)),
+                 ptool.ProteinFile.from_file(segment_merge(ptree.search.deepqmsa_hhba3m)),
+                 ptool.ProteinFile.from_file(segment_merge(ptree.search.deepqmsa_hmsa3m)),
+                 ptool.ProteinFile.from_file(segment_merge(ptree.search.deepqmsa_jaca3m)),
+                 ptool.ProteinFile.from_file(segment_merge(ptree.search.deepdmsa_hhba3m)),
+                 ptool.ProteinFile.from_file(segment_merge(ptree.search.deepdmsa_hmsa3m)),
+                 ptool.ProteinFile.from_file(segment_merge(ptree.search.deepdmsa_jaca3m))
+                ], 
+                names=["hh_bfd_uni", "jh_mgn", "jh_uni", "bl", 
+                       "dq_hh3", "dq_hhb", "dq_hms", "dq_jac",
+                       "dd_hhb", "dd_hms", "dd_jac"], 
+                deduplicate=True
             )
 
-        self.outputs_paths = [integrated_search_a3m, template_msa_a3m]
+            # a3m to fasta
+            mrege_fasta = merge_file.to_fasta()
+            logger.info(f"The merged num of a3m: ({len(mrege_fasta)}): \n{mrege_fasta}")
+            merge_file.save(integrated_search_a3m)
 
         return integrated_search_a3m, template_msa_a3m
-        # except:
-        #     print(f"runner failed")
+
 
     def on_run_end(self):
         request = self.requests[0]

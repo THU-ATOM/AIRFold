@@ -195,6 +195,7 @@ services:
       - ./services/deepmsa:/worker
       - /data:/data
       - ./lib:/worker/lib
+      - /tmp:/tmp
     command: celery -A worker worker --loglevel=info -Q queue_deepmsa --concurrency=32
 
   worker_mergemsa:

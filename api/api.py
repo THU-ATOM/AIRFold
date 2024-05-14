@@ -191,6 +191,7 @@ async def pipeline_task(requests: List[Dict[str, Any]] = Body(..., embed=True)):
         signature("blast", args=[requests], queue="queue_blast", immutable=True), 
         signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
         signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
+        signature("deepmsa", args=[requests], queue="queue_deepmsa", immutable=True),
     )
     msaMergeTask = signature("mergemsa", args=[requests], queue="queue_mergemsa", immutable=True)
     msaSelctTask = signature("selectmsa", args=[requests], queue="queue_selectmsa", immutable=True)

@@ -44,8 +44,8 @@ para_json = dict(
 
 @celery.task(name="deepmsa")
 def deepmsaTask(requests: List[Dict[str, Any]]):
-    # DeepqMSARunner(requests=requests)()
-    # DeepdMSARunner(requests=requests)()
+    DeepqMSARunner(requests=requests)()
+    DeepdMSARunner(requests=requests)()
     DeepmMSARunner(requests=requests)()
 
 
@@ -54,7 +54,7 @@ class DeepqMSARunner(BaseCommandRunner):
         self, requests: List[Dict[str, Any]]
     ):
         super().__init__(requests)
-        self.cpu = 4  # to do
+        self.cpu = 8  # to do
 
     @property
     def start_stage(self) -> int:
