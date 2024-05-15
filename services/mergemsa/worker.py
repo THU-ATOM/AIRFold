@@ -234,11 +234,14 @@ class MSAMergeRunner(BaseRunner):
                  ptool.ProteinFile.from_file(segment_merge(ptree.search.deepqmsa_jaca3m)),
                  ptool.ProteinFile.from_file(segment_merge(ptree.search.deepdmsa_hhba3m)),
                  ptool.ProteinFile.from_file(segment_merge(ptree.search.deepdmsa_hmsa3m)),
-                 ptool.ProteinFile.from_file(segment_merge(ptree.search.deepdmsa_jaca3m))
+                 ptool.ProteinFile.from_file(segment_merge(ptree.search.deepdmsa_jaca3m)),
+                 ptool.ProteinFile.from_file(segment_merge(ptree.search.deepmmsa_q3jgi)),
+                 ptool.ProteinFile.from_file(segment_merge(ptree.search.deepmmsa_q4jgi)),
+                 ptool.ProteinFile.from_file(segment_merge(ptree.search.deepmmsa_djgi))
                 ], 
                 names=["hh_bfd_uni", "jh_mgn", "jh_uni", "bl", 
                        "dq_hh3", "dq_hhb", "dq_hms", "dq_jac",
-                       "dd_hhb", "dd_hms", "dd_jac"], 
+                       "dd_hhb", "dd_hms", "dd_jac", "dm_q3j", "dm_q4j", "dm_dj"], 
                 deduplicate=True
             )
 
@@ -247,6 +250,7 @@ class MSAMergeRunner(BaseRunner):
             logger.info(f"The merged num of a3m: ({len(mrege_fasta)}): \n{mrege_fasta}")
             merge_file.save(integrated_search_a3m)
 
+        self.outputs_paths = [integrated_search_a3m, template_msa_a3m]
         return integrated_search_a3m, template_msa_a3m
 
 

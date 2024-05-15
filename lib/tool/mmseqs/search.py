@@ -1,9 +1,3 @@
-"""
-Functionality for running mmseqs locally. Takes in a fasta file, outputs final.a3m
-
-Note: Currently needs mmseqs compiled from source
-"""
-
 import logging
 import math
 import os
@@ -265,7 +259,7 @@ def mmseqs_search_monomer(
     db2: Template (unused by default)
     db3: metagenomic db (colabfold_envdb_202108 or bfd_mgy_colabfold, the former is preferred)
     """
-    use_env = False
+    use_env = True
     
     if filter:
         # 0.1 was not used in benchmarks due to POSIX shell bug in line above
@@ -296,11 +290,9 @@ def mmseqs_search_monomer(
             db_load_mode = 0
             dbSuffix1 = "_seq"
             dbSuffix2 = "_aln"
-            dbSuffix3 = ""
         else:
             dbSuffix1 = ".idx"
             dbSuffix2 = ".idx"
-            dbSuffix3 = ".idx"
 
     # fmt: off
     # @formatter:off
@@ -358,18 +350,6 @@ def mmseqs_search_monomer(
     else:
         run_mmseqs(mmseqs, ["mvdb", base.joinpath("uniref.a3m"), base.joinpath("final.a3m")])
 
-    if use_templates:
-        run_mmseqs(mmseqs, ["search", base.joinpath("prof_res"), dbbase.joinpath(template_db), base.joinpath("res_pdb"),
-                            base.joinpath("tmp2"), "--db-load-mode", str(db_load_mode), "--threads", str(threads), "-s", "7.5", "-a", "-e", "0.1"])
-        run_mmseqs(mmseqs, ["convertalis", base.joinpath("prof_res"), dbbase.joinpath(f"{template_db}{dbSuffix3}"), base.joinpath("res_pdb"),
-                            base.joinpath(f"{template_db}"), "--format-output",
-                            "query,target,fident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits,cigar",
-                            "--db-output", "1",
-                            "--db-load-mode", str(db_load_mode), "--threads", str(threads)])
-        run_mmseqs(mmseqs, ["unpackdb", base.joinpath(f"{template_db}"), base.joinpath("."), "--unpack-name-mode", "0", "--unpack-suffix", ".m8"])
-        run_mmseqs(mmseqs, ["rmdb", base.joinpath("res_pdb")])
-        run_mmseqs(mmseqs, ["rmdb", base.joinpath(f"{template_db}")])
-
     run_mmseqs(mmseqs, ["unpackdb", base.joinpath("final.a3m"), base.joinpath("."), "--unpack-name-mode", "0", "--unpack-suffix", ".a3m"])
     run_mmseqs(mmseqs, ["rmdb", base.joinpath("final.a3m")])
     run_mmseqs(mmseqs, ["rmdb", base.joinpath("uniref.a3m")])
@@ -380,8 +360,6 @@ def mmseqs_search_monomer(
     for file in base.glob("prof_res*"):
         file.unlink()
     shutil.rmtree(base.joinpath("tmp"))
-    if use_templates:
-        shutil.rmtree(base.joinpath("tmp2"))
     if use_env:
         shutil.rmtree(base.joinpath("tmp3"))
 
@@ -485,7 +463,7 @@ def main():
 
     logging.basicConfig(level = logging.INFO)
 
-    queries, is_complex = get_queries(args.query, None)
+    queries, _ = get_queries(args.query, None)
 
     queries_unique = []
     for job_number, (raw_jobname, query_sequences, a3m_lines) in enumerate(queries):
@@ -561,19 +539,6 @@ def main():
             args.base.joinpath(f"{job_number}.a3m"),
             args.base.joinpath(f"{safe_filename(raw_jobname)}.a3m"),
         )
-
-    # rename m8 files
-    if args.use_templates:
-        id = 0
-        for raw_jobname, query_sequences, query_seqs_cardinality in queries_unique:
-            with args.base.joinpath(f"{safe_filename(raw_jobname)}_{args.db2}.m8").open(
-                "w"
-            ) as f:
-                for _ in range(len(query_seqs_cardinality)):
-                    with args.base.joinpath(f"{id}.m8").open("r") as g:
-                        f.write(g.read())
-                    os.remove(args.base.joinpath(f"{id}.m8"))
-                    id += 1
 
     query_file.unlink()
     run_mmseqs(args.mmseqs, ["rmdb", args.base.joinpath("qdb")])

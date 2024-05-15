@@ -30,8 +30,8 @@ COMMENT_MARK = ">"
 INPUT_MARK = "input_"
 GAP = "-"
 
-HAS_COMMENT_FILES = (".a3m", ".fasta")
-NO_COMMENT_FILES = ".aln"
+HAS_COMMENT_FILES = (".fasta", ".a3m", ".hh3a3m", ".hhba3m", ".hmsa3m", ".jaca3m")
+NO_COMMENT_FILES = (".aln", ".hh3aln", ".hhbaln", ".hmsaln", ".jacaln")
 
 ascii_lowercase_table = str.maketrans(dict.fromkeys(string.ascii_lowercase))
 

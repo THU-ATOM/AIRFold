@@ -25,7 +25,7 @@ def img_main(args):
     JGI = args.jgi
     HHLIB = args.hhlib
     
-    if args.deepmmsa_base and args.deepmmsa_base!='.':
+    if args.deepmmsa_base and args.deepmmsa_base != '.':
         mkdir_if_not_exist(args.deepmmsa_base)
         mkdir_if_not_exist(args.deepmmsa_base_temp)
         
@@ -54,17 +54,17 @@ def img_main(args):
             os.system(f"chmod a+x {deepmmsa_path}")
             submitjob(deepmmsa_path)
     
-    print(f"tmpdir = {args.deepmmsa_base_temp}")
-    if os.path.exists(args.deepmmsa_base_temp):
-        os.system(f"rm -rf {args.deepmmsa_base_temp}")
+    # print(f"tmpdir = {args.deepmmsa_base_temp}")
+    # if os.path.exists(args.deepmmsa_base_temp):
+    #     os.system(f"rm -rf {args.deepmmsa_base_temp}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--jgi", type=str, default="JGI")
     parser.add_argument("--hhlib", type=str, default="HHLIB")
     parser.add_argument("--deepmmsa_base", type=str, default="/deepmmsa_base")
-    parser.add_argument("--deepmmsa_base_temp", type=str, default="/deepmmsa_base/temp")
-    parser.add_argument("--deepqmsa_hh3aln", type=str, default="deeqmsa.hhbaln")
+    parser.add_argument("--deepmmsa_base_temp", type=str, default="/deepmmsa_base/tmp")
+    parser.add_argument("--deepqmsa_hh3aln", type=str, default="deeqmsa.hh3aln")
 
     args = parser.parse_args()
 

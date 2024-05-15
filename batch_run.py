@@ -129,7 +129,7 @@ def main():
     #          '2024.03.16', '2024.03.23', '2024.03.30', '2024.04.06']
     
     cameo_dir = "/data/protein/datasets_2024/modeling/2024.04.06/"
-    data_suffix = "2024-04-18"
+    data_suffix = "2024-05-15"
     case_suffix = "base_deepmsa"
     
     # for run dir or run bad case
@@ -144,7 +144,6 @@ def main():
         request_dict["name"] = seq_name + "_" + case_suffix
         request_dict["target"] = seq_name
         logger.info(f"------- Received request: {request_dict}")
-        # exit()
         insert_request(r=request_dict, info_report=info_report)
         call_pipeline(info_report=info_report)
 

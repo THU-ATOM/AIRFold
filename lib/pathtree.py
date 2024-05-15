@@ -127,7 +127,7 @@ class SearchPathTree(BasePathTree):
     
     @property
     def mmseqs_a3m(self):
-        return self.root / "mmseqs" / f"{self.id}" / "final.a3m"
+        return self.root / "mmseqs" / f"{self.id}" / f"{self.id}.a3m"
     @property
     def mmseqs_fa(self):
         return self.root / "mmseqs_fa" / f"{self.id}.fasta"
@@ -211,7 +211,13 @@ class SearchPathTree(BasePathTree):
     def deepmmsa_base_tmp(self):
         return self.root / "deepmmsa" / f"{self.id}" / "tmp"
     @property
-    def deepmmsa_a3m(self):
+    def deepmmsa_q3jgi(self):
+        return self.root / "deepmmsa" / f"{self.id}" / "q3JGI.a3m"
+    @property
+    def deepmmsa_q4jgi(self):
+        return self.root / "deepmmsa" / f"{self.id}" / "q4JGI.a3m"
+    @property
+    def deepmmsa_djgi(self):
         return self.root / "deepmmsa" / f"{self.id}" / "DeepJGI.a3m"
     
     

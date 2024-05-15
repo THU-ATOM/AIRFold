@@ -232,7 +232,7 @@ class DeepmMSARunner(BaseCommandRunner):
         if self.info_reportor is not None:
             for request in self.requests:
                 tree = get_pathtree(request=request)
-                if tree.search.deepmmsa_a3m.exists():
+                if tree.search.deepmmsa_q3jgi.exists() and tree.search.deepmmsa_q4jgi.exists() and tree.search.deepmmsa_djgi.exists():
                     self.info_reportor.update_state(
                         hash_id=request[info_report.HASH_ID],
                         state=State.DEEPmMSA_SUCCESS,
