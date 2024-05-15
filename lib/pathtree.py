@@ -147,6 +147,14 @@ class SearchPathTree(BasePathTree):
     @property
     def deepqmsa_hhbaln(self):
         return self.root / "deepqmsa" / f"{self.id}" / f"{self.id}.hhbaln"
+    # jacaln
+    @property
+    def deepqmsa_jacaln(self):
+        return self.root / "deepqmsa" / f"{self.id}" / f"{self.id}.jacaln"
+    # hh3aln
+    @property
+    def deepqmsa_hh3aln(self):
+        return self.root / "deepqmsa" / f"{self.id}" / f"{self.id}.hh3aln"
     # hh3a3m
     @property
     def deepqmsa_hh3a3m(self):
@@ -172,12 +180,16 @@ class SearchPathTree(BasePathTree):
     def deepdmsa_base_tmp(self) -> Path:
         return self.root / "deepdmsa" / f"{self.id}" / "tmp"
     @property
-    def deepmsa_da3m(self):
+    def deepdmsa_a3m(self):
         return self.root / "deepdmsa" / f"{self.id}" / f"{self.id}.a3m"
     # hhbaln
     @property
     def deepdmsa_hhbaln(self):
         return self.root / "deepdmsa" / f"{self.id}" / f"{self.id}.hhbaln"
+    # jacaln
+    @property
+    def deepdmsa_jacaln(self):
+        return self.root / "deepdmsa" / f"{self.id}" / f"{self.id}.jacaln"
     # hhba3m
     @property
     def deepdmsa_hhba3m(self):
@@ -199,7 +211,7 @@ class SearchPathTree(BasePathTree):
     def deepmmsa_base_tmp(self):
         return self.root / "deepmmsa" / f"{self.id}" / "tmp"
     @property
-    def deepmsa_ma3m(self):
+    def deepmmsa_a3m(self):
         return self.root / "deepmmsa" / f"{self.id}" / "DeepJGI.a3m"
     
     

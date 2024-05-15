@@ -19,6 +19,11 @@ def q34JGI(deepmmsa_base, deepmmsa_base_temp, args):
     
     deepqmsa_hhbaln = args.deepqmsa_hhbaln
     deepqmsa_hhba3m = args.deepqmsa_hhba3m
+    deepqmsa_jacaln = args.deepqmsa_jacaln
+    deepqmsa_jaca3m = args.deepqmsa_jaca3m
+    deepqmsa_hh3aln = args.deepqmsa_hh3aln
+    deepqmsa_hh3a3m = args.deepqmsa_hh3a3m
+    
     os.system(f"cat {deepqmsa_hhba3m} | {HHLIB}/bin/unaligna3m - {deepmmsa_base_temp}/DB.fasta.fseqs")
     os.system(f"cat {deepmmsa_base}/DB.fasta.*.cdhit >> {deepmmsa_base_temp}/DB.fasta.fseqs")
 
@@ -30,6 +35,10 @@ def q34JGI(deepmmsa_base, deepmmsa_base_temp, args):
     os.system(f"ln -s {args.seq} {deepmmsa_base}/q4JGI.fasta")
     os.system(f"ln -s {deepqmsa_hhbaln} {deepmmsa_base}/q4JGI.hhbaln")
     os.system(f"ln -s {deepqmsa_hhba3m} {deepmmsa_base}/q4JGI.hhba3m")
+    os.system(f"ln -s {deepqmsa_jacaln} {deepmmsa_base}/q4JGI.jacaln")
+    os.system(f"ln -s {deepqmsa_jaca3m} {deepmmsa_base}/q4JGI.jaca3m")
+    os.system(f"ln -s {deepqmsa_hh3aln} {deepmmsa_base}/q4JGI.hh3aln")
+    os.system(f"ln -s {deepqmsa_hh3a3m} {deepmmsa_base}/q4JGI.hh3a3m")
 
     cmd = f"python {HHLIB}/scripts/qMSA2.py -hhblitsdb={qhhblitsdb} -jackhmmerdb={jackhmmerdb} -hhblits3db={qhhblits3db} -hmmsearchdb={deepmmsa_base_temp}/DB.fasta.fseqs -tmpdir={deepmmsa_base_temp} {deepmmsa_base}/q4JGI.fasta"
 
@@ -42,6 +51,8 @@ def q34JGI(deepmmsa_base, deepmmsa_base_temp, args):
     os.system(f"ln -s {args.seq} {deepmmsa_base}/q3JGI.fasta")
     os.system(f"ln -s {deepqmsa_hhbaln} {deepmmsa_base}/q3JGI.hhbaln")
     os.system(f"ln -s {deepqmsa_hhba3m} {deepmmsa_base}/q3JGI.hhba3m")
+    os.system(f"ln -s {deepqmsa_jacaln} {deepmmsa_base}/q3JGI.jacaln")
+    os.system(f"ln -s {deepqmsa_jaca3m} {deepmmsa_base}/q3JGI.jaca3m")
 
     cmd = f"python {HHLIB}/scripts/qMSA2.py -hhblitsdb={qhhblitsdb} -jackhmmerdb={jackhmmerdb} -hmmsearchdb={deepmmsa_base_temp}/DB.fasta.fseqs -tmpdir={deepmmsa_base_temp} {deepmmsa_base}/q3JGI.fasta"
 
@@ -52,15 +63,16 @@ def q34JGI(deepmmsa_base, deepmmsa_base_temp, args):
 
 
 def deepJGI(deepmmsa_base, deepmmsa_base_temp, args):
-    deepdmsa_hhbaln = args.deepqmsa_hhbaln
-    deepdmsa_hhba3m = args.deepqmsa_hhba3m
+    deepdmsa_hhbaln = args.deepdmsa_hhbaln
+    deepdmsa_hhba3m = args.deepdmsa_hhba3m
+    deepdmsa_jacaln = args.deepdmsa_jacaln
+    deepdmsa_jaca3m = args.deepqmsa_jaca3m
     os.system(f"ln -s {args.seq} {deepmmsa_base}/DeepJGI.fasta")
     os.system(f"ln -s {deepdmsa_hhbaln} {deepmmsa_base}/DeepJGI.hhbaln")
-    os.system(f"ln -s {deepdmsa_hhbaln} {deepmmsa_base}/DeepJGI.jacaln")
     os.system(f"ln -s {deepdmsa_hhba3m} {deepmmsa_base}/DeepJGI.hhba3m")
-    os.system(f"ln -s {deepdmsa_hhba3m} {deepmmsa_base}/DeepJGI.jaca3m")
+    os.system(f"ln -s {deepdmsa_jacaln} {deepmmsa_base}/DeepJGI.jacaln")
+    os.system(f"ln -s {deepdmsa_jaca3m} {deepmmsa_base}/DeepJGI.jaca3m")
     
-
     cmd = f"python {DMSALIB}/scripts/build_MSA.py -hhblitsdb={dhhblitsdb} -jackhmmerdb={jackhmmerdb} -hmmsearchdb={deepmmsa_base_temp}/DB.fasta.fseqs -tmpdir={deepmmsa_base_temp} {deepmmsa_base}/DeepJGI.fasta"
 
     if not os.path.isfile(f"{deepmmsa_base}/DeepJGI.a3m"):
@@ -101,10 +113,18 @@ if __name__ == "__main__":
     parser.add_argument("--deepmmsa_base", type=str, default="/deepmmsa_base")
     parser.add_argument("--deepmmsa_base_temp", type=str, default="/deepmmsa_base/temp")
     parser.add_argument("--seq", type=str, default="seq.fasta")
+    # qMSA for q34JGI
     parser.add_argument("--deepqmsa_hhbaln", type=str, default="qMSA.hhbaln")
     parser.add_argument("--deepqmsa_hhba3m", type=str, default="qMSA.hhba3m")
+    parser.add_argument("--deepqmsa_jacaln", type=str, default="qMSA.jacaln")
+    parser.add_argument("--deepqmsa_jaca3m", type=str, default="qMSA.jaca3m")
+    parser.add_argument("--deepqmsa_hh3aln", type=str, default="qMSA.hh3aln")
+    parser.add_argument("--deepqmsa_hh3a3m", type=str, default="qMSA.hh3a3m")
+    # dMSA for deepJGI
     parser.add_argument("--deepdmsa_hhbaln", type=str, default="dMSA.hhbaln")
     parser.add_argument("--deepdmsa_hhba3m", type=str, default="dMSA.hhba3m")
+    parser.add_argument("--deepdmsa_jacaln", type=str, default="dMSA.jacaln")
+    parser.add_argument("--deepdmsa_jaca3m", type=str, default="dMSA.jaca3m")
 
     args = parser.parse_args()
 

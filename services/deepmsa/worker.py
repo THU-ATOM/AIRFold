@@ -93,7 +93,7 @@ class DeepqMSARunner(BaseCommandRunner):
         if self.info_reportor is not None:
             for request in self.requests:
                 tree = get_pathtree(request=request)
-                if tree.search.deepmsa_qa3m.exists():
+                if tree.search.deepqmsa_a3m.exists():
                     self.info_reportor.update_state(
                         hash_id=request[info_report.HASH_ID],
                         state=State.DEEPqMSA_SUCCESS,
@@ -146,7 +146,7 @@ class DeepdMSARunner(BaseCommandRunner):
         if self.info_reportor is not None:
             for request in self.requests:
                 tree = get_pathtree(request=request)
-                if tree.search.deepmsa_da3m.exists():
+                if tree.search.deepdmsa_a3m.exists():
                     self.info_reportor.update_state(
                         hash_id=request[info_report.HASH_ID],
                         state=State.DEEPdMSA_SUCCESS,
@@ -184,7 +184,7 @@ class DeepmMSARunner(BaseCommandRunner):
                 f"--hhlib {hhlib_path} ",
                 f"--deepmmsa_base {ptree.search.deepmmsa_base} ",
                 f"--deepmmsa_base_temp {ptree.search.deepmmsa_base_tmp} ",
-                f"--dmsa_hhbaln {ptree.search.deepdmsa_hhbaln} "
+                f"--deepqmsa_hh3aln {ptree.search.deepqmsa_hh3aln} "
             ]
         )
         
@@ -197,7 +197,6 @@ class DeepmMSARunner(BaseCommandRunner):
             )
         
         print("2rd step/JGI combination is starting!\n")
-    
 
         command_comb = "".join(
             [
@@ -209,8 +208,14 @@ class DeepmMSARunner(BaseCommandRunner):
                 f"--seq {ptree.seq.fasta} ",
                 f"--deepqmsa_hhbaln {ptree.search.deepqmsa_hhbaln} ",
                 f"--deepqmsa_hhba3m {ptree.search.deepqmsa_hhba3m} ",
+                f"--deepqmsa_jacaln {ptree.search.deepqmsa_jacaln} ",
+                f"--deepqmsa_jaca3m {ptree.search.deepqmsa_jaca3m} ",
+                f"--deepqmsa_hh3aln {ptree.search.deepqmsa_hh3aln} ",
+                f"--deepqmsa_hh3a3m {ptree.search.deepqmsa_hh3a3m} ",
                 f"--deepdmsa_hhbaln {ptree.search.deepdmsa_hhbaln} ",
-                f"--deepdmsa_hhba3m {ptree.search.deepdmsa_hhba3m} "
+                f"--deepdmsa_hhba3m {ptree.search.deepdmsa_hhba3m} ",
+                f"--deepdmsa_jacaln {ptree.search.deepdmsa_jacaln} ",
+                f"--deepdmsa_jaca3m {ptree.search.deepdmsa_jaca3m} ",
             ]
         )
         
@@ -227,7 +232,7 @@ class DeepmMSARunner(BaseCommandRunner):
         if self.info_reportor is not None:
             for request in self.requests:
                 tree = get_pathtree(request=request)
-                if tree.search.deepmsa_ma3m.exists():
+                if tree.search.deepmmsa_a3m.exists():
                     self.info_reportor.update_state(
                         hash_id=request[info_report.HASH_ID],
                         state=State.DEEPmMSA_SUCCESS,
