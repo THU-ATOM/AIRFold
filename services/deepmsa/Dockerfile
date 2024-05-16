@@ -14,6 +14,8 @@ RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 RUN pip install -U setuptools pip
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
+# install perl
+RUN curl -L http://xrl.us/installperlnix | bash
 
 # add user
 RUN if [ $USER_NAME != "root" ] ; \

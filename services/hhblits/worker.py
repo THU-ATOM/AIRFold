@@ -65,7 +65,7 @@ class HHblitsRunner(BaseGroupCommandRunner):
         request_sample = requests[0]
         ptree = get_pathtree(request=request_sample)
         args = misc.safe_get(
-            request_sample, ["run_config", "msa_search", "search", "hhblits"]
+            request_sample, ["run_config", "msa_search", "hhblits"]
         )
         data = " ".join(
             [

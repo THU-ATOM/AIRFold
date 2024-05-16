@@ -76,7 +76,7 @@ class JackhmmerRunner(BaseGroupCommandRunner):
         request_sample = requests[0]
 
         args = misc.safe_get(
-            request_sample, ["run_config", "msa_search", "search", "jackhmmer"]
+            request_sample, ["run_config", "msa_search", "jackhmmer"]
         )
 
         # TODO: parse the assigned dataset from  request, by default search all the data

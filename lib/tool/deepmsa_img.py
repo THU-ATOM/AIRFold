@@ -2,7 +2,6 @@ import argparse
 import os
 import subprocess
 import time
-from lib.tool import tool_utils
 
 def submitjob(jobname):
     bsub = ""
@@ -40,7 +39,13 @@ def img_main(args):
             deepmmsa_path = os.path.join(args.deepmmsa_base, "deepmmsa.sh")
             cmd_header = f"#!/bin/bash\n"
 
-            cmd_content = f"cp {args.deepqmsa_hh3aln} {args.deepmmsa_base}/seq.hh3aln\n\n" \
+            cmd_content = f"cp {args.deepqmsa_hh3aln} {args.deepmmsa_base}/seq.hh3aln\n" \
+                          f"if [ ! -s '{args.deepmmsa_base}/seq.hh3aln' ];then\n" \
+                          f"    cp {args.deepqmsa_jacaln} {args.deepmmsa_base}/seq.hh3aln\n" \
+                          f"fi\n" \
+                          f"if [ ! -s '{args.deepmmsa_base}/seq.hh3aln' ];then\n" \
+                          f"    cp {args.deepqmsa_hhbaln} {args.deepmmsa_base}/seq.hh3aln\n" \
+                          f"fi\n\n" \
                           f"sed = {args.deepmmsa_base}/seq.hh3aln |sed 'N;s/\\n/\\t/'|sed 's/^/>/g'|sed 's/\\t/\\n/g'| {HHLIB}/bin/qhmmbuild -n aln --amino -O {args.deepmmsa_base_temp}/seq.afq --informat afa {args.deepmmsa_base_temp}/seq.hmm -\n\n" \
                           f"{HHLIB}/bin/qhmmsearch --cpu 4 -E 10 --incE 1e-3 -A {args.deepmmsa_base_temp}/{DBfasta}.match --tblout {args.deepmmsa_base_temp}/{DBfasta}.tbl -o {args.deepmmsa_base_temp}/{DBfasta}.out {args.deepmmsa_base_temp}/seq.hmm {JGI}/{DBfasta}\n" \
                           f"{HHLIB}/bin/esl-sfetch -f {JGI}/{DBfasta} {args.deepmmsa_base_temp}/{DBfasta}.tbl|sed 's/*//g' > {args.deepmmsa_base_temp}/{DBfasta}.fseqs\n" \
@@ -65,6 +70,8 @@ if __name__ == "__main__":
     parser.add_argument("--deepmmsa_base", type=str, default="/deepmmsa_base")
     parser.add_argument("--deepmmsa_base_temp", type=str, default="/deepmmsa_base/tmp")
     parser.add_argument("--deepqmsa_hh3aln", type=str, default="deeqmsa.hh3aln")
+    parser.add_argument("--deepqmsa_jacaln", type=str, default="deeqmsa.jacaln")
+    parser.add_argument("--deepqmsa_hhbaln", type=str, default="deeqmsa.hhbaln")
 
     args = parser.parse_args()
 

@@ -46,7 +46,7 @@ class BlastRunner(BaseCommandRunner):
         ptree = get_pathtree(request=request)
 
         # get args of blast
-        args = misc.safe_get(request, ["run_config", "msa_search", "search", "blast"])
+        args = misc.safe_get(request, ["run_config", "msa_search", "blast"])
 
         command = "".join(
             [

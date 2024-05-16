@@ -92,6 +92,8 @@ def deepJGI(deepmmsa_base, deepmmsa_base_temp, args):
 def main(args):
     deepmmsa_base = args.deepmmsa_base
     deepmmsa_base_temp = args.deepmmsa_base_temp
+    deepqmsa_base_temp = args.deepqmsa_base_temp
+    deepdmsa_base_temp = args.deepdmsa_base_temp
     
     # os.system(f"mkdir -p {deepmmsa_base_temp}")
 
@@ -112,6 +114,8 @@ if __name__ == "__main__":
     parser.add_argument("--dmsalib", type=str, default="DMSALIB")
     parser.add_argument("--deepmmsa_base", type=str, default="/deepmmsa_base")
     parser.add_argument("--deepmmsa_base_temp", type=str, default="/deepmmsa_base/tmp")
+    parser.add_argument("--deepqmsa_base_temp", type=str, default="/deepqmsa_base/tmp")
+    parser.add_argument("--deepdmsa_base_temp", type=str, default="/deepdmsa_base/tmp")
     parser.add_argument("--seq", type=str, default="seq.fasta")
     # qMSA for q34JGI
     parser.add_argument("--deepqmsa_hhbaln", type=str, default="qMSA.hhbaln")

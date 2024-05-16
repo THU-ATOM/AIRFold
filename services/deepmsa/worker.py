@@ -184,7 +184,9 @@ class DeepmMSARunner(BaseCommandRunner):
                 f"--hhlib {hhlib_path} ",
                 f"--deepmmsa_base {ptree.search.deepmmsa_base} ",
                 f"--deepmmsa_base_temp {ptree.search.deepmmsa_base_tmp} ",
-                f"--deepqmsa_hh3aln {ptree.search.deepqmsa_hh3aln} "
+                f"--deepqmsa_hh3aln {ptree.search.deepqmsa_hh3aln} ",
+                f"--deepqmsa_jacaln {ptree.search.deepqmsa_jacaln} ",
+                f"--deepqmsa_hhbaln {ptree.search.deepqmsa_hhbaln} "
             ]
         )
         
@@ -205,6 +207,8 @@ class DeepmMSARunner(BaseCommandRunner):
                 f"--dmsalib {dmsalib_path} ",
                 f"--deepmmsa_base {ptree.search.deepmmsa_base} ",
                 f"--deepmmsa_base_temp {ptree.search.deepmmsa_base_tmp} ",
+                f"--deepqmsa_base_temp {ptree.search.deepqmsa_base_tmp} ",
+                f"--deepdmsa_base_temp {ptree.search.deepdmsa_base_tmp} ",
                 f"--seq {ptree.seq.fasta} ",
                 f"--deepqmsa_hhbaln {ptree.search.deepqmsa_hhbaln} ",
                 f"--deepqmsa_hhba3m {ptree.search.deepqmsa_hhba3m} ",

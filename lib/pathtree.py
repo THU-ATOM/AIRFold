@@ -307,7 +307,86 @@ class StrategyPathTree(BasePathTree):
 class AlphaFoldPathTree(BasePathTree):
     def __init__(self, root: Union[str, Path], request: Dict[str, Any]) -> None:
         super().__init__(root, request)
-        self.root = self.root / self.id
+        self.root = self.root / self.id / "alpha"
+
+    @property
+    def time_cost(self):
+        return self.root / "time_cost.txt"
+
+    @property
+    def template_feat(self):
+        return self.root / "template_feat.pkl"
+
+    @property
+    def selected_template_feat(self):
+        return self.root / "selected_template_feat.pkl"
+
+    @property
+    def relaxed_pdbs(self):
+        return list(sorted(self.root.glob("rank_*_relaxed.pdb")))
+
+    @property
+    def submit_pdbs(self):
+        return list(sorted(self.root.glob("model_*_relaxed.pdb")))
+
+    @property
+    def unrelaxed_pdbs(self):
+        return list(sorted(self.root.glob("*_unrelaxed.pdb")))
+
+    @property
+    def result(self):
+        return self.root / "result.json"
+
+    @property
+    def lddt(self):
+        return self.root / "lddt" / "lddt.json"
+
+    @property
+    def msa_pickle(self):
+        return self.root / "msa.pickle"
+
+    @property
+    def input_a3m(self):
+        return self.root / "input_msa.a3m"
+
+    @property
+    def msa_filtered_pickle(self):
+        return self.root / "msa_filtered.pickle"
+
+    @property
+    def log(self):
+        return self.root / "log.txt"
+
+    @property
+    def plddt_image(self):
+        return self.root / "predicted_LDDT.png"
+
+    @property
+    def msa_coverage_image(self):
+        return self.root / "msa_coverage.png"
+
+    @property
+    def model_files(self):
+        files = []
+        for item in self.relaxed_pdbs:
+            key = "_".join(item.name.split("_")[:-1])
+            itemfiles = {}
+            model_key = "_".join(item.name.split("_")[2:4])
+            itemfiles["relaxed_pdb"] = item
+            itemfiles["unrelaxed_pdb"] = self.root / f"{key}_unrelaxed.pdb"
+            itemfiles["plddt"] = self.root / model_key / "result.json"
+            itemfiles["image"] = self.root / f"{key}.png"
+            itemfiles["conformation"] = self.root / f"{item.stem}_conformation.png"
+            files.append(itemfiles)
+        if len(files) > 1:
+            files = sorted(files, key=lambda x: x["relaxed_pdb"])
+        return files
+
+
+class RoseTTAFoldPathTree(BasePathTree):
+    def __init__(self, root: Union[str, Path], request: Dict[str, Any]) -> None:
+        super().__init__(root, request)
+        self.root = self.root / self.id / "rose"
 
     @property
     def time_cost(self):
@@ -416,6 +495,13 @@ class CAMEOPathTree(BasePathTree):
     @property
     def alphafold(self):
         return AlphaFoldPathTree(
+            self.root / "structure" / self.final_msa_fasta.parent.name,
+            self.request,
+        )
+    
+    @property
+    def rosettafold2(self):
+        return RoseTTAFoldPathTree(
             self.root / "structure" / self.final_msa_fasta.parent.name,
             self.request,
         )
