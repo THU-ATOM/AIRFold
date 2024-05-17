@@ -93,10 +93,11 @@ def a3m_count(a3m_file):
 def process():
     output_dir = "/data/protein/datasets_2024/prediction/"
     target_dir = "/data/protein/datasets_2024/modeling/"
-    weeks = ['2024.02.17', '2024.02.24', '2024.03.02', '2024.03.09', '2024.03.16', '2024.03.23', '2024.03.30', '2024.04.06']
+    # weeks = ['2024.02.17', '2024.02.24', '2024.03.02', '2024.03.09', '2024.03.16', '2024.03.23', '2024.03.30', '2024.04.06']
+    weeks = ['2024.03.30']
     
-    data_suffix = "2024-04-18"
-    case_suffix = "base_ns"
+    data_suffix = "2024-05-15"
+    case_suffix = "base_deepmsa"
     
     results_dir = "/data/protein/CAMEO/data/" + data_suffix + "/"
     
@@ -125,7 +126,7 @@ def process():
             a3m_file = a3m_dir + result["seq_name"] + ".a3m"
             
             # plddt and lddt of five model
-            structure_dir = results_dir + "structure/seq_e_re_1.0_le_5000/" + result["seq_name"] + "/"
+            structure_dir = results_dir + "structure/seq_e_re_0.1_le_50000/" + result["seq_name"] + "/"
             plddt_file = structure_dir + "plddt_results.json"
             
             
@@ -143,7 +144,7 @@ def process():
                 
                 results.append(result)
             else:
-                logger.info(f"------- The structure does't exist : {result['seq_name']}")
+                logger.info(f"------- The structure does't exist : {plddt_file}")
                 continue
     
     output_file = output_dir + case_suffix + "_results.pkl"

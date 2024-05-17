@@ -223,25 +223,40 @@ class MSAMergeRunner(BaseRunner):
                 target=self.requests[0][TARGET],
             )
             # merge two protein files, add source to comment
+            # merge_file = ptool.ProteinFile.merge(
+            #     [ptool.ProteinFile.from_file(segment_merge(ptree.search.hhblist_bfd_uniclust_a3m)), 
+            #      ptool.ProteinFile.from_file(segment_merge(ptree.search.jackhammer_mgnify_a3m)),
+            #      ptool.ProteinFile.from_file(segment_merge(ptree.search.jackhammer_uniref90_a3m)),
+            #      ptool.ProteinFile.from_file(segment_merge(ptree.search.blast_a3m)),
+            #      ptool.ProteinFile.from_file(segment_merge(ptree.search.deepqmsa_hh3a3m)),
+            #      ptool.ProteinFile.from_file(segment_merge(ptree.search.deepqmsa_hhba3m)),
+            #      ptool.ProteinFile.from_file(segment_merge(ptree.search.deepqmsa_hmsa3m)),
+            #      ptool.ProteinFile.from_file(segment_merge(ptree.search.deepqmsa_jaca3m)),
+            #      ptool.ProteinFile.from_file(segment_merge(ptree.search.deepdmsa_hhba3m)),
+            #      ptool.ProteinFile.from_file(segment_merge(ptree.search.deepdmsa_hmsa3m)),
+            #      ptool.ProteinFile.from_file(segment_merge(ptree.search.deepdmsa_jaca3m)),
+            #      ptool.ProteinFile.from_file(segment_merge(ptree.search.deepmmsa_q3jgi)),
+            #      ptool.ProteinFile.from_file(segment_merge(ptree.search.deepmmsa_q4jgi)),
+            #      ptool.ProteinFile.from_file(segment_merge(ptree.search.deepmmsa_djgi))
+            #     ], 
+            #     names=["hh_bfd_uni", "jh_mgn", "jh_uni", "bl", 
+            #            "dq_hh3", "dq_hhb", "dq_hms", "dq_jac",
+            #            "dd_hhb", "dd_hms", "dd_jac", "dm_q3j", "dm_q4j", "dm_dj"], 
+            #     deduplicate=True
+            # )
             merge_file = ptool.ProteinFile.merge(
                 [ptool.ProteinFile.from_file(segment_merge(ptree.search.hhblist_bfd_uniclust_a3m)), 
                  ptool.ProteinFile.from_file(segment_merge(ptree.search.jackhammer_mgnify_a3m)),
                  ptool.ProteinFile.from_file(segment_merge(ptree.search.jackhammer_uniref90_a3m)),
                  ptool.ProteinFile.from_file(segment_merge(ptree.search.blast_a3m)),
-                 ptool.ProteinFile.from_file(segment_merge(ptree.search.deepqmsa_hh3a3m)),
-                 ptool.ProteinFile.from_file(segment_merge(ptree.search.deepqmsa_hhba3m)),
-                 ptool.ProteinFile.from_file(segment_merge(ptree.search.deepqmsa_hmsa3m)),
-                 ptool.ProteinFile.from_file(segment_merge(ptree.search.deepqmsa_jaca3m)),
-                 ptool.ProteinFile.from_file(segment_merge(ptree.search.deepdmsa_hhba3m)),
-                 ptool.ProteinFile.from_file(segment_merge(ptree.search.deepdmsa_hmsa3m)),
-                 ptool.ProteinFile.from_file(segment_merge(ptree.search.deepdmsa_jaca3m)),
+                 ptool.ProteinFile.from_file(segment_merge(ptree.search.deepqmsa_a3m)),
+                 ptool.ProteinFile.from_file(segment_merge(ptree.search.deepdmsa_a3m)),
                  ptool.ProteinFile.from_file(segment_merge(ptree.search.deepmmsa_q3jgi)),
                  ptool.ProteinFile.from_file(segment_merge(ptree.search.deepmmsa_q4jgi)),
                  ptool.ProteinFile.from_file(segment_merge(ptree.search.deepmmsa_djgi))
                 ], 
                 names=["hh_bfd_uni", "jh_mgn", "jh_uni", "bl", 
-                       "dq_hh3", "dq_hhb", "dq_hms", "dq_jac",
-                       "dd_hhb", "dd_hms", "dd_jac", "dm_q3j", "dm_q4j", "dm_dj"], 
+                       "dq", "dd", "dm_q3j", "dm_q4j", "dm_dj"], 
                 deduplicate=True
             )
 

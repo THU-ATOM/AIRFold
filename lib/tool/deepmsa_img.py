@@ -38,15 +38,27 @@ def img_main(args):
 
             deepmmsa_path = os.path.join(args.deepmmsa_base, "deepmmsa.sh")
             cmd_header = f"#!/bin/bash\n"
+            
+            # copy to ger seq.hh3aln
+            from shutil import copyfile
+            seq_hh3 = os.path.join(args.deepmmsa_base, "seq.hh3aln")
+            try:
+                copyfile(args.deepqmsa_hh3aln, seq_hh3)
+            except IOError as e:
+                print("Unable to copy file from deepqmsa_hh3aln. %s" % e)
+            if not os.path.exists(seq_hh3):
+                try:
+                    copyfile(args.deepqmsa_jacaln, seq_hh3)
+                except IOError as e:
+                    print("Unable to copy file from deepqmsa_jacaln. %s" % e)
+            if not os.path.exists(seq_hh3):
+                try:
+                    copyfile(args.deepqmsa_hhbaln, seq_hh3)
+                except IOError as e:
+                    print("Unable to copy file from deepqmsa_hhbaln. %s" % e)
 
-            cmd_content = f"cp {args.deepqmsa_hh3aln} {args.deepmmsa_base}/seq.hh3aln\n" \
-                          f"if [ ! -s '{args.deepmmsa_base}/seq.hh3aln' ];then\n" \
-                          f"    cp {args.deepqmsa_jacaln} {args.deepmmsa_base}/seq.hh3aln\n" \
-                          f"fi\n" \
-                          f"if [ ! -s '{args.deepmmsa_base}/seq.hh3aln' ];then\n" \
-                          f"    cp {args.deepqmsa_hhbaln} {args.deepmmsa_base}/seq.hh3aln\n" \
-                          f"fi\n\n" \
-                          f"sed = {args.deepmmsa_base}/seq.hh3aln |sed 'N;s/\\n/\\t/'|sed 's/^/>/g'|sed 's/\\t/\\n/g'| {HHLIB}/bin/qhmmbuild -n aln --amino -O {args.deepmmsa_base_temp}/seq.afq --informat afa {args.deepmmsa_base_temp}/seq.hmm -\n\n" \
+            # mk jgi cmd
+            cmd_content = f"sed = {args.deepmmsa_base}/seq.hh3aln |sed 'N;s/\\n/\\t/'|sed 's/^/>/g'|sed 's/\\t/\\n/g'| {HHLIB}/bin/qhmmbuild -n aln --amino -O {args.deepmmsa_base_temp}/seq.afq --informat afa {args.deepmmsa_base_temp}/seq.hmm -\n\n" \
                           f"{HHLIB}/bin/qhmmsearch --cpu 4 -E 10 --incE 1e-3 -A {args.deepmmsa_base_temp}/{DBfasta}.match --tblout {args.deepmmsa_base_temp}/{DBfasta}.tbl -o {args.deepmmsa_base_temp}/{DBfasta}.out {args.deepmmsa_base_temp}/seq.hmm {JGI}/{DBfasta}\n" \
                           f"{HHLIB}/bin/esl-sfetch -f {JGI}/{DBfasta} {args.deepmmsa_base_temp}/{DBfasta}.tbl|sed 's/*//g' > {args.deepmmsa_base_temp}/{DBfasta}.fseqs\n" \
                           f"{HHLIB}/bin/cd-hit -i {args.deepmmsa_base_temp}/{DBfasta}.fseqs -o {args.deepmmsa_base}/{DBfasta}.cdhit -c 1 -M 3000\n\n"

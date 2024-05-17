@@ -15,7 +15,7 @@ para_json = dict(
 )
 
 
-def q34JGI(deepmmsa_base, deepmmsa_base_temp, args):
+def q34JGI(deepmmsa_base, deepmmsa_base_temp, deepqmsa_base_temp, args):
     
     deepqmsa_hhbaln = args.deepqmsa_hhbaln
     deepqmsa_hhba3m = args.deepqmsa_hhba3m
@@ -40,7 +40,7 @@ def q34JGI(deepmmsa_base, deepmmsa_base_temp, args):
     os.system(f"ln -s {deepqmsa_hh3aln} {deepmmsa_base}/q4JGI.hh3aln")
     os.system(f"ln -s {deepqmsa_hh3a3m} {deepmmsa_base}/q4JGI.hh3a3m")
 
-    cmd = f"python {HHLIB}/scripts/qMSA2.py -hhblitsdb={qhhblitsdb} -jackhmmerdb={jackhmmerdb} -hhblits3db={qhhblits3db} -hmmsearchdb={deepmmsa_base_temp}/DB.fasta.fseqs -tmpdir={deepmmsa_base_temp} {deepmmsa_base}/q4JGI.fasta"
+    cmd = f"python {HHLIB}/scripts/qMSA2.py -hhblitsdb={qhhblitsdb} -jackhmmerdb={jackhmmerdb} -hhblits3db={qhhblits3db} -hmmsearchdb={deepmmsa_base_temp}/DB.fasta.fseqs -tmpdir={deepqmsa_base_temp} {deepmmsa_base}/q4JGI.fasta"
 
     if not os.path.isfile(f"{deepmmsa_base}/q4JGI.a3m"):
         print(f"first qMSA2 - {cmd}")
@@ -54,7 +54,7 @@ def q34JGI(deepmmsa_base, deepmmsa_base_temp, args):
     os.system(f"ln -s {deepqmsa_jacaln} {deepmmsa_base}/q3JGI.jacaln")
     os.system(f"ln -s {deepqmsa_jaca3m} {deepmmsa_base}/q3JGI.jaca3m")
 
-    cmd = f"python {HHLIB}/scripts/qMSA2.py -hhblitsdb={qhhblitsdb} -jackhmmerdb={jackhmmerdb} -hmmsearchdb={deepmmsa_base_temp}/DB.fasta.fseqs -tmpdir={deepmmsa_base_temp} {deepmmsa_base}/q3JGI.fasta"
+    cmd = f"python {HHLIB}/scripts/qMSA2.py -hhblitsdb={qhhblitsdb} -jackhmmerdb={jackhmmerdb} -hmmsearchdb={deepmmsa_base_temp}/DB.fasta.fseqs -tmpdir={deepqmsa_base_temp} {deepmmsa_base}/q3JGI.fasta"
 
     if not os.path.isfile(f"{deepmmsa_base}/q3JGI.a3m"):
         print(f"second qMSA2 - {cmd}")
@@ -62,7 +62,7 @@ def q34JGI(deepmmsa_base, deepmmsa_base_temp, args):
         print(content)
 
 
-def deepJGI(deepmmsa_base, deepmmsa_base_temp, args):
+def deepJGI(deepmmsa_base, deepmmsa_base_temp, deepdmsa_base_temp, args):
     deepdmsa_hhbaln = args.deepdmsa_hhbaln
     deepdmsa_hhba3m = args.deepdmsa_hhba3m
     deepdmsa_jacaln = args.deepdmsa_jacaln
@@ -73,7 +73,7 @@ def deepJGI(deepmmsa_base, deepmmsa_base_temp, args):
     os.system(f"ln -s {deepdmsa_jacaln} {deepmmsa_base}/DeepJGI.jacaln")
     os.system(f"ln -s {deepdmsa_jaca3m} {deepmmsa_base}/DeepJGI.jaca3m")
     
-    cmd = f"python {DMSALIB}/scripts/build_MSA.py -hhblitsdb={dhhblitsdb} -jackhmmerdb={jackhmmerdb} -hmmsearchdb={deepmmsa_base_temp}/DB.fasta.fseqs -tmpdir={deepmmsa_base_temp} {deepmmsa_base}/DeepJGI.fasta"
+    cmd = f"python {DMSALIB}/scripts/build_MSA.py -hhblitsdb={dhhblitsdb} -jackhmmerdb={jackhmmerdb} -hmmsearchdb={deepmmsa_base_temp}/DB.fasta.fseqs -tmpdir={deepdmsa_base_temp} {deepmmsa_base}/DeepJGI.fasta"
 
     if not os.path.isfile(f"{deepmmsa_base}/DeepJGI.a3m"):
         print(f"first dMSA2 - {cmd}")
@@ -98,9 +98,9 @@ def main(args):
     # os.system(f"mkdir -p {deepmmsa_base_temp}")
 
     # qMSA
-    q34JGI(deepmmsa_base, deepmmsa_base_temp, args)
+    q34JGI(deepmmsa_base, deepmmsa_base_temp, deepqmsa_base_temp, args)
     # dMSA
-    deepJGI(deepmmsa_base, deepmmsa_base_temp, args)
+    deepJGI(deepmmsa_base, deepmmsa_base_temp, deepdmsa_base_temp, args)
     
 
     print(f"tmpdir = {deepmmsa_base_temp}")
