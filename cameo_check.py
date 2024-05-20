@@ -89,19 +89,16 @@ def call_pipeline(info_report: InfoReport):
             break
 
 
-def load_fasta(file_path, dir_name, data_suffix):
+def load_fasta(file_path):
     # data_suffix: 2024-04-09
-    seq_name = ""
     sequence = ""
     with open(file_path, 'r') as f:
         lines = f.readlines()
         for line in lines:
-            if line.startswith(">"):
-                seq_name = data_suffix + "_" + dir_name
-            else:
+            if not line.startswith(">"):
                 sequence = line.strip()
                 
-    return seq_name, sequence
+    return sequence
                 
 
 def pipelineWorker(request_dicts):
@@ -117,43 +114,49 @@ def pipelineWorker(request_dicts):
         except Exception as e:
             logger.error(str(e))
 
-def main():
 
+def mk_config(sequence, seq_name):
+    with open("./tmp/CAMEO.json", 'r') as jf:
+        request_dict = json.load(jf)
+    request_dict["sequence"] = sequence
+    request_dict["name"] = seq_name + "_rerun"
+    request_dict["target"] = seq_name
+    
+    return request_dict
+
+
+def check_main(week_dir):
     info_report = InfoReport()
     
-    # json_file = argv.input_path
-    with open("./tmp/temp_5000_128.json", 'r') as jf:
-        request_dict = json.load(jf)
+    seq_dir = week_dir + "seq/"
+    files = os.listdir(seq_dir)
+    seq_names = []
+    sequences = {}
+    for file_name in files:
+        if file_name.endswith(".fasta"):
+            seq_name = file_name.split(".")[0]
+            seq_names.append(seq_name)
+            sequences[seq_name] = load_fasta(seq_dir + file_name)
+            
+    struc_dir = week_dir + "structure/seq_e_re_0.1_le_5000/"
+    for seq_name in  seq_names:
+        model_dir = struc_dir + seq_name + "/alpha/"
+        plddt_json_file = model_dir + "plddt_results.json"
+        if not os.path.exists(plddt_json_file):
+            print("----- plddt file doesn't exist: ", plddt_json_file)
+            request_dict = mk_config(sequences[seq_name], seq_name)
+            logger.info(f"------- Received request: {request_dict}")
+            insert_request(r=request_dict, info_report=info_report)
+            call_pipeline(info_report=info_report)
+        else:
+            print("+++++ plddt file does exist: ", plddt_json_file)
     
-    # weeks = ['2024.02.17', '2024.02.24', '2024.03.02', '2024.03.09', 
-    #          '2024.03.16', '2024.03.23', '2024.03.30', '2024.04.06']
-    
-    cameo_dir = "/data/protein/datasets_2024/modeling/2024.03.16/"
-    data_suffix = "2024-05-17"
-    case_suffix = "base_deepmsa"
-    
-    # for run dir or run bad case
-    # run dir
-    dir_names = os.listdir(cameo_dir)
-    # run bad case
-    # dir_names = ['8UP6_A']
-    for dir_name in  dir_names:
-        seq_file = cameo_dir + dir_name + "/" + "target.fasta"
-        seq_name, sequence = load_fasta(seq_file, dir_name, data_suffix)
-        request_dict["sequence"] = sequence
-        request_dict["name"] = seq_name + "_" + case_suffix
-        request_dict["target"] = seq_name
-        logger.info(f"------- Received request: {request_dict}")
-        insert_request(r=request_dict, info_report=info_report)
-        call_pipeline(info_report=info_report)
 
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument("-i", "--input_path", type=str, required=True)
-    # args = parser.parse_args()
     
     logger.configure(**MONITOR_LOGGING_CONFIG)
-    logger.info("------- Start to monitor -------")
+    logger.info("------- Start to check -------")
     
-    main()
+
+    check_main(week_dir="/data/protein/CAMEO/data/2024-05-18/")
     

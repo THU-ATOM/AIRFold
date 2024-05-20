@@ -119,6 +119,10 @@ def _run_operations_in_docker(
         f"--tmpdir={tmpdir}",
     ]
     logger.info(f"start to initiate container, using gpu devices: {gpu_devices}")
+    
+    # add params for timeout ctrl
+    # - DOCKER_CLIENT_TIMEOUT=${DOCKER_CLIENT_TIMEOUT}
+    # - COMPOSE_HTTP_TIMEOUT=${COMPOSE_HTTP_TIMEOUT}
     environment = {
         "NVIDIA_VISIBLE_DEVICES": gpu_devices,
         # The following flags allow us to make predictions on proteins that
@@ -128,6 +132,8 @@ def _run_operations_in_docker(
         "USERNAME": getpass.getuser(),
         "USERID": os.getuid(),
         "AF_PATH": "/home/casp15/code/alphafold",
+        "DOCKER_CLIENT_TIMEOUT": "240",
+        "COMPOSE_HTTP_TIMEOUT": "240",
     }
 
     logs = []
