@@ -17,7 +17,6 @@ import pandas as pd
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Request, Body
 from fastapi.responses import FileResponse
-from fastapi.responses import JSONResponse
 # from fastapi.encoders import jsonable_encoder
 from bson import json_util
 

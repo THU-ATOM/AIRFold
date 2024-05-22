@@ -256,9 +256,9 @@ services:
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock # run docker in docker
       - ./services/searchtpl:/worker
       - /data:/data
+      - /tmp:/tmp
       - ./lib:/worker/lib
     command: celery -A worker worker --loglevel=info -Q queue_searchtpl --concurrency=16
 
@@ -299,15 +299,15 @@ services:
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock # run docker in docker
       - ./services/tplfeature:/worker
       - /data:/data
+      - /tmp:/tmp
       - ./lib:/worker/lib
     command: celery -A worker worker --loglevel=info -Q queue_tplfeature --concurrency=16
 
-  worker_monostructure:
+  worker_alphafold:
     build:
-      context: ./services/monostructure
+      context: ./services/alphafold
       dockerfile: Dockerfile
       args:
         - http_proxy=${http_proxy}
@@ -322,10 +322,20 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis
       - DOCKER_CLIENT_TIMEOUT=${DOCKER_CLIENT_TIMEOUT}
       - COMPOSE_HTTP_TIMEOUT=${COMPOSE_HTTP_TIMEOUT}
+      - TF_FORCE_UNIFIED_MEMORY=${TF_FORCE_UNIFIED_MEMORY}
+      - XLA_PYTHON_CLIENT_MEM_FRACTION=${XLA_PYTHON_CLIENT_MEM_FRACTION}
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            device_ids: ['0', '1', '2', '3']
+            capabilities: [gpu]
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock # run docker in docker
       - ./services/monostructure:/worker
       - /data:/data
+      - /tmp:/tmp
       - ./lib:/worker/lib
     command: celery -A worker worker --loglevel=info -Q queue_monostructure --concurrency=8
 
@@ -381,13 +391,13 @@ services:
     image: redis:latest
 
   # # Optionally, you can also include Flower for monitoring the Celery tasks
-  # flower:
-  #   image: mher/flower
-  #   command: celery --broker=amqp://rabbitmq:5672 flower --port=5555
-  #   ports:
-  #     - "5556:5555"
-  #   depends_on:
-  #     - rabbitmq
+  flower:
+    image: mher/flower
+    command: celery --broker=amqp://rabbitmq:5672 flower --port=5555
+    ports:
+      - "5556:5555"
+    depends_on:
+      - rabbitmq
 
 networks:
   default:

@@ -11,7 +11,7 @@ from sklearn.cluster import SpectralClustering
 from collections import defaultdict
 
 from lib.tool.align import align_pdbs
-from lib.tool.colabfold.alphafold.common import protein
+from lib.tool.alphafold.common import protein
 from typing import List, Tuple
 
 

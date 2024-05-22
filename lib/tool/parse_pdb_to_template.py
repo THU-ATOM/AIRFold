@@ -4,7 +4,7 @@ from Bio.Seq import Seq
 import numpy as np
 import torch
 from Bio import pairwise2
-import lib.tool.colabfold.alphafold.common.residue_constants as residue_constants
+import lib.tool.alphafold.common.residue_constants as residue_constants
 
 from typing import Dict, Union
 

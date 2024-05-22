@@ -1,6 +1,7 @@
 import os
 import shutil
 from celery import Celery
+from celery.result import AsyncResult
 from loguru import logger
 from pathlib import Path
 from typing import Any, Dict, List
@@ -10,27 +11,28 @@ from lib.state import State
 from lib.pathtree import get_pathtree
 import lib.utils.datatool as dtool
 from lib.monitor import info_report
-from lib.func_from_docker import search_template
+from lib.tool.run_af2 import af2_search_template
+from lib.constant import PDB70_ROOT
 
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "rpc://")
 CELERY_BROKER_URL = (
     os.environ.get("CELERY_BROKER_URL", "pyamqp://guest:guest@localhost:5672/"),
 )
 
-celery = Celery(
+celery_client = Celery(
     __name__,
     broker=CELERY_BROKER_URL,
     backend=CELERY_RESULT_BACKEND,
 )
 
-celery.conf.task_routes = {
+celery_client.conf.task_routes = {
     "worker.*": {"queue": "queue_searchtpl"},
 }
 
 SEQUENCE = "sequence"
 TARGET = "target"
 
-@celery.task(name="searchtpl")
+@celery_client.task(name="searchtpl")
 def searchtplTask(requests: List[Dict[str, Any]]):
     TemplateSearchRunner(requests=requests)()
 
@@ -82,11 +84,21 @@ class TemplateSearchRunner(BaseRunner):
                     f"copying from {copy_template_hits_from}  failed, fall back to searching logic"
                 )
 
-            pdb_template_hits = search_template(
-                self.sequence,
-                template_searching_msa_path=template_searching_msa_path,
-            )
-
+            # pdb_template_hits = af2_search_template(
+            #     self.sequence,
+            #     template_searching_msa_path=template_searching_msa_path,
+            # )
+            run_stage = "search_template"
+            argument_dict = {
+                "input_sequence": self.sequence,
+                "template_searching_msa_path": template_searching_msa_path,
+                "pdb70_database_path": str(PDB70_ROOT / "pdb70"),
+                "hhsearch_binary_path": "hhsearch",
+            }
+            task = celery_client.send_task("alphafold", args=[run_stage, argument_dict], queue="queue_alphafold")
+            task_result = AsyncResult(task.id, app=celery_client)
+            # if task_result.ready():
+            pdb_template_hits = task_result.get()
             dtool.save_object_as_pickle(pdb_template_hits, output_path)
 
         return pdb_template_hits

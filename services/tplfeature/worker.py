@@ -1,39 +1,40 @@
 import os
 import numpy as np
 from celery import Celery
+from celery.result import AsyncResult
 from loguru import logger
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
 from collections import defaultdict
 
 from lib.base import BaseRunner
-from lib.constant import DB_PATH
 from lib.state import State
 from lib.pathtree import get_pathtree
 import lib.utils.datatool as dtool
 from lib.monitor import info_report
-from lib.func_from_docker import make_template_feature
+from lib.tool.run_af2 import af2_make_template_feature
 import lib.tool.parse_pdb_to_template as parse_pdb_to_template
+from lib.constant import PDBMMCIF_ROOT
 
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "rpc://")
 CELERY_BROKER_URL = (
     os.environ.get("CELERY_BROKER_URL", "pyamqp://guest:guest@localhost:5672/"),
 )
 
-celery = Celery(
+celery_client = Celery(
     __name__,
     broker=CELERY_BROKER_URL,
     backend=CELERY_RESULT_BACKEND,
 )
 
-celery.conf.task_routes = {
+celery_client.conf.task_routes = {
     "worker.*": {"queue": "queue_tplfeature"},
 }
 
 SEQUENCE = "sequence"
 TARGET = "target"
 
-@celery.task(name="tplfeature")
+@celery_client.task(name="tplfeature")
 def tplfeatureTask(requests: List[Dict[str, Any]]):
     TemplateFeaturizationRunner(requests=requests)()
 
@@ -82,9 +83,25 @@ class TemplateFeaturizationRunner(BaseRunner):
 
         output_path = str(ptree.alphafold.template_feat)
         Path(output_path).parent.mkdir(exist_ok=True, parents=True)
-        template_feature = make_template_feature(
-            input_sequence=self.sequence, pdb_template_hits=template_hits
-        )
+        # template_feature = af2_make_template_feature(
+        #     input_sequence=self.sequence, pdb_template_hits=template_hits
+        # )
+        
+        run_stage = "make_template_feature"
+        argument_dict = {
+            "input_sequence": self.sequence,
+            "pdb_template_hits": template_hits,
+            "max_template_hits": 20,
+            "template_mmcif_dir": str(PDBMMCIF_ROOT / "mmcif_files"),
+            "max_template_date": "2022-05-31",
+            "obsolete_pdbs_path": str(PDBMMCIF_ROOT / "obsolete.dat"),
+            "kalign_binary_path": "kalign",
+        }
+        
+        task = celery_client.send_task("alphafold", args=[run_stage, argument_dict], queue="queue_alphafold")
+        task_result = AsyncResult(task.id, app=celery_client)
+        # if task_result.ready():
+        template_feature = task_result.get()
 
         template_config = self.requests[0]["run_config"]["template"]
         if (
