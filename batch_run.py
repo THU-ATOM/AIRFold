@@ -122,13 +122,13 @@ def main():
     info_report = InfoReport()
     
     # json_file = argv.input_path
-    with open("./tmp/temp_5000_128.json", 'r') as jf:
+    with open("./tmp/temp_5000_128_3.json", 'r') as jf:
         request_dict = json.load(jf)
     
     # weeks = ['2024.02.17', '2024.02.24', '2024.03.02', '2024.03.09', 
     #          '2024.03.16', '2024.03.23', '2024.03.30', '2024.04.06']
     
-    cameo_dir = "/data/protein/datasets_2024/modeling/2024.03.16/"
+    cameo_dir = "/data/protein/datasets_2024/modeling/2024.03.23/"
     data_suffix = "2024-05-17"
     case_suffix = "base_deepmsa"
     

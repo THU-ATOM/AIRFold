@@ -315,13 +315,13 @@ services:
         - USER_ID=${UID}
         - GROUP_ID=${GID}
         - USER_NAME=${USER_NAME}
-        - DOCKER_CLIENT_TIMEOUT=${DOCKER_CLIENT_TIMEOUT}
-        - COMPOSE_HTTP_TIMEOUT=${COMPOSE_HTTP_TIMEOUT}
     depends_on:
       - rabbitmq
     environment:
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
       - CELERY_RESULT_BACKEND=redis://redis
+      - DOCKER_CLIENT_TIMEOUT=${DOCKER_CLIENT_TIMEOUT}
+      - COMPOSE_HTTP_TIMEOUT=${COMPOSE_HTTP_TIMEOUT}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock # run docker in docker
       - ./services/monostructure:/worker
