@@ -14,15 +14,6 @@ RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 RUN pip install -U setuptools pip
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-# Install docker (to make docker in docker work)
-RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
-    | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
-    && echo \
-    "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu focal stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
-    && apt-get update \
-    && apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin \
-    && rm -rf /var/lib/apt/lists/*
-
 # add user
 RUN if [ $USER_NAME != "root" ] ; \
     then addgroup --gid ${GROUP_ID} ${USER_NAME} \

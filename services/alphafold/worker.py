@@ -30,6 +30,14 @@ celery.conf.task_routes = {
 
 @celery.task(name="alphafold")
 def alphafoldTask(run_stage: str, argument_dict: Dict[str, Any]):
+    # run_stage
+    # enum_values=[
+    #     "search_template",
+    #     "make_template_feature",
+    #     "monomer_msa2feature",
+    #     "predict_structure",
+    #     "run_relaxation",
+    # ]
     if run_stage == "search_template":
         results = search_template(**argument_dict)
     elif run_stage == "make_template_feature":

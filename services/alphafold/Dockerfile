@@ -48,21 +48,24 @@ RUN git clone --branch v3.3.0 https://github.com/soedinglab/hh-suite.git /tmp/hh
     && popd \
     && rm -rf /tmp/hh-suite
 
-# Install Miniconda package manager.
-RUN wget -q -P /tmp \
-  https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
-    && bash /tmp/Miniconda3-latest-Linux-x86_64.sh -b -p /opt/conda \
-    && rm /tmp/Miniconda3-latest-Linux-x86_64.sh
+# Install Miniconda & use Python 3.9
+ARG python=3.9
+ENV PYTHON_VERSION=${python}
+RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/install-conda.sh \
+    && chmod +x /tmp/install-conda.sh \
+    && bash /tmp/install-conda.sh -b -f -p /usr/local \
+    && rm -f /tmp/install-conda.sh \
+    && conda install -y python=${PYTHON_VERSION} \
+    && conda clean -y --all
 
 # Install conda packages.
-ENV PATH="/opt/conda/bin:$PATH"
 RUN conda update -qy conda \
     && conda install -y -c conda-forge \
       openmm=7.5.1 \
       cudatoolkit==${CUDA_VERSION} \
       pdbfixer \
       pip \
-      python=3.7
+      python=3.9
 
 COPY . /app/alphafold
 #RUN wget -q -P /app/alphafold/alphafold/common/ \
@@ -76,8 +79,12 @@ RUN pip3 install --upgrade pip \
       https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 
 # Apply OpenMM patch.
-WORKDIR /opt/conda/lib/python3.7/site-packages
+WORKDIR /usr/local/lib/python3.9/site-packages
 RUN patch -p0 < /app/alphafold/docker/openmm.patch
+
+# OpenMM Backward Compatible
+# WORKDIR /opt/conda/lib/python3.9/site-packages/simtk
+# RUN rm -rf openmm && ln -s ../openmm
 
 # Add SETUID bit to the ldconfig binary so that non-root users can run it.
 RUN chmod u+s /sbin/ldconfig.real
@@ -96,3 +103,27 @@ RUN mkdir /entry \
 FROM base_af2_env as af2_run_stage
 
 ENTRYPOINT ["/entry/entry_point.sh"]
+
+
+ENV CELERY_BROKER_URL pyamqp://guest:guest@localhost:5672/
+ENV CELERY_RESULT_BACKEND rpc://
+ENV C_FORCE_ROOT true
+
+ARG USER_ID=1011
+ARG GROUP_ID=1011
+ARG USER_NAME=docker
+
+# add user
+RUN if [ $USER_NAME != "root" ] ; \
+    then addgroup --gid ${GROUP_ID} ${USER_NAME} \
+    && adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID ${USER_NAME} \
+    && usermod -aG sudo ${USER_NAME} \
+    && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers ; fi
+    
+# Switch to the created user
+USER ${USER_NAME}
+
+WORKDIR /worker
+
+# Specify the command to run on container start
+CMD ["celery", "-A", "alphafold", "worker", "--loglevel=info", "-Q", "queue_alphafold"]

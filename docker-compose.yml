@@ -2,7 +2,6 @@ services:
   mongodb:
     image: mongodb/mongodb-community-server:latest
     volumes:
-      - ./src:/project
       - /data/protein/CAMEO/mongodb:/data/db
     environment:
       - MONGODB_INITDB_ROOT_USERNAME=admin
@@ -240,6 +239,40 @@ services:
       - ./lib:/worker/lib
     command: celery -A worker worker --loglevel=info -Q queue_selectmsa --concurrency=32
 
+  worker_alphafold:
+    build:
+      context: ./services/alphafold
+      dockerfile: Dockerfile
+      args:
+        - http_proxy=${http_proxy}
+        - https_proxy=${https_proxy}
+        - USER_ID=${UID}
+        - GROUP_ID=${GID}
+        - USER_NAME=${USER_NAME}
+    depends_on:
+      - rabbitmq
+    environment:
+      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_RESULT_BACKEND=redis://redis
+      - DOCKER_CLIENT_TIMEOUT=${DOCKER_CLIENT_TIMEOUT}
+      - COMPOSE_HTTP_TIMEOUT=${COMPOSE_HTTP_TIMEOUT}
+      - TF_FORCE_UNIFIED_MEMORY=${TF_FORCE_UNIFIED_MEMORY}
+      - XLA_PYTHON_CLIENT_MEM_FRACTION=${XLA_PYTHON_CLIENT_MEM_FRACTION}
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            device_ids: ['0', '1', '2', '3']
+            capabilities: [gpu]
+    volumes:
+      - ./services/alphafold:/worker
+      - /data:/data
+      - /tmp:/tmp
+      - ./lib:/worker/lib
+    command: celery -A worker worker --loglevel=info -Q queue_alphafold --concurrency=8
+
   worker_searchtpl:
     build:
       context: ./services/searchtpl
@@ -305,9 +338,9 @@ services:
       - ./lib:/worker/lib
     command: celery -A worker worker --loglevel=info -Q queue_tplfeature --concurrency=16
 
-  worker_alphafold:
+  worker_monostructure:
     build:
-      context: ./services/alphafold
+      context: ./services/monostructure
       dockerfile: Dockerfile
       args:
         - http_proxy=${http_proxy}
@@ -320,18 +353,6 @@ services:
     environment:
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
       - CELERY_RESULT_BACKEND=redis://redis
-      - DOCKER_CLIENT_TIMEOUT=${DOCKER_CLIENT_TIMEOUT}
-      - COMPOSE_HTTP_TIMEOUT=${COMPOSE_HTTP_TIMEOUT}
-      - TF_FORCE_UNIFIED_MEMORY=${TF_FORCE_UNIFIED_MEMORY}
-      - XLA_PYTHON_CLIENT_MEM_FRACTION=${XLA_PYTHON_CLIENT_MEM_FRACTION}
-      - NVIDIA_VISIBLE_DEVICES=all
-    deploy:
-      resources:
-        reservations:
-          devices:
-          - driver: nvidia
-            device_ids: ['0', '1', '2', '3']
-            capabilities: [gpu]
     volumes:
       - ./services/monostructure:/worker
       - /data:/data
@@ -391,13 +412,13 @@ services:
     image: redis:latest
 
   # # Optionally, you can also include Flower for monitoring the Celery tasks
-  flower:
-    image: mher/flower
-    command: celery --broker=amqp://rabbitmq:5672 flower --port=5555
-    ports:
-      - "5556:5555"
-    depends_on:
-      - rabbitmq
+  # flower:
+  #   image: mher/flower
+  #   command: celery --broker=amqp://rabbitmq:5672 flower --port=5555
+  #   ports:
+  #     - "5556:5555"
+  #   depends_on:
+  #     - rabbitmq
 
 networks:
   default:

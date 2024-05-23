@@ -16,7 +16,7 @@ from lib.pathtree import get_pathtree
 from lib.monitor import info_report
 from lib.tool import plot
 import lib.utils.datatool as dtool
-from lib.tool.colabfold.alphafold.common import protein
+from lib.tool.alphafold.common import protein
 
 
 

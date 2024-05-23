@@ -12,7 +12,6 @@ from lib.state import State
 from lib.pathtree import get_pathtree
 import lib.utils.datatool as dtool
 from lib.monitor import info_report
-from lib.tool.run_af2 import af2_make_template_feature
 import lib.tool.parse_pdb_to_template as parse_pdb_to_template
 from lib.constant import PDBMMCIF_ROOT
 

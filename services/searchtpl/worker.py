@@ -11,7 +11,6 @@ from lib.state import State
 from lib.pathtree import get_pathtree
 import lib.utils.datatool as dtool
 from lib.monitor import info_report
-from lib.tool.run_af2 import af2_search_template
 from lib.constant import PDB70_ROOT
 
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "rpc://")
