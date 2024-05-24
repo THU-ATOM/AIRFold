@@ -1,7 +1,7 @@
 import os
 from copy import deepcopy
 from celery import Celery
-from celery.result import AsyncResult
+from celery.result import AsyncResult, allow_join_result
 from pathlib import Path
 from typing import Any, Dict, List, Union
 import matplotlib.pyplot as plt
@@ -83,18 +83,11 @@ class MonoFeatureRunner(BaseRunner):
     ):
         if not isinstance(msa_paths, list):
             msa_paths = [msa_paths]
-            
-        # processed_feature = monomer_msa2feature(
-        #     sequence=self.sequence,
-        #     target_name=self.target_name,
-        #     msa_paths=msa_paths,
-        #     template_feature=template_feat,
-        #     af2_config=af2_config,
-        #     model_name=model_name,
-        #     random_seed=random_seed  # random.randint(0, 100000),
-        # )
         
         run_stage = "monomer_msa2feature"
+        ptree = get_pathtree(request=self.requests[0])
+        out_path = ptree.alphafold.processed_feat
+        
         argument_dict = {
             "sequence": self.sequence,
             "target_name": self.target_name,
@@ -107,21 +100,27 @@ class MonoFeatureRunner(BaseRunner):
         for k, v in af2_config.items():
             if k not in argument_dict:
                 argument_dict[k] = v
-        task = celery_client.send_task("alphafold", args=[run_stage, argument_dict], queue="queue_alphafold")
+        
+        task = celery_client.send_task("alphafold", args=[run_stage, out_path, argument_dict], queue="queue_alphafold")
         task_result = AsyncResult(task.id, app=celery_client)
-        # if task_result.ready():
-        processed_feature, _ = task_result.get()
         
-        
-        ptree = get_pathtree(request=self.requests[0])
-        dtool.deduplicate_msa_a3m(msa_paths, str(ptree.alphafold.input_a3m))
+        with allow_join_result():
+            try:
+                out_path = task_result.get()
+                processed_feature = dtool.read_pickle(out_path)
+                
+                dtool.deduplicate_msa_a3m(msa_paths, str(ptree.alphafold.input_a3m))
 
-        self.save_msa_fig_from_a3m_files(
-            msa_paths=msa_paths,
-            save_path=ptree.alphafold.msa_coverage_image,
-        )
+                self.save_msa_fig_from_a3m_files(
+                    msa_paths=msa_paths,
+                    save_path=ptree.alphafold.msa_coverage_image,
+                )
+                return processed_feature
+            
+            except TimeoutError as exc:
+                print("--- Exception: %s\n Timeout!" %exc)
+                return
 
-        return processed_feature
 
     def on_run_end(self):
         if self.info_reportor is not None:
@@ -164,24 +163,6 @@ class MonoStructureRunner(BaseRunner):
             )
             + "_unrelaxed.pdb"
         )
-
-        raw_output = (
-            os.path.join(
-                str(ptree.alphafold.root),
-                model_name,
-            )
-            + "_output_raw.pkl"
-        )
-
-        # gpu_devices = "".join([f"{i}" for i in get_available_gpus(1)])
-        # (prediction_result, unrelaxed_pdb_str,) = predict_structure(
-        #     af2_config=af2_config,
-        #     target_name=self.target_name,
-        #     processed_feature=processed_feat,
-        #     model_name=model_name,
-        #     random_seed=random_seed,  # random.randint(0, 100000),
-        #     gpu_devices=gpu_devices,
-        # )
         
         run_stage = "predict_structure"
         argument_dict = {
@@ -192,21 +173,25 @@ class MonoStructureRunner(BaseRunner):
             "random_seed": random_seed,
             "return_representations": True,
         }
-        # structure_config = run_config["structure_prediction"]["alphafold"]
         argument_dict = deepcopy(argument_dict)
         for k, v in af2_config.items():
             if k not in argument_dict:
                 argument_dict[k] = v
         
-        task = celery_client.send_task("alphafold", args=[run_stage, argument_dict], queue="queue_alphafold")
+        out_path = str(os.path.join(str(ptree.alphafold.root), model_name))
+        task = celery_client.send_task("alphafold", args=[run_stage, out_path, argument_dict], queue="queue_alphafold")
         task_result = AsyncResult(task.id, app=celery_client)
-        # if task_result.ready():
-        prediction_results, unrelaxed_pdb_str, _ = task_result.get()
-        
-        dtool.save_object_as_pickle(prediction_results, raw_output)
-        dtool.write_text_file(plaintext=unrelaxed_pdb_str, path=self.output_path)
 
-        return unrelaxed_pdb_str
+        with allow_join_result():
+            try:
+                un_relaxed_pdb_path = task_result.get()
+                unrelaxed_pdb_str = dtool.read_text_file(path=un_relaxed_pdb_path)
+                return unrelaxed_pdb_str
+            
+            except TimeoutError as exc:
+                print("--- Exception: %s\n Timeout!" %exc)
+                return
+        
 
     def on_run_end(self):
         if self.info_reportor is not None:
@@ -243,24 +228,21 @@ class AmberRelaxationRunner(BaseRunner):
         # relaxed_pdb_str = run_relaxation(
         #     unrelaxed_pdb_str=unrelaxed_pdb_str, gpu_devices=gpu_devices
         # )
-        run_stage = ""
+        run_stage = "run_relaxation"
         argument_dict = {"unrelaxed_pdb_str": unrelaxed_pdb_str}
-        task = celery_client.send_task("alphafold", args=[run_stage, argument_dict], queue="queue_alphafold")
+        out_path = str(os.path.join(str(ptree.alphafold.root), model_name)) + "_relaxed.pdb"
+        task = celery_client.send_task("alphafold", args=[run_stage, out_path, argument_dict], queue="queue_alphafold")
         task_result = AsyncResult(task.id, app=celery_client)
-        # if task_result.ready():
-        relaxed_pdb_str, _ = task_result.get()
+        
+        with allow_join_result():
+            try:
+                relaxed_pdb_path = task_result.get()
+                return relaxed_pdb_path
+            
+            except TimeoutError as exc:
+                print("--- Exception: %s\n Timeout!" %exc)
+                return
 
-        self.output_path = (
-            os.path.join(
-                str(ptree.alphafold.root),
-                model_name,
-            )
-            + "_relaxed.pdb"
-        )
-
-        dtool.write_text_file(relaxed_pdb_str, self.output_path)
-
-        return relaxed_pdb_str
 
     def on_run_end(self):
         if self.info_reportor is not None:
@@ -358,8 +340,8 @@ class AirFoldRunner(BaseRunner):
             if not unrelaxed_pdb_str:
                 return
 
-            relaxed_pdb_str = self.amber_relax(
+            relaxed_pdb_path = self.amber_relax(
                 unrelaxed_pdb_str=unrelaxed_pdb_str, model_name=m_name
             )
-            if not relaxed_pdb_str:
+            if not relaxed_pdb_path:
                 return

@@ -4,7 +4,7 @@ import pickle as pkl
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, List, Tuple, Optional, Union
+from typing import Any, Tuple, Optional, Union
 
 import jsonlines
 from loguru import logger

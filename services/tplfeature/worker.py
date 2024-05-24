@@ -1,7 +1,6 @@
 import os
-import numpy as np
 from celery import Celery
-from celery.result import AsyncResult
+from celery.result import AsyncResult, allow_join_result
 from loguru import logger
 from pathlib import Path
 from typing import Any, Dict, List
@@ -65,14 +64,6 @@ class TemplateFeaturizationRunner(BaseRunner):
         return template_feature
 
     def run(self):
-        TEMPLATE_FEATURES = {
-            "template_aatype": np.float32,
-            "template_all_atom_masks": np.float32,
-            "template_all_atom_positions": np.float32,
-            "template_domain_names": np.object,
-            "template_sequence": np.object,
-            "template_sum_probs": np.float32,
-        }
 
         # get template hits
         ptree = get_pathtree(request=self.requests[0])
@@ -97,45 +88,16 @@ class TemplateFeaturizationRunner(BaseRunner):
             "kalign_binary_path": "kalign",
         }
         
-        task = celery_client.send_task("alphafold", args=[run_stage, argument_dict], queue="queue_alphafold")
+        task = celery_client.send_task("alphafold", args=[run_stage, output_path, argument_dict], queue="queue_alphafold")
         task_result = AsyncResult(task.id, app=celery_client)
-        # if task_result.ready():
-        template_feature = task_result.get()
-
-        template_config = self.requests[0]["run_config"]["template"]
-        if (
-            template_config["cutomized_template_pdbs"]
-            and template_config["cutomized_template_pdbs"] != "None"
-        ):
-            cutomized_template_pdbs = (
-                template_config["cutomized_template_pdbs"].strip().split(",")
-            )
-            logger.info(
-                f"using customized template pdbs {template_config['cutomized_template_pdbs']}"
-            )
-            cutomized_template_feature = self.get_cutomized_template_feature(
-                self.sequence,
-                template_pdb_paths=cutomized_template_pdbs,
-            )
-            for name in TEMPLATE_FEATURES:
-                try:
-                    if template_feature[name].shape[0] > 0:
-                        cutomized_template_feature[name].append(template_feature[name])
-                        cutomized_template_feature[name] = np.concatenate(
-                            cutomized_template_feature[name], axis=0
-                        ).astype(TEMPLATE_FEATURES[name])
-                except:
-                    logger.error(
-                        f"cutomized_template_feature[{name}].shape = {','.join([f'{v.shape}:{type(v)}'for v in cutomized_template_feature[name]])}"
-                    )
-                    raise ValueError
-
-            template_feature = cutomized_template_feature
-
-        dtool.save_object_as_pickle(template_feature, output_path)
-        self.outputs_paths = [output_path]
-
-        return template_feature
+        
+        with allow_join_result():
+            try:
+                output_path = task_result.get()
+                self.outputs_paths = [output_path]
+                            
+            except TimeoutError as exc:
+                print("--- Exception: %s\n Timeout!" %exc)
 
     def on_run_end(self):
         if self.info_reportor is not None:

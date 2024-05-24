@@ -1,5 +1,4 @@
 import os
-import shutil
 from celery import Celery
 from celery import signature
 from celery.result import AsyncResult, allow_join_result
@@ -10,7 +9,6 @@ from typing import Any, Dict, List
 from lib.base import BaseRunner
 from lib.state import State
 from lib.pathtree import get_pathtree
-import lib.utils.datatool as dtool
 from lib.monitor import info_report
 from lib.constant import PDB70_ROOT
 
@@ -59,64 +57,22 @@ class TemplateSearchRunner(BaseRunner):
         Path(output_path).parent.mkdir(exist_ok=True, parents=True)
         self.outputs_paths = [output_path]
 
-        copy_template_hits_from = self.requests[0]["run_config"]["template"].get(
-            "copy_template_hits_from", "None"
-        )
-        try:
-            logger.info(f"copying from {copy_template_hits_from}")
-            if copy_template_hits_from == "None" or not copy_template_hits_from:
-                raise ValueError("copy_template_hits_from is None")
-            if Path(copy_template_hits_from).exists():
-                shutil.copy(copy_template_hits_from, output_path)
-                pdb_template_hits = dtool.read_pickle(output_path)
-            else:
-                shutil.copy(
-                    os.path.join(
-                        os.path.dirname(output_path),
-                        copy_template_hits_from,
-                    ),
-                    output_path,
-                )
-            pdb_template_hits = dtool.read_pickle(output_path)
-        except:
-            if copy_template_hits_from != "None":
-                logger.info(
-                    f"copying from {copy_template_hits_from}  failed, fall back to searching logic"
-                )
-
-            # pdb_template_hits = af2_search_template(
-            #     self.sequence,
-            #     template_searching_msa_path=template_searching_msa_path,
-            # )
-            run_stage = "search_template"
-            argument_dict = {
-                "input_sequence": self.sequence,
-                "template_searching_msa_path": template_searching_msa_path,
-                "pdb70_database_path": str(PDB70_ROOT / "pdb70"),
-                "hhsearch_binary_path": "hhsearch",
-            }
+        run_stage = "search_template"
+        argument_dict = {
+            "input_sequence": self.sequence,
+            "template_searching_msa_path": template_searching_msa_path,
+            "pdb70_database_path": str(PDB70_ROOT / "pdb70"),
+            "hhsearch_binary_path": "hhsearch",
+        }
             
-            task = celery_client.send_task("alphafold", args=[run_stage, argument_dict], queue="queue_alphafold")
-            task_result = AsyncResult(task.id, app=celery_client)
-            # if task_result.ready():
-            #     pdb_template_hits = task_result.get()
-            #     dtool.save_object_as_pickle(pdb_template_hits, output_path)
+        task = celery_client.send_task("alphafold", args=[run_stage, output_path, argument_dict], queue="queue_alphafold")
+        task_result = AsyncResult(task.id, app=celery_client)
             
-            # afTask = signature("alphafold", args=[run_stage, argument_dict], queue="queue_alphafold")
-            # result = afTask.apply_async()
-            # pdb_template_hits = result.get()
-            # dtool.save_object_as_pickle(pdb_template_hits, output_path)
-            
-            with allow_join_result():
-                def on_msg(*args, **kwargs):
-                    print(f"on_msg: {args}, {kwargs}")
-                try:
-                    pdb_template_hits = task_result.get(on_message=on_msg)
-                    dtool.save_object_as_pickle(pdb_template_hits, output_path)
-                except TimeoutError as exc:
-                    print("--- Exception: %s\n Timeout!" %exc)
-
-        # return pdb_template_hits
+        with allow_join_result():
+            try:
+                output_path = task_result.get()
+            except TimeoutError as exc:
+                print("--- Exception: %s\n Timeout!" %exc)
 
     def on_run_end(self):
         if self.info_reportor is not None:

@@ -48,9 +48,11 @@ RUN git clone --branch v3.3.0 https://github.com/soedinglab/hh-suite.git /tmp/hh
     && popd \
     && rm -rf /tmp/hh-suite
 
-# Install Miniconda & use Python 3.9
-ARG python=3.9
+# Install Miniconda & use Python 3.8
+ARG python=3.8
 ENV PYTHON_VERSION=${python}
+# https://repo.anaconda.com/miniconda/Miniconda3-py38_4.10.3-Linux-x86_64.sh
+# https://repo.anaconda.com/miniconda/Miniconda3-py37_4.10.3-Linux-x86_64.sh
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/install-conda.sh \
     && chmod +x /tmp/install-conda.sh \
     && bash /tmp/install-conda.sh -b -f -p /usr/local \
@@ -64,8 +66,7 @@ RUN conda update -qy conda \
       openmm=7.5.1 \
       cudatoolkit==${CUDA_VERSION} \
       pdbfixer \
-      pip \
-      python=3.9
+      pip
 
 COPY . /app/alphafold
 #RUN wget -q -P /app/alphafold/alphafold/common/ \
@@ -75,15 +76,15 @@ RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 # Install pip packages.
 RUN pip3 install --upgrade pip \
     && pip3 install -r /app/alphafold/requirements.txt \
-    && pip3 install --upgrade jax==0.2.14 jaxlib==0.1.69+cuda$(cut -f1,2 -d. <<< ${CUDA} | sed 's/\.//g') -f \
+    && pip3 install --upgrade jax==0.2.25 jaxlib==0.1.69+cuda111 -f \
       https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 
 # Apply OpenMM patch.
-WORKDIR /usr/local/lib/python3.9/site-packages
+WORKDIR /usr/local/lib/python3.8/site-packages
 RUN patch -p0 < /app/alphafold/docker/openmm.patch
 
 # OpenMM Backward Compatible
-# WORKDIR /opt/conda/lib/python3.9/site-packages/simtk
+# WORKDIR /opt/conda/lib/python3.8/site-packages/simtk
 # RUN rm -rf openmm && ln -s ../openmm
 
 # Add SETUID bit to the ldconfig binary so that non-root users can run it.
