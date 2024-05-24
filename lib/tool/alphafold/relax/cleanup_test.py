@@ -16,7 +16,7 @@
 import io
 
 from absl.testing import absltest
-from alphafold.relax import cleanup
+from lib.tool.alphafold.relax import cleanup
 from simtk.openmm.app.internal import pdbstructure
 
 

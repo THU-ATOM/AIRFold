@@ -15,7 +15,7 @@ from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.monitor import info_report
 from lib.tool import pdb_clustering
-from lib.tool.colabfold.alphafold.common import protein
+from lib.tool.alphafold.common import protein
 from lib.monitor import post_utils
 from lib.utils import misc
 

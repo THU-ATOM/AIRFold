@@ -19,9 +19,9 @@ import subprocess
 from typing import Optional, Sequence
 
 from absl import logging
-from alphafold.data import parsers
-from alphafold.data.tools import hmmbuild
-from alphafold.data.tools import utils
+from lib.tool.alphafold.data import parsers
+from lib.tool.alphafold.data.tools import hmmbuild
+from lib.tool.alphafold.data.tools import utils
 # Internal import (7716).
 
 

@@ -23,15 +23,15 @@ Lower-level modules up to EvoformerIteration are reused from modules.py.
 import functools
 from typing import Sequence
 
-from alphafold.common import residue_constants
-from alphafold.model import all_atom_multimer
-from alphafold.model import common_modules
-from alphafold.model import folding_multimer
-from alphafold.model import geometry
-from alphafold.model import layer_stack
-from alphafold.model import modules
-from alphafold.model import prng
-from alphafold.model import utils
+from lib.tool.alphafold.common import residue_constants
+from lib.tool.alphafold.model import all_atom_multimer
+from lib.tool.alphafold.model import common_modules
+from lib.tool.alphafold.model import folding_multimer
+from lib.tool.alphafold.model import geometry
+from lib.tool.alphafold.model import layer_stack
+from lib.tool.alphafold.model import modules
+from lib.tool.alphafold.model import prng
+from lib.tool.alphafold.model import utils
 
 import haiku as hk
 import jax

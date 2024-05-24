@@ -17,7 +17,7 @@ import uuid
 
 from absl.testing import absltest
 from absl.testing import parameterized
-from alphafold.model.tf import protein_features
+from lib.tool.alphafold.model.tf import protein_features
 import tensorflow.compat.v1 as tf
 
 

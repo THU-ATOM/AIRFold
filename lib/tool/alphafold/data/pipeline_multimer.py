@@ -24,13 +24,13 @@ import tempfile
 from typing import Mapping, MutableMapping, Sequence
 
 from absl import logging
-from alphafold.common import protein
-from alphafold.common import residue_constants
-from alphafold.data import feature_processing
-from alphafold.data import msa_pairing
-from alphafold.data import parsers
-from alphafold.data import pipeline
-from alphafold.data.tools import jackhmmer
+from lib.tool.alphafold.common import protein
+from lib.tool.alphafold.common import residue_constants
+from lib.tool.alphafold.data import feature_processing
+from lib.tool.alphafold.data import msa_pairing
+from lib.tool.alphafold.data import parsers
+from lib.tool.alphafold.data import pipeline
+from lib.tool.alphafold.data.tools import jackhmmer
 import numpy as np
 
 # Internal import (7716).

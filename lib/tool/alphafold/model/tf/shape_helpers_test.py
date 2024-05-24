@@ -14,7 +14,7 @@
 
 """Tests for shape_helpers."""
 
-from alphafold.model.tf import shape_helpers
+from lib.tool.alphafold.model.tf import shape_helpers
 import numpy as np
 import tensorflow.compat.v1 as tf
 

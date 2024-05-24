@@ -16,7 +16,7 @@
 
 import io
 import os
-from alphafold.model import utils
+from lib.tool.alphafold.model import utils
 import haiku as hk
 import numpy as np
 # Internal import (7716).

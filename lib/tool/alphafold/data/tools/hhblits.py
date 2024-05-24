@@ -20,7 +20,7 @@ import subprocess
 from typing import Any, List, Mapping, Optional, Sequence
 
 from absl import logging
-from alphafold.data.tools import utils
+from lib.tool.alphafold.data.tools import utils
 # Internal import (7716).
 
 

@@ -1,7 +1,8 @@
 import os
 import shutil
 from celery import Celery
-from celery.result import AsyncResult
+from celery import signature
+from celery.result import AsyncResult, allow_join_result
 from loguru import logger
 from pathlib import Path
 from typing import Any, Dict, List
@@ -94,13 +95,28 @@ class TemplateSearchRunner(BaseRunner):
                 "pdb70_database_path": str(PDB70_ROOT / "pdb70"),
                 "hhsearch_binary_path": "hhsearch",
             }
+            
             task = celery_client.send_task("alphafold", args=[run_stage, argument_dict], queue="queue_alphafold")
             task_result = AsyncResult(task.id, app=celery_client)
             # if task_result.ready():
-            pdb_template_hits = task_result.get()
-            dtool.save_object_as_pickle(pdb_template_hits, output_path)
+            #     pdb_template_hits = task_result.get()
+            #     dtool.save_object_as_pickle(pdb_template_hits, output_path)
+            
+            # afTask = signature("alphafold", args=[run_stage, argument_dict], queue="queue_alphafold")
+            # result = afTask.apply_async()
+            # pdb_template_hits = result.get()
+            # dtool.save_object_as_pickle(pdb_template_hits, output_path)
+            
+            with allow_join_result():
+                def on_msg(*args, **kwargs):
+                    print(f"on_msg: {args}, {kwargs}")
+                try:
+                    pdb_template_hits = task_result.get(on_message=on_msg)
+                    dtool.save_object_as_pickle(pdb_template_hits, output_path)
+                except TimeoutError as exc:
+                    print("--- Exception: %s\n Timeout!" %exc)
 
-        return pdb_template_hits
+        # return pdb_template_hits
 
     def on_run_end(self):
         if self.info_reportor is not None:

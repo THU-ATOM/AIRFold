@@ -16,13 +16,13 @@
 
 import functools
 from typing import Dict
-from alphafold.common import residue_constants
-from alphafold.model import all_atom
-from alphafold.model import common_modules
-from alphafold.model import prng
-from alphafold.model import quat_affine
-from alphafold.model import r3
-from alphafold.model import utils
+from lib.tool.alphafold.common import residue_constants
+from lib.tool.alphafold.model import all_atom
+from lib.tool.alphafold.model import common_modules
+from lib.tool.alphafold.model import prng
+from lib.tool.alphafold.model import quat_affine
+from lib.tool.alphafold.model import r3
+from lib.tool.alphafold.model import utils
 import haiku as hk
 import jax
 import jax.numpy as jnp

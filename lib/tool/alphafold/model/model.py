@@ -16,10 +16,10 @@
 from typing import Any, Mapping, Optional, Union
 
 from absl import logging
-from alphafold.common import confidence
-from alphafold.model import features
-from alphafold.model import modules
-from alphafold.model import modules_multimer
+from lib.tool.alphafold.common import confidence
+from lib.tool.alphafold.model import features
+from lib.tool.alphafold.model import modules
+from lib.tool.alphafold.model import modules_multimer
 import haiku as hk
 import jax
 import ml_collections

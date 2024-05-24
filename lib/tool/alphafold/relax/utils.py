@@ -14,7 +14,7 @@
 
 """Utils for minimization."""
 import io
-from alphafold.common import residue_constants
+from lib.tool.alphafold.common import residue_constants
 from Bio import PDB
 import numpy as np
 from simtk.openmm import app as openmm_app

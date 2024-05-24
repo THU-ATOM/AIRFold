@@ -16,9 +16,9 @@
 from __future__ import annotations
 import dataclasses
 
-from alphafold.model.geometry import struct_of_array
-from alphafold.model.geometry import utils
-from alphafold.model.geometry import vector
+from lib.tool.alphafold.model.geometry import struct_of_array
+from lib.tool.alphafold.model.geometry import utils
+from lib.tool.alphafold.model.geometry import vector
 import jax
 import jax.numpy as jnp
 import numpy as np

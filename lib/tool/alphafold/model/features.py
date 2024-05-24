@@ -16,8 +16,8 @@
 import copy
 from typing import List, Mapping, Tuple
 
-from alphafold.model.tf import input_pipeline
-from alphafold.model.tf import proteins_dataset
+from lib.tool.alphafold.model.tf import input_pipeline
+from lib.tool.alphafold.model.tf import proteins_dataset
 
 import ml_collections
 import numpy as np

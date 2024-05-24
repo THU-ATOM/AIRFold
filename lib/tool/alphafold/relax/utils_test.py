@@ -17,8 +17,8 @@
 import os
 
 from absl.testing import absltest
-from alphafold.common import protein
-from alphafold.relax import utils
+from lib.tool.alphafold.common import protein
+from lib.tool.alphafold.relax import utils
 import numpy as np
 # Internal import (7716).
 

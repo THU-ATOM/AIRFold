@@ -16,8 +16,8 @@
 
 from absl.testing import absltest
 from absl.testing import parameterized
-from alphafold.model import all_atom
-from alphafold.model import r3
+from lib.tool.alphafold.model import all_atom
+from lib.tool.alphafold.model import r3
 import numpy as np
 
 L1_CLAMP_DISTANCE = 10

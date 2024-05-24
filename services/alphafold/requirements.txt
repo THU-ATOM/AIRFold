@@ -1,12 +1,12 @@
 tensorflow-gpu==2.8.2
 numpy==1.23
 absl-py
-biopython
+biopython==1.81
 chex
 dm-haiku
 dm-tree
 immutabledict
 ml-collections
 pandas
-scipy
-
+scipy==1.12.0
+celery[redis]

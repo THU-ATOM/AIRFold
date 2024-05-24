@@ -16,9 +16,9 @@
 
 from typing import Iterable, MutableMapping, List
 
-from alphafold.common import residue_constants
-from alphafold.data import msa_pairing
-from alphafold.data import pipeline
+from lib.tool.alphafold.common import residue_constants
+from lib.tool.alphafold.data import msa_pairing
+from lib.tool.alphafold.data import pipeline
 import numpy as np
 
 REQUIRED_FEATURES = frozenset({

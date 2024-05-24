@@ -15,7 +15,7 @@
 """Tests for prng."""
 
 from absl.testing import absltest
-from alphafold.model import prng
+from lib.tool.alphafold.model import prng
 import jax
 
 

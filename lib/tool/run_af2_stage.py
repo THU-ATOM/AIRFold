@@ -8,22 +8,22 @@ from absl import flags
 from absl import logging
 
 from pathlib import Path
-from alphafold.data.pipeline import FeatureDict
-from alphafold.data.from_msa_to_feature import (
+from lib.tool.alphafold.data.pipeline import FeatureDict
+from lib.tool.alphafold.data.from_msa_to_feature import (
     MonomerMSAFeatureProcessor,
     load_msa_from_path,
 )
-from alphafold.data import templates
-from alphafold.data.tools import hhsearch
-from alphafold.data import parsers
-from alphafold.model import features
-from alphafold.model import config
+from lib.tool.alphafold.data import templates
+from lib.tool.alphafold.data.tools import hhsearch
+from lib.tool.alphafold.data import parsers
+from lib.tool.alphafold.model import features
+from lib.tool.alphafold.model import config
 from typing import List, Any, Tuple, Dict, Union, Sequence
-from alphafold.model import data
-from alphafold.model import model
-from alphafold.relax import relax
-from alphafold.common import residue_constants
-from alphafold.common import protein
+from lib.tool.alphafold.model import data
+from lib.tool.alphafold.model import model
+from lib.tool.alphafold.relax import relax
+from lib.tool.alphafold.common import residue_constants
+from lib.tool.alphafold.common import protein
 import dataclasses
 
 import numpy as np

@@ -87,22 +87,23 @@ RUN patch -p0 < /app/alphafold/docker/openmm.patch
 # RUN rm -rf openmm && ln -s ../openmm
 
 # Add SETUID bit to the ldconfig binary so that non-root users can run it.
-RUN chmod u+s /sbin/ldconfig.real
+# RUN chmod u+s /sbin/ldconfig.real
 
-RUN mkdir /entry \
-    && chmod go+rw /entry \
-    && mv /app/alphafold/docker/asset /entry/ \
-    && mv /app/alphafold/docker/entry_point.sh /entry/ \
-    && chmod +x /entry/entry_point.sh
+# RUN mkdir /entry \
+#     && chmod go+rw /entry \
+#     && mv /app/alphafold/docker/asset /entry/ \
+#     && mv /app/alphafold/docker/entry_point.sh /entry/ \
+#     && chmod +x /entry/entry_point.sh
+
 # We need to run `ldconfig` first to ensure GPUs are visible, due to some quirk
 # with Debian. See https://github.com/NVIDIA/nvidia-docker/issues/1399 for
 # details.
 # ENTRYPOINT does not support easily running multiple commands, so instead we
 # write a shell script to wrap them up.
 
-FROM base_af2_env as af2_run_stage
+# FROM base_af2_env as af2_run_stage
 
-ENTRYPOINT ["/entry/entry_point.sh"]
+# ENTRYPOINT ["/entry/entry_point.sh"]
 
 
 ENV CELERY_BROKER_URL pyamqp://guest:guest@localhost:5672/

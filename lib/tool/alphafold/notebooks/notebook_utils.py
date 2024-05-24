@@ -17,8 +17,8 @@ import enum
 import json
 from typing import Any, Mapping, Optional, Sequence, Tuple
 
-from alphafold.common import residue_constants
-from alphafold.data import parsers
+from lib.tool.alphafold.common import residue_constants
+from lib.tool.alphafold.data import parsers
 from matplotlib import pyplot as plt
 import numpy as np
 

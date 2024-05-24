@@ -14,10 +14,10 @@
 
 """Data for AlphaFold."""
 
-from alphafold.common import residue_constants
-from alphafold.model.tf import shape_helpers
-from alphafold.model.tf import shape_placeholders
-from alphafold.model.tf import utils
+from lib.tool.alphafold.common import residue_constants
+from lib.tool.alphafold.model.tf import shape_helpers
+from lib.tool.alphafold.model.tf import shape_placeholders
+from lib.tool.alphafold.model.tf import utils
 import numpy as np
 import tensorflow.compat.v1 as tf
 

@@ -15,9 +15,9 @@
 
 from typing import Dict, Text
 
-from alphafold.common import residue_constants
-from alphafold.model import geometry
-from alphafold.model import utils
+from lib.tool.alphafold.common import residue_constants
+from lib.tool.alphafold.model import geometry
+from lib.tool.alphafold.model import utils
 import jax
 import jax.numpy as jnp
 import numpy as np

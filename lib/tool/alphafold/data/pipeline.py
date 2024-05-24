@@ -17,14 +17,14 @@
 import os
 from typing import Any, Mapping, MutableMapping, Optional, Sequence, Union
 from absl import logging
-from alphafold.common import residue_constants
-from alphafold.data import msa_identifiers
-from alphafold.data import parsers
-from alphafold.data import templates
-from alphafold.data.tools import hhblits
-from alphafold.data.tools import hhsearch
-from alphafold.data.tools import hmmsearch
-from alphafold.data.tools import jackhmmer
+from lib.tool.alphafold.common import residue_constants
+from lib.tool.alphafold.data import msa_identifiers
+from lib.tool.alphafold.data import parsers
+from lib.tool.alphafold.data import templates
+from lib.tool.alphafold.data.tools import hhblits
+from lib.tool.alphafold.data.tools import hhsearch
+from lib.tool.alphafold.data.tools import hmmsearch
+from lib.tool.alphafold.data.tools import jackhmmer
 import numpy as np
 
 # Internal import (7716).

@@ -17,7 +17,7 @@
 import functools
 from absl.testing import absltest
 from absl.testing import parameterized
-from alphafold.model import layer_stack
+from lib.tool.alphafold.model import layer_stack
 import haiku as hk
 import jax
 import jax.numpy as jnp

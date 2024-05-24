@@ -17,8 +17,8 @@ from __future__ import annotations
 import dataclasses
 from typing import Union
 
-from alphafold.model.geometry import struct_of_array
-from alphafold.model.geometry import utils
+from lib.tool.alphafold.model.geometry import struct_of_array
+from lib.tool.alphafold.model.geometry import utils
 import jax
 import jax.numpy as jnp
 import numpy as np

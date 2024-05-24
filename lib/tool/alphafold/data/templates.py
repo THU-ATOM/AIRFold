@@ -23,10 +23,10 @@ import re
 from typing import Any, Dict, Mapping, Optional, Sequence, Tuple
 
 from absl import logging
-from alphafold.common import residue_constants
-from alphafold.data import mmcif_parsing
-from alphafold.data import parsers
-from alphafold.data.tools import kalign
+from lib.tool.alphafold.common import residue_constants
+from lib.tool.alphafold.data import mmcif_parsing
+from lib.tool.alphafold.data import parsers
+from lib.tool.alphafold.data.tools import kalign
 import numpy as np
 
 # Internal import (7716).

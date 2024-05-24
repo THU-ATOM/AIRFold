@@ -19,8 +19,8 @@ import functools
 import string
 from typing import Any, Dict, Iterable, List, Sequence
 
-from alphafold.common import residue_constants
-from alphafold.data import pipeline
+from lib.tool.alphafold.common import residue_constants
+from lib.tool.alphafold.data import pipeline
 import numpy as np
 import pandas as pd
 import scipy.linalg

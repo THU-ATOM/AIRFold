@@ -19,11 +19,11 @@ import time
 from typing import Collection, Optional, Sequence
 
 from absl import logging
-from alphafold.common import protein
-from alphafold.common import residue_constants
-from alphafold.model import folding
-from alphafold.relax import cleanup
-from alphafold.relax import utils
+from lib.tool.alphafold.common import protein
+from lib.tool.alphafold.common import residue_constants
+from lib.tool.alphafold.model import folding
+from lib.tool.alphafold.relax import cleanup
+from lib.tool.alphafold.relax import utils
 import ml_collections
 import numpy as np
 from simtk import openmm
