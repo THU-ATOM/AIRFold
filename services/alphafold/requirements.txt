@@ -16,3 +16,5 @@ jupyter==1.0.0
 # tensorflow-cpu==2.5.0
 celery[redis]
 loguru
+jsonlines
+rich

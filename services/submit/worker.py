@@ -287,7 +287,7 @@ class UniforSubmitRunner(BaseRunner):
     def __init__(
         self,
         requests: List[Dict[str, Any]],
-        loop_forever=True,
+        loop_forever=False,
     ) -> None:
         super().__init__(requests)
         self.loop_forever = loop_forever

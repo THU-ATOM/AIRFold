@@ -76,23 +76,23 @@ class MonoFeatureRunner(BaseRunner):
     def run(
         self,
         msa_paths: List[Union[str, Path]],
-        template_feat: Dict[str, Any],
+        selected_template_feat_path: str,
         af2_config: Dict[str, Any],
         model_name: str = "model_1",
         random_seed: int = 0,
     ):
         if not isinstance(msa_paths, list):
-            msa_paths = [msa_paths]
+            msa_paths = [str(msa_paths)]
         
         run_stage = "monomer_msa2feature"
         ptree = get_pathtree(request=self.requests[0])
-        out_path = ptree.alphafold.processed_feat
+        out_path = str(ptree.alphafold.processed_feat)
         
         argument_dict = {
             "sequence": self.sequence,
             "target_name": self.target_name,
             "msa_paths": msa_paths,
-            "template_feature": template_feat,
+            "template_feature": selected_template_feat_path,
             "model_name": model_name,
             "random_seed": random_seed,
         }
@@ -115,7 +115,10 @@ class MonoFeatureRunner(BaseRunner):
                     msa_paths=msa_paths,
                     save_path=ptree.alphafold.msa_coverage_image,
                 )
-                return processed_feature
+                logger.info(
+                    f"the shape of msa_feat is: {processed_feature['msa_feat'].shape}"
+                )
+                return out_path
             
             except TimeoutError as exc:
                 print("--- Exception: %s\n Timeout!" %exc)
@@ -147,7 +150,7 @@ class MonoStructureRunner(BaseRunner):
 
     def run(
         self,
-        processed_feat: Dict,
+        processed_feature_path: str,
         af2_config: Dict,
         random_seed: int,
         model_name: str
@@ -167,7 +170,7 @@ class MonoStructureRunner(BaseRunner):
         run_stage = "predict_structure"
         argument_dict = {
             "target_name": self.target_name,
-            "processed_feature": processed_feat,
+            "processed_feature": processed_feature_path,
             "model_name": model_name,
             "data_dir": str(AF_PARAMS_ROOT),
             "random_seed": random_seed,
@@ -185,8 +188,8 @@ class MonoStructureRunner(BaseRunner):
         with allow_join_result():
             try:
                 un_relaxed_pdb_path = task_result.get()
-                unrelaxed_pdb_str = dtool.read_text_file(path=un_relaxed_pdb_path)
-                return unrelaxed_pdb_str
+                # unrelaxed_pdb_str = dtool.read_text_file(path=un_relaxed_pdb_path)
+                return un_relaxed_pdb_path
             
             except TimeoutError as exc:
                 print("--- Exception: %s\n Timeout!" %exc)
@@ -222,14 +225,14 @@ class AmberRelaxationRunner(BaseRunner):
     def start_stage(self) -> State:
         return self.start_code
 
-    def run(self, unrelaxed_pdb_str, model_name):
+    def run(self, un_relaxed_pdb_path, model_name):
         ptree = get_pathtree(request=self.requests[0])
         # gpu_devices = "".join([f"{i}" for i in get_available_gpus(1)])
         # relaxed_pdb_str = run_relaxation(
         #     unrelaxed_pdb_str=unrelaxed_pdb_str, gpu_devices=gpu_devices
         # )
         run_stage = "run_relaxation"
-        argument_dict = {"unrelaxed_pdb_str": unrelaxed_pdb_str}
+        argument_dict = {"unrelaxed_pdb_str": un_relaxed_pdb_path}
         out_path = str(os.path.join(str(ptree.alphafold.root), model_name)) + "_relaxed.pdb"
         task = celery_client.send_task("alphafold", args=[run_stage, out_path, argument_dict], queue="queue_alphafold")
         task_result = AsyncResult(task.id, app=celery_client)
@@ -237,6 +240,7 @@ class AmberRelaxationRunner(BaseRunner):
         with allow_join_result():
             try:
                 relaxed_pdb_path = task_result.get()
+                self.output_path = relaxed_pdb_path
                 return relaxed_pdb_path
             
             except TimeoutError as exc:
@@ -313,35 +317,33 @@ class AirFoldRunner(BaseRunner):
             return
 
         # get selected_template_feat
-        selected_template_feat_path = ptree.alphafold.selected_template_feat
-        selected_template_feat = dtool.read_pickle(selected_template_feat_path)
-        if not selected_template_feat:
-            return
+        selected_template_feat_path = str(ptree.alphafold.selected_template_feat)
+        # selected_template_feat = dtool.read_pickle(selected_template_feat_path)
+        # if not selected_template_feat:
+        #     return
         
         for m_name in models:
-            processed_feature = self.mono_msa2feature(
+            processed_feature_path = self.mono_msa2feature(
                 msa_paths=selected_msa_path,
-                template_feat=selected_template_feat,
+                selected_template_feat_path=selected_template_feat_path,
                 af2_config=af2_config,
                 model_name=m_name,
                 random_seed=random_seed
             )
-            logger.info(
-                f"the shape of msa_feat is: {processed_feature['msa_feat'].shape}"
-            )
-            if not processed_feature:
+            
+            if not processed_feature_path:
                 return
-            unrelaxed_pdb_str = self.mono_structure(
-                processed_feat=processed_feature,
+            un_relaxed_pdb_path = self.mono_structure(
+                processed_feature_path=processed_feature_path,
                 af2_config=af2_config,
                 model_name=m_name,
                 random_seed=random_seed,
             )
-            if not unrelaxed_pdb_str:
+            if not un_relaxed_pdb_path:
                 return
 
             relaxed_pdb_path = self.amber_relax(
-                unrelaxed_pdb_str=unrelaxed_pdb_str, model_name=m_name
+                un_relaxed_pdb_path=un_relaxed_pdb_path, model_name=m_name
             )
             if not relaxed_pdb_path:
                 return

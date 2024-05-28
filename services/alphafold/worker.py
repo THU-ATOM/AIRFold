@@ -29,6 +29,7 @@ celery.conf.task_routes = {
 
 @celery.task(name="alphafold")
 def alphafoldTask(run_stage: str, output_path: str, argument_dict: Dict[str, Any]):
+    print("------- running stage: %s" % run_stage)
     if run_stage == "search_template":
         pdb_template_hits = search_template(**argument_dict)
         dtool.save_object_as_pickle(pdb_template_hits, output_path)
@@ -38,17 +39,23 @@ def alphafoldTask(run_stage: str, output_path: str, argument_dict: Dict[str, Any
         dtool.save_object_as_pickle(template_feature, output_path)
         return output_path
     elif run_stage == "monomer_msa2feature":
+        template_feat = dtool.read_pickle(argument_dict["template_feature"])
+        argument_dict["template_feature"] = template_feat
         processed_feature, _ = monomer_msa2feature(**argument_dict)
         dtool.save_object_as_pickle(processed_feature, output_path)
         return output_path
     elif run_stage == "predict_structure":
         pkl_output = output_path + "_output_raw.pkl"
         pdb_output = output_path + "_unrelaxed.pdb"
+        processed_feature = dtool.read_pickle(argument_dict["processed_feature"])
+        argument_dict["processed_feature"] = processed_feature
         prediction_results, unrelaxed_pdb_str, _ = predict_structure(**argument_dict)
         dtool.save_object_as_pickle(prediction_results, pkl_output)
         dtool.write_text_file(plaintext=unrelaxed_pdb_str, path=pdb_output)
         return pdb_output
     elif run_stage == "run_relaxation":
+        unrelaxed_pdb_str = dtool.read_text_file(argument_dict["unrelaxed_pdb_str"])
+        argument_dict["unrelaxed_pdb_str"] = unrelaxed_pdb_str
         relaxed_pdb_str, _ = run_relaxation(**argument_dict)
         dtool.write_text_file(relaxed_pdb_str, output_path)
         return output_path
