@@ -122,15 +122,19 @@ def main():
     info_report = InfoReport()
     
     # json_file = argv.input_path
-    with open("./tmp/temp_5000_128_7.json", 'r') as jf:
+    # with open("./tmp/temp_5000_128_1_mmseqs.json", 'r') as jf:
+    #     request_dict = json.load(jf)
+    with open("./tmp/temp_5000_128_1.json", 'r') as jf:
         request_dict = json.load(jf)
     
     # weeks = ['2024.02.17', '2024.02.24', '2024.03.02', '2024.03.09', 
     #          '2024.03.16', '2024.03.23', '2024.03.30', '2024.04.06']
     
-    cameo_dir = "/data/protein/datasets_2024/modeling/2024.03.23/"
-    data_suffix = "2024-05-17"
-    case_suffix = "base_deepmsa"
+    # new weeks: 2024.05.04  2024.05.11  2024.05.18  2024.05.25
+    cameo_dir = "/data/protein/datasets_2024/experiment/modeling/2024.05.04/"
+    data_suffix = "2024-06-05"
+    # case_suffix = "base_deepmsa_mmseqs"
+    case_suffix = "bdm"
     
     # for run dir or run bad case
     # run dir

@@ -18,3 +18,4 @@ celery[redis]
 loguru
 jsonlines
 rich
+gpustat

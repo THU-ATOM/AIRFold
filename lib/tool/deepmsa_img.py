@@ -34,6 +34,7 @@ def img_main(args):
             if DBfasta == "":
                 break
             if os.path.exists(f"{args.deepmmsa_base}/{DBfasta}.cdhit"):
+                print(f"{args.deepmmsa_base}/{DBfasta}.cdhit already exist, skip!")
                 continue
 
             deepmmsa_path = os.path.join(args.deepmmsa_base, "deepmmsa.sh")
