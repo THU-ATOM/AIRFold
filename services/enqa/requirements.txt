@@ -1,0 +1,17 @@
+celery[redis]
+pymongo
+loguru
+matplotlib
+requests
+jsonlines
+rich
+biopython
+py3Dmol
+psutil
+gpustat
+absl-py
+scipy==1.7.1
+biopandas==0.2.9
+biopython==1.79
+numpy==1.21.3
+pandas==1.3.4

@@ -131,10 +131,7 @@ class HHblitsRunner(BaseGroupCommandRunner):
         if self.info_reportor is not None:
             for request in self.requests:
                 tree = get_pathtree(request=request)
-                if (
-                    tree.search.hhblist_bfd_uniclust_a3m.exists()
-                    and tree.search.hhblist_bfd_uniclust_fa.exists()
-                ):
+                if tree.search.hhblist_bfd_uniclust_a3m.exists():
                     self.info_reportor.update_state(
                         hash_id=request[info_report.HASH_ID],
                         state=State.HHBLITS_SUCCESS,

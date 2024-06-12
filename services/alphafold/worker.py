@@ -55,9 +55,12 @@ def alphafoldTask(run_stage: str, output_path: str, argument_dict: Dict[str, Any
         pdb_output = output_path + "_unrelaxed.pdb"
         processed_feature = dtool.read_pickle(argument_dict["processed_feature"])
         argument_dict["processed_feature"] = processed_feature
-        # set visible gpu device
+        ## set visible gpu device
         gpu_devices = "".join([f"{i}" for i in get_available_gpus(1)])
         os.environ['CUDA_VISIBLE_DEVICES'] = gpu_devices
+        # ref: https://github.com/google-deepmind/alphafold/issues/140
+        # for CUDA_ERROR_ILLEGAL_ADDRESS error
+        os.system("unset TF_FORCE_UNIFIED_MEMORY")
         
         prediction_results, unrelaxed_pdb_str, _ = predict_structure(**argument_dict)
         dtool.save_object_as_pickle(prediction_results, pkl_output)

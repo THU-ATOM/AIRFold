@@ -9,6 +9,7 @@ from urllib import request
 
 from absl import logging
 import argparse
+from itertools import chain
 import numpy as np
 import jsonlines
 
@@ -24,6 +25,7 @@ import time
 import sys
 
 # from lib.tool import utils
+from lib.tool.hhblits import N_CPU_PER_THREAD, N_GPU_PER_THREAD
 from lib.utils.ray_tools import ProgressBar
 from lib.utils.execute import execute
 import lib.utils.datatool as dtool
@@ -319,7 +321,11 @@ def is_completed(sample, args):
     else:
         logger.info("Unknown database")
         return None
+        # database_path = args.database_path
+    # return ptree.hhblist_bfd_uniclust_a3m.exists()
 
+
+@ray.remote(num_cpus=N_CPU_PER_THREAD, num_gpus=N_GPU_PER_THREAD)
 def process_jobs(jobs_queue, args, actor):
     results = []
     while not jobs_queue.empty():
@@ -437,14 +443,31 @@ def jackhammer_run(args):
         logger.info(f"-----------------")
         logger.info(f"Total jobs: {len(jobs)}")
 
+        N_CPU_PER_THREAD = args.cpu
+        N_GPU_PER_THREAD = args.gpu
+        n_thread = min(len(jobs), args.thread)
+        total_cpus = N_CPU_PER_THREAD * n_thread
+        total_gpus = N_GPU_PER_THREAD * n_thread
+        ray.init(num_cpus=total_cpus, num_gpus=total_gpus)
+        logger.info(f"Number of threads: {n_thread}.")
+        logger.info(f"CPUs per thread: {N_CPU_PER_THREAD}.")
+        logger.info(f"Total CPUs: {total_cpus}.")
+        if N_GPU_PER_THREAD > 0:
+            logger.info(f"GPUs per thread: {N_GPU_PER_THREAD}.")
+            logger.info(f"Total GPUs: {total_gpus}.")
+        logger.info(f"-----------------")
+
         jobs_queue = Queue()
         for job in jobs:
             jobs_queue.put(job)
         pb = ProgressBar(len(jobs_queue))
         actor = pb.actor
-        job_results = process_jobs(jobs_queue, args, actor)
+        job_list = []
+        for _ in range(n_thread):
+            job_list.append(process_jobs.remote(jobs_queue, args, actor))
+
         pb.print_until_done()
-        
+        job_results = list(chain(*ray.get(job_list)))
         if len(job_results) > 0:
             mean_time = np.round(
                 np.mean([float(j["Time"][:-2]) for j in job_results]), 2

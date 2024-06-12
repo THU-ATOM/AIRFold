@@ -152,8 +152,8 @@ class JackhmmerRunner(BaseGroupCommandRunner):
             for request in self.requests:
                 tree = get_pathtree(request=request)
                 if (
-                    tree.search.jackhammer_mgnify_fa.exists()
-                    and tree.search.jackhammer_uniref90_fa.exists()
+                    tree.search.jackhammer_mgnify_a3m.exists()
+                    and tree.search.jackhammer_uniref90_a3m.exists()
                 ):
                     self.info_reportor.update_state(
                         hash_id=request[info_report.HASH_ID],
