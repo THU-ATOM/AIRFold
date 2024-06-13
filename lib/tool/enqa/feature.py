@@ -7,13 +7,13 @@ import subprocess
 from biopandas.pdb import PandasPdb
 from scipy.spatial.distance import cdist
 
-from data.loader import expand_sh
-from data.process_alphafold import process_alphafold_model, process_alphafold_target
-from data.process_label import generate_dist_diff, generate_coords_transform, generate_lddt_score
-from utils.SGCN.common.graph import build_atom_level_data, build_residue_level_data, build_spherical_harmonics
-from utils.SGCN.common.format import get_atom_labels, get_bonds_types
-from utils.SGCN.common.utils import Logger, get_residue_type_to_id
-from utils.SGCN.common.names import X_NORM_IDX, X_RES_FILE_NAME, SH_NAME
+from lib.tool.enqa.data.loader import expand_sh
+from lib.tool.enqa.data.process_alphafold import process_alphafold_model, process_alphafold_target
+from lib.tool.enqa.data.process_label import generate_dist_diff, generate_coords_transform, generate_lddt_score
+from lib.tool.enqa.utils.SGCN.common.graph import build_atom_level_data, build_residue_level_data, build_spherical_harmonics
+from lib.tool.enqa.utils.SGCN.common.format import get_atom_labels, get_bonds_types
+from lib.tool.enqa.utils.SGCN.common.utils import Logger, get_residue_type_to_id
+from lib.tool.enqa.utils.SGCN.common.names import X_NORM_IDX, X_RES_FILE_NAME, SH_NAME
 
 params_dict = {'voronota_exec': '/data/protein/datasets_2024/enqa/utils/SGCN/bin/voronota-linux',
                'maps_generator_exec': '/data/protein/datasets_2024/enqa/utils/SGCN/bin/sh-featurizer-linux',

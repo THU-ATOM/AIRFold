@@ -54,6 +54,12 @@ class RoseTTAFoldRunner(BaseCommandRunner):
         
         # query fasta
         ptree = get_pathtree(request=request)
+        str_dict = misc.safe_get(self.requests[0], ["run_config", "msa_select"])
+        key_list = list(str_dict.keys())
+        for index in range(len(key_list)):
+            selected_msa_path = ptree.strategy.strategy_list[index]
+        if not selected_msa_path:
+            return
         
         # get args of rose
         args = misc.safe_get(request, ["run_config", "structure_prediction", "rosettafold2"])
@@ -62,7 +68,7 @@ class RoseTTAFoldRunner(BaseCommandRunner):
             [
                 f"python {pathtool.get_module_path(run_predict)} ",
                 f"--fasta_path {ptree.seq.fasta} ",
-                f"--a3m_path {ptree.search.integrated_search_a3m} ",
+                f"--a3m_path {selected_msa_path} ",
                 f"--rose_dir {ptree.rosettafold2.root} ",
                 f"--rf2_pt {RF2_PT} ",
                 f"--random_seed {misc.safe_get(args, 'random_seed')} " if misc.safe_get(args, "random_seed") else "",

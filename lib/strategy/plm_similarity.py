@@ -13,7 +13,7 @@ from pathlib import Path
 from gpustat import new_query
 
 from lib.strategy.plmsim.plmsearch_util.model import plmsearch
-from lib.strategy.plmsim import embedding_generate, main_similarity
+from lib.strategy.plmsim import embedding_generate, similarity_calculate
 
 
 REFRESH_SECONDS = 30
@@ -32,6 +32,9 @@ class A3Mentry:
 
 def a3m_sequence_to_fasta(sequence):
     res = sequence.strip()
+    # two strategy: 
+    # 1. remove lower letter and "_"; 
+    # 2. remove "_" and change lower letter to upper
     
     # res = "".join([ch for ch in res if not (ch.islower() or ch == "-")])
     res = "".join([ch for ch in res if not ch == "-"])
@@ -151,7 +154,7 @@ def process(args):
         model_methods = model.module
     model.to(device)
     
-    search_result = main_similarity.main(query_embedding_dict, target_embedding_dict, device, model_methods, args.least_seqs)
+    search_result = similarity_calculate.main(query_embedding_dict, target_embedding_dict, device, model_methods, args.least_seqs)
     
     search_result_path = path_prefix + "_similarity.csv"
     select_desc = []

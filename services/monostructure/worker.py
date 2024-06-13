@@ -307,10 +307,9 @@ class AirFoldRunner(BaseRunner):
 
         # get msa_path
         ptree = get_pathtree(request=self.requests[0])
-        integrated_search_a3m = str(ptree.search.integrated_search_a3m)
+
         str_dict = misc.safe_get(self.requests[0], ["run_config", "msa_select"])
         key_list = list(str_dict.keys())
-        selected_msa_path = integrated_search_a3m
         for index in range(len(key_list)):
             selected_msa_path = ptree.strategy.strategy_list[index]
         if not selected_msa_path:

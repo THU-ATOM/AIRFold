@@ -8,9 +8,9 @@ from Bio.PDB import PDBParser
 from scipy.spatial.distance import cdist
 from biopandas.pdb import PandasPdb
 
-from data.loader import expand_sh
-from feature import create_basic_features
-from network.resEGNN import resEGNN_with_ne
+from lib.tool.enqa.data.loader import expand_sh
+from lib.tool.enqa.feature import create_basic_features
+from lib.tool.enqa.network.resEGNN import resEGNN_with_ne
 
 def main(args):
     device = torch.device('cuda:4') if torch.cuda.is_available() else 'cpu'

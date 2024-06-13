@@ -3,9 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import argparse
 import torch
-import time
 import pickle
 
 from esm import FastaBatchedDataset, pretrained
@@ -43,23 +41,3 @@ def main(esm_model_path, fasta, embedding_result):
         
         with open(embedding_result, 'wb') as handle:
             pickle.dump(embedding_result_dic, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    #input
-    parser.add_argument('-emp', '--esm_model_path', type=str, default='/data/protein/datasets_2024/plmsearch_data/model/esm/esm1b_t33_650M_UR50S.pt', help="ESM model location")
-    parser.add_argument('-f', '--fasta', type=str, help="Fasta file to generate esm_embedding")
-
-    #output
-    parser.add_argument('-e', '--embedding_result', type=str, help="Esm result to use in cluster")
-
-    #parameter
-    parser.add_argument("--nogpu", action="store_true", help="Do not use GPU even if available")
-    args = parser.parse_args()
-
-    time_start=time.time()
-    main(args.esm_model_path, args.fasta, args.embedding_result, args.nogpu)
-
-    time_end=time.time()
-
-    print('Embedding generation time cost:', time_end-time_start, 's')
