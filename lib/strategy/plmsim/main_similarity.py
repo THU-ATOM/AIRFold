@@ -6,8 +6,8 @@ import torch.nn as nn
 import argparse
 from tqdm import trange
 from logzero import logger
-from plmsearch_util.model import plmsearch
-from plmsearch_util.util import get_search_list, cos_similarity, tensor_to_list
+from lib.strategy.plmsim.plmsearch_util.model import plmsearch
+from lib.strategy.plmsim.plmsearch_util.util import get_search_list, cos_similarity, tensor_to_list
 
 def main(query_embedding_dic, target_embedding_dic, device, model, least_seqs):
     with torch.no_grad():

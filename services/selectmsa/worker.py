@@ -71,6 +71,9 @@ class MSASelectRunner(BaseCommandRunner):
             params.append(f"--input_a3m_path {input_path} ")
             params.append(f"--output_a3m_path {ptree.strategy.strategy_list[index]} ")
 
+            if method_ == "plm_similarity":
+                params.append(f"--input_fasta_path {ptree.seq.fasta} ")
+
             # command = f"python {pathtool.get_module_path(method_)} " + "".join(params)
             command = f"python {executed_file} " + "".join(params)
             if rlaunch_exists():

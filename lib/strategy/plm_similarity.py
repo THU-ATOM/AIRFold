@@ -1,21 +1,22 @@
 import argparse
-from collections import Counter
-import dataclasses
-import numpy as np
-from multiprocessing import Pool
-from functools import partial
-import multiprocessing
 import os
+import random
+import time
+
+import dataclasses
+import multiprocessing
 import pickle
 import torch
-from pathlib import Path
-from typing import List
-from loguru import logger
 import torch.nn as nn
-from tqdm import trange
+from loguru import logger
+from pathlib import Path
+from gpustat import new_query
+
 from lib.strategy.plmsim.plmsearch_util.model import plmsearch
 from lib.strategy.plmsim import embedding_generate, main_similarity
 
+
+REFRESH_SECONDS = 30
 
 cpu_num = multiprocessing.cpu_count()
 
@@ -62,6 +63,55 @@ def read_a3m_file(file_path: str):
     return a3m_entries
 
 
+def get_available_gpus(
+    num: int = -1,
+    min_memory: int = 20000,
+    random_select: bool = True,
+    wait_time: float = float("inf"),
+):
+    """Get available GPUs.
+
+    Parameters
+    ----------
+    num : int, optional
+        Number of GPUs to get. The default is -1.
+    min_memory : int, optional
+        Minimum memory available in GB. The default is 20000.
+    random_select : bool, optional
+        Random select a GPU. The default is True.
+    wait_time : float, optional
+        Wait time in seconds. The default is inf.
+    """
+
+    start = time.time()
+    while time.time() - start < wait_time:
+        gpu_list = new_query().gpus
+        if random_select:
+            random.shuffle(gpu_list)
+        sorted_gpu_list = sorted(
+            gpu_list,
+            key=lambda card: (
+                card.entry["utilization.gpu"],
+                card.entry["memory.used"],
+            ),
+        )
+        available_gpus = [
+            gpu.entry["index"]
+            for gpu in sorted_gpu_list
+            if gpu.entry["memory.total"] - gpu.entry["memory.used"]
+            >= min_memory
+        ]
+        if num > 0:
+            available_gpus = available_gpus[:num]
+        if len(available_gpus) > 0:
+            return available_gpus
+        else:
+            logger.info(
+                f"No GPU available, having waited {time.time() - start} seconds"
+            )
+            return False
+    raise Exception("No GPU available")
+
 def process(args):
     os.makedirs(Path(args.output_a3m_file).parent, exist_ok=True)
     path_prefix = os.path.splitext(args.output_a3m_file)
@@ -74,12 +124,13 @@ def process(args):
     with open(target_fasta_file, "w") as fd:
         fd.write(wstr)
     
+    device_ids = get_available_gpus(1)
     if torch.cuda.is_available()==False:
         print("GPU selected but none of them is available.")
         device = "cpu"
     else:
         print("We have", torch.cuda.device_count(), "GPUs in total!, we will use as you selected")
-        device = f"cuda:{args.device_id[0]}"
+        device = f"cuda:{device_ids[0]}"
     
     # generate embedding for query fasta and target fasta
     query_embedding_path = path_prefix + "_query.pkl"
@@ -96,7 +147,7 @@ def process(args):
     model.eval()
     model_methods = model
     if (device != "cpu"):
-        model = nn.DataParallel(model, device_ids = args.device_id)
+        model = nn.DataParallel(model, device_ids=device_ids)
         model_methods = model.module
     model.to(device)
     
@@ -125,7 +176,6 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--input_a3m_path", required=True, type=str)
     parser.add_argument("-o", "--output_a3m_path", required=True, type=str)
     parser.add_argument("-l", "--least_seqs", required=True, type=int)
-    parser.add_argument("-d", "--device_id", default=[0], nargs="*", help="gpu device list, if only cpu then set it None or empty")
     
     argv = parser.parse_args()
     process(argv)
