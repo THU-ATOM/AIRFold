@@ -161,3 +161,4 @@ cython_debug/
 
 # tmp json file
 tmp/
+scripts/
