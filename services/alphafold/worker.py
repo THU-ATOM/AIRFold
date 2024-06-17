@@ -47,6 +47,14 @@ def alphafoldTask(run_stage: str, output_path: str, argument_dict: Dict[str, Any
     elif run_stage == "monomer_msa2feature":
         template_feat = dtool.read_pickle(argument_dict["template_feature"])
         argument_dict["template_feature"] = template_feat
+        ## set visible gpu device
+        gpu_devices = "".join([f"{i}" for i in get_available_gpus(1)])
+        logger.info(f"The gpu device used for msa2feature: {gpu_devices}")
+        os.environ['CUDA_VISIBLE_DEVICES'] = gpu_devices
+        # ref: https://github.com/google-deepmind/alphafold/issues/140
+        # for CUDA_ERROR_ILLEGAL_ADDRESS error
+        os.system("unset TF_FORCE_UNIFIED_MEMORY")
+        
         processed_feature, _ = monomer_msa2feature(**argument_dict)
         dtool.save_object_as_pickle(processed_feature, output_path)
         return output_path
@@ -57,6 +65,7 @@ def alphafoldTask(run_stage: str, output_path: str, argument_dict: Dict[str, Any
         argument_dict["processed_feature"] = processed_feature
         ## set visible gpu device
         gpu_devices = "".join([f"{i}" for i in get_available_gpus(1)])
+        logger.info(f"The gpu device used for predict_structure: {gpu_devices}")
         os.environ['CUDA_VISIBLE_DEVICES'] = gpu_devices
         # ref: https://github.com/google-deepmind/alphafold/issues/140
         # for CUDA_ERROR_ILLEGAL_ADDRESS error
@@ -69,6 +78,14 @@ def alphafoldTask(run_stage: str, output_path: str, argument_dict: Dict[str, Any
     elif run_stage == "run_relaxation":
         unrelaxed_pdb_str = dtool.read_text_file(argument_dict["unrelaxed_pdb_str"])
         argument_dict["unrelaxed_pdb_str"] = unrelaxed_pdb_str
+        ## set visible gpu device
+        gpu_devices = "".join([f"{i}" for i in get_available_gpus(1)])
+        logger.info(f"The gpu device used for run_relaxation: {gpu_devices}")
+        os.environ['CUDA_VISIBLE_DEVICES'] = gpu_devices
+        # ref: https://github.com/google-deepmind/alphafold/issues/140
+        # for CUDA_ERROR_ILLEGAL_ADDRESS error
+        os.system("unset TF_FORCE_UNIFIED_MEMORY")
+        
         relaxed_pdb_str, _ = run_relaxation(**argument_dict)
         dtool.write_text_file(relaxed_pdb_str, output_path)
         return output_path

@@ -223,7 +223,8 @@ class BaseRunner:
         t_start = time.time()
         res = None
         try:
-            wait_until_memory_available(min_percent=10.)
+            # someting error when processing long sequence
+            wait_until_memory_available(min_percent=10.0, min_memory=10.0)
             run_wrapper = timeit_logger(self.run)
             res = run_wrapper(*args, **kwds)
         except Exception as e:
