@@ -22,4 +22,4 @@ docker-compose up
 - FastAPI page: http://127.0.0.1:8081/docs
 - tasks monitor page (powered by [flower](https://github.com/mher/flower)): http://127.0.0.1:5555
 
-*Note: please change IP address and ports accordingly, they are specified in `docker-compose.yaml`*
+*Note: please change IP address and ports accordingly, they are specified in `docker-compose.yml`*

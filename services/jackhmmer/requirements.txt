@@ -11,4 +11,3 @@ psutil
 gpustat
 absl-py
 tqdm
-ray

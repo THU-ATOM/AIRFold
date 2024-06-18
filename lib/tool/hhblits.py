@@ -26,11 +26,7 @@ from functools import partial
 from pathlib import Path
 
 import jsonlines
-import ray
-from ray.util.queue import Queue
 from loguru import logger
-
-from lib.utils.ray_tools import ProgressBar
 from lib.utils.execute import execute
 import lib.utils.datatool as dtool
 from lib.pathtree import SearchPathTree
@@ -130,10 +126,9 @@ def is_completed(sample, args):
     return ptree.hhblist_bfd_uniclust_a3m.exists()
 
 
-def process_jobs(jobs_queue, args, actor):
+def process_jobs(jobs, args):
     results = []
-    while not jobs_queue.empty():
-        job = jobs_queue.get()
+    for job in jobs:
         try:
             result = execute_one_job(job, args)
             if result is not None:
@@ -141,7 +136,6 @@ def process_jobs(jobs_queue, args, actor):
         except:
             logger.info(f"failed: {job}")
             traceback.print_exception(*sys.exc_info())
-        actor.update.remote(1)
     return results
 
 
@@ -320,13 +314,13 @@ def hhblits_search_run(args):
         logger.info(f"-----------------")
         logger.info(f"Total jobs: {len(jobs)}")
         
-        jobs_queue = Queue()
-        for job in jobs:
-            jobs_queue.put(job)
-        pb = ProgressBar(len(jobs_queue))
-        actor = pb.actor
-        job_results = process_jobs(jobs_queue, args, actor)
-        pb.print_until_done()
+        # jobs_queue = Queue()
+        # for job in jobs:
+        #     jobs_queue.put(job)
+        # pb = ProgressBar(len(jobs_queue))
+        # actor = pb.actor
+        job_results = process_jobs(jobs, args)
+        # pb.print_until_done()
         
         if len(job_results) > 0:
             mean_time = np.round(
@@ -345,7 +339,6 @@ def hhblits_search_run(args):
                     "mean_Time": mean_time,
                 }
             ] + job_results
-        ray.get(actor.get_counter.remote())
 
         result_path = Path(args.output_dir) / "result.jsonl"
         with jsonlines.open(result_path, "w") as writer:

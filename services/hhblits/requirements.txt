@@ -9,5 +9,4 @@ biopython
 py3Dmol
 psutil
 gpustat
-ray
 tqdm

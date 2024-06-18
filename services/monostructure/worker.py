@@ -1,4 +1,5 @@
 import os
+from billiard.pool import Pool
 from copy import deepcopy
 from celery import Celery
 from celery.result import AsyncResult, allow_join_result
@@ -294,12 +295,39 @@ class AirFoldRunner(BaseRunner):
     def start_stage(self) -> int:
         return State.AIRFOLD_START
 
+    def run_one_model(self, m_name):
+
+        processed_feature_path = self.mono_msa2feature(
+            msa_paths=self.selected_msa_path,
+            selected_template_feat_path=self.selected_template_feat_path,
+            af2_config=self.af2_config,
+            model_name=m_name,
+            random_seed=self.random_seed
+        )
+            
+        if not processed_feature_path:
+            return
+        un_relaxed_pdb_path = self.mono_structure(
+            processed_feature_path=processed_feature_path,
+            af2_config=self.af2_config,
+            model_name=m_name,
+            random_seed=self.random_seed,
+        )
+        if not un_relaxed_pdb_path:
+            return
+
+        relaxed_pdb_path = self.amber_relax(
+            un_relaxed_pdb_path=un_relaxed_pdb_path, model_name=m_name
+        )
+        if not relaxed_pdb_path:
+            return
+
     def run(self):
 
         af2_config = self.requests[0]["run_config"]["structure_prediction"]["alphafold"]
         models = af2_config["model_name"].split(",")
-        random_seed = af2_config.get("random_seed", 0)
-        af2_config = {
+        self.random_seed = af2_config.get("random_seed", 0)
+        self.af2_config = {
             k: v
             for k, v in af2_config.items()
             if v != "model_name" and v != "random_seed"
@@ -311,38 +339,20 @@ class AirFoldRunner(BaseRunner):
         str_dict = misc.safe_get(self.requests[0], ["run_config", "msa_select"])
         key_list = list(str_dict.keys())
         for index in range(len(key_list)):
-            selected_msa_path = ptree.strategy.strategy_list[index]
-        if not selected_msa_path:
+            self.selected_msa_path = ptree.strategy.strategy_list[index]
+        if not self.selected_msa_path:
             return
 
         # get selected_template_feat
-        selected_template_feat_path = str(ptree.alphafold.selected_template_feat)
+        self.selected_template_feat_path = str(ptree.alphafold.selected_template_feat)
         # selected_template_feat = dtool.read_pickle(selected_template_feat_path)
         # if not selected_template_feat:
         #     return
-        
+        pool = Pool(processes=5)
         for m_name in models:
-            processed_feature_path = self.mono_msa2feature(
-                msa_paths=selected_msa_path,
-                selected_template_feat_path=selected_template_feat_path,
-                af2_config=af2_config,
-                model_name=m_name,
-                random_seed=random_seed
-            )
-            
-            if not processed_feature_path:
-                return
-            un_relaxed_pdb_path = self.mono_structure(
-                processed_feature_path=processed_feature_path,
-                af2_config=af2_config,
-                model_name=m_name,
-                random_seed=random_seed,
-            )
-            if not un_relaxed_pdb_path:
-                return
-
-            relaxed_pdb_path = self.amber_relax(
-                un_relaxed_pdb_path=un_relaxed_pdb_path, model_name=m_name
-            )
-            if not relaxed_pdb_path:
-                return
+            pool.apply_async(AirFoldRunner.run_one_model, (m_name))
+        logger.info(f"AirFoldRunner.run_one_model start!")
+        pool.close()
+        pool.join()
+        logger.info(f"AirFoldRunner.run_one_model finished.")
+        

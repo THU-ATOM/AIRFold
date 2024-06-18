@@ -13,6 +13,5 @@ psutil
 gpustat
 absl-py
 scikit-learn
-ray
 dm-tree
 numpy==1.23
