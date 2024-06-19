@@ -312,13 +312,15 @@ class AirFoldRunner(BaseRunner):
             model_name=m_name,
             random_seed=self.random_seed,
         )
-        if not un_relaxed_pdb_path:
+        if not os.path.exists(un_relaxed_pdb_path):
+            logger.info(f"{un_relaxed_pdb_path} doesn't exist, please check")
             return
 
         relaxed_pdb_path = self.amber_relax(
             un_relaxed_pdb_path=un_relaxed_pdb_path, model_name=m_name
         )
-        if not relaxed_pdb_path:
+        if not os.path.exists(relaxed_pdb_path):
+            logger.info(f"{relaxed_pdb_path} doesn't exist, please check")
             return
 
     def run(self):
@@ -339,7 +341,8 @@ class AirFoldRunner(BaseRunner):
         key_list = list(str_dict.keys())
         for index in range(len(key_list)):
             self.selected_msa_path = ptree.strategy.strategy_list[index]
-        if not self.selected_msa_path:
+        if not os.path.exists(self.selected_msa_path):
+            logger.info(f"{self.selected_msa_path} doesn't exist, please check")
             return
 
         # get selected_template_feat

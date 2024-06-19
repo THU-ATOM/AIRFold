@@ -8,12 +8,12 @@ import pickle
 
 from esm import FastaBatchedDataset, pretrained
 
-def main(esm_model_path, fasta, embedding_result):
+def main(esm_model_path, fasta, embedding_result, device, device_id):
     esm_model, alphabet = pretrained.load_model_and_alphabet(esm_model_path)
     esm_model.eval()
 
     if torch.cuda.is_available():
-        esm_model = esm_model.cuda()
+        esm_model = esm_model.cuda(device_id)
         print("Transferred model to GPU")
 
     dataset = FastaBatchedDataset.from_file(fasta)
@@ -30,7 +30,7 @@ def main(esm_model_path, fasta, embedding_result):
                 f"Processing {batch_idx + 1} of {len(batches)} batches ({toks.size(0)} sequences)"
             )
             if torch.cuda.is_available():
-               toks = toks.to(device="cuda", non_blocking=True)
+               toks = toks.to(device, non_blocking=True)
 
             out = esm_model(toks, repr_layers=[33], return_contacts=False)["representations"][33]
 

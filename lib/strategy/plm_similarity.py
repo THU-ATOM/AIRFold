@@ -140,6 +140,8 @@ def process(args):
     # dtool.deduplicate_msa_a3m_plus([target_fasta_file], dp_target_fasta_file)
     
     device_ids = get_available_gpus(1)
+    gpu_devices = "".join([f"{i}" for i in device_ids])
+    logger.info(f"The gpu device used for PLMSearch: {gpu_devices}")
     if torch.cuda.is_available()==False:
         print("GPU selected but none of them is available.")
         device = "cpu"
@@ -152,9 +154,9 @@ def process(args):
     query_embedding_path = path_prefix + "_query.pkl"
     target_embedding_path = path_prefix + "_tar.pkl"
     # if not os.path.exists(query_embedding_path):
-    embedding_generate.main(esm_model_path, args.input_fasta_path, query_embedding_path)
+    embedding_generate.main(esm_model_path, args.input_fasta_path, query_embedding_path, device, device_id=device_ids[0])
     # if not os.path.exists(target_embedding_path):
-    embedding_generate.main(esm_model_path, target_fasta_file, target_embedding_path)
+    embedding_generate.main(esm_model_path, target_fasta_file, target_embedding_path, device, device_id=device_ids[0])
     with open(query_embedding_path, 'rb') as handle:
         query_embedding_dict = pickle.load(handle)
     with open(target_embedding_path, 'rb') as handle:

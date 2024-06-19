@@ -138,9 +138,9 @@ def main():
     
     # for run dir or run bad case
     # run dir
-    # dir_names = os.listdir(cameo_dir)
+    dir_names = os.listdir(cameo_dir)
     # run bad case
-    dir_names = ['8BL5_A']
+    # dir_names = ['8BL5_A']
     for dir_name in  dir_names:
         seq_file = cameo_dir + dir_name + "/" + "target.fasta"
         seq_name, sequence = load_fasta(seq_file, dir_name, data_suffix)
