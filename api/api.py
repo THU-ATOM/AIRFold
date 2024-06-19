@@ -26,6 +26,7 @@ from lib.monitor.extend_config import (
     generate_default_config,
 )
 from lib.state import State
+from lib.utils import misc
 from lib.monitor.info_report import *
 from lib.constant import *
 from lib.tool.align import align_pdbs
@@ -186,12 +187,37 @@ async def pipeline_task(requests: List[Dict[str, Any]] = Body(..., embed=True)):
     # preprocessTask
     preprocessTask = signature("preprocess", args=[requests], queue="queue_preprocess", immutable=True)
     # msaTasks
-    msaSearchTasks = group(
-        signature("blast", args=[requests], queue="queue_blast", immutable=True), 
-        signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
-        signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
-        signature("deepmsa", args=[requests], queue="queue_deepmsa", immutable=True),
-    )
+    request = requests[0]
+    search_args = misc.safe_get(request, ["run_config", "msa_search"])
+    if "deepmsa" in search_args.keys() and "mmseqs" in search_args.keys():
+        msaSearchTasks = group(
+            signature("blast", args=[requests], queue="queue_blast", immutable=True), 
+            signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
+            signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
+            signature("deepmsa", args=[requests], queue="queue_deepmsa", immutable=True),
+            signature("mmseqs", args=[requests], queue="queue_mmseqs", immutable=True),
+        )
+    elif "deepmsa" in search_args.keys() and "mmseqs" not in search_args.keys():
+        msaSearchTasks = group(
+            signature("blast", args=[requests], queue="queue_blast", immutable=True), 
+            signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
+            signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
+            signature("deepmsa", args=[requests], queue="queue_deepmsa", immutable=True),
+        )
+    elif "deepmsa" not in search_args.keys() and "mmseqs" in search_args.keys():
+        msaSearchTasks = group(
+            signature("blast", args=[requests], queue="queue_blast", immutable=True), 
+            signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
+            signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
+            signature("mmseqs", args=[requests], queue="queue_mmseqs", immutable=True),
+        )
+    else:
+        msaSearchTasks = group(
+            signature("blast", args=[requests], queue="queue_blast", immutable=True), 
+            signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
+            signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
+        )
+        
     msaMergeTask = signature("mergemsa", args=[requests], queue="queue_mergemsa", immutable=True)
     msaSelctTask = signature("selectmsa", args=[requests], queue="queue_selectmsa", immutable=True)
 

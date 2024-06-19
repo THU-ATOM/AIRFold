@@ -103,6 +103,9 @@ class SearchPathTree(BasePathTree):
     @property
     def integrated_search_a3m(self) -> Path:
         return self.root / "intergrated_a3m" / f"{self.id}.a3m"
+    @property
+    def integrated_search_a3m_dp(self) -> Path:
+        return self.root / "intergrated_a3m_dp" / f"{self.id}.a3m"
 
     @property
     def integrated_search_fa(self) -> Path:

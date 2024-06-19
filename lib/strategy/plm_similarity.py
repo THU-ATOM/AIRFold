@@ -14,6 +14,7 @@ from gpustat import new_query
 
 from lib.strategy.plmsim.plmsearch_util.model import plmsearch
 from lib.strategy.plmsim import embedding_generate, similarity_calculate
+import lib.utils.datatool as dtool
 
 
 REFRESH_SECONDS = 30
@@ -25,6 +26,8 @@ sim_model_path = "/data/protein/datasets_2024/plmsearch_data/model/plmsearch.sav
 
 @dataclasses.dataclass(frozen=True)
 class A3Mentry:
+    id: int
+    src: str
     description: str
     sequence: str
     fasta_sequence: str
@@ -45,6 +48,8 @@ def read_a3m_file(file_path: str):
     with open(file_path) as f:
         lines = f.readlines()
     a3m_entries = []
+    seq_id = 0
+    seq_src = None
     sequence = None
     desc = None
     for l in lines:
@@ -52,17 +57,21 @@ def read_a3m_file(file_path: str):
             if sequence:
                 a3m_entries.append(
                     A3Mentry(
+                        seq_id,
+                        seq_src,
                         desc,
                         sequence,
                         a3m_sequence_to_fasta(sequence),
                     )
                 )
             desc = l.strip()
+            seq_src = desc.split()[-1]
             sequence = ""
         else:
+            seq_id += 1
             sequence += l.strip()
     if desc:
-        a3m_entries.append(A3Mentry(desc, sequence, a3m_sequence_to_fasta(sequence)))
+        a3m_entries.append(A3Mentry(seq_id, seq_src, desc, sequence, a3m_sequence_to_fasta(sequence)))
     return a3m_entries
 
 
@@ -116,16 +125,19 @@ def get_available_gpus(
     raise Exception("No GPU available")
 
 def process(args):
-    os.makedirs(Path(args.output_a3m_file).parent, exist_ok=True)
-    path_prefix = os.path.splitext(args.output_a3m_file)
+    os.makedirs(Path(args.output_a3m_path).parent, exist_ok=True)
+    path_prefix = os.path.splitext(args.output_a3m_path)[0]
+    print("------------path_prefix: ", path_prefix)
     
     # from a3m to fasta file
-    a3m_entries = read_a3m_file(args.input_a3m_file)
-    logger.info(f"{len(a3m_entries)} sequences in {args.input_a3m_file}")
-    wstr = "".join([f"{a3m.description}\n{a3m.fasta_sequence}\n" for a3m in a3m_entries])
+    a3m_entries = read_a3m_file(args.input_a3m_path)
+    logger.info(f"{len(a3m_entries)} sequences in {args.input_a3m_path}")
+    wstr = "".join([f">{a3m.id}|{a3m.src}\n{a3m.fasta_sequence}\n" for a3m in a3m_entries])
     target_fasta_file = path_prefix + "_target.fasta"
+    # dp_target_fasta_file = path_prefix + "_target_dp.fasta"
     with open(target_fasta_file, "w") as fd:
         fd.write(wstr)
+    # dtool.deduplicate_msa_a3m_plus([target_fasta_file], dp_target_fasta_file)
     
     device_ids = get_available_gpus(1)
     if torch.cuda.is_available()==False:
@@ -136,9 +148,12 @@ def process(args):
         device = f"cuda:{device_ids[0]}"
     
     # generate embedding for query fasta and target fasta
+    
     query_embedding_path = path_prefix + "_query.pkl"
     target_embedding_path = path_prefix + "_tar.pkl"
+    # if not os.path.exists(query_embedding_path):
     embedding_generate.main(esm_model_path, args.input_fasta_path, query_embedding_path)
+    # if not os.path.exists(target_embedding_path):
     embedding_generate.main(esm_model_path, target_fasta_file, target_embedding_path)
     with open(query_embedding_path, 'rb') as handle:
         query_embedding_dict = pickle.load(handle)
@@ -154,22 +169,26 @@ def process(args):
         model_methods = model.module
     model.to(device)
     
-    search_result = similarity_calculate.main(query_embedding_dict, target_embedding_dict, device, model_methods, args.least_seqs)
-    
     search_result_path = path_prefix + "_similarity.csv"
-    select_desc = []
-    with open(search_result_path, 'w') as f:
-            for protein in search_result:
-                for pair in search_result[protein]:
-                    select_desc.append(pair[0])
-                    f.write(f"{protein}\t{pair[0]}\t{pair[1]}\n")
+    # if not os.path.exists(search_result_path):
+    similarity_calculate.main(query_embedding_dict, target_embedding_dict, device, model_methods, args.least_seqs, search_result_path)
+    select_ids = []
+    with open(search_result_path, 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            select_id_src = line.split("\t")[1]
+            select_id = int(select_id_src.split("|")[0])
+            print("Select seq_id: %d" % select_id)
+            select_ids.append(select_id)
+            
     
     select_wstr = ""
     for a3m in a3m_entries:
-        if a3m.description in select_desc:
-            select_wstr += f"{a3m.description}\n{a3m.fasta_sequence}\n"
+        # if a3m.description in select_desc:
+        if a3m.id in select_ids:
+            select_wstr += f"{a3m.description}\n{a3m.sequence}\n"
     
-    with open(args.output_a3m_file, "w") as f:
+    with open(args.output_a3m_path, "w") as f:
         f.write(select_wstr)
     
         

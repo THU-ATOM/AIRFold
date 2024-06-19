@@ -92,16 +92,16 @@ class MSASelectRunner(BaseCommandRunner):
     def run(self, dry=False):
         # Check if the integrated_search_a3m file exists or not!
         ptree = get_pathtree(request=self.requests[0])
-        integrated_search_a3m = str(ptree.search.integrated_search_a3m)
-        logger.info(f"integrated_search_a3m: {integrated_search_a3m}")
+        integrated_search_a3m_dp = str(ptree.search.integrated_search_a3m_dp)
+        logger.info(f"integrated_search_a3m: {integrated_search_a3m_dp}")
 
         config = self.requests[0]["run_config"]["msa_select"]
 
-        if os.path.exists(integrated_search_a3m):
+        if os.path.exists(integrated_search_a3m_dp):
             if "idle" in config:
-                self.output_path = integrated_search_a3m
-                return integrated_search_a3m
-            self.input_path = integrated_search_a3m
+                self.output_path = integrated_search_a3m_dp
+                return integrated_search_a3m_dp
+            self.input_path = integrated_search_a3m_dp
             super().run(dry)
             return self.output_path
 

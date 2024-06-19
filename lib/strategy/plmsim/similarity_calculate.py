@@ -1,7 +1,7 @@
 import torch
 from lib.strategy.plmsim.plmsearch_util.util import cos_similarity, tensor_to_list
 
-def main(query_embedding_dic, target_embedding_dic, device, model, least_seqs):
+def main(query_embedding_dic, target_embedding_dic, device, model, least_seqs, search_result_path):
     with torch.no_grad():
         query_proteins = list(query_embedding_dic.keys())
         query_embedding = torch.stack([query_embedding_dic[key] for key in query_proteins])
@@ -42,4 +42,10 @@ def main(query_embedding_dic, target_embedding_dic, device, model, least_seqs):
             else:
                 protein_pair_dict[query_protein] = sorted_pair[:least_seqs]
 
-    return protein_pair_dict
+        with open(search_result_path, 'w') as f:
+            for protein in protein_pair_dict.keys():
+                for pair in protein_pair_dict[protein]:
+                    # select_id = int(pair[0].split("|")[0][1:])
+                    # print("Select seq_id: %d" % select_id)
+                    # select_ids.append(select_id)
+                    f.write(f"{protein}\t{pair[0]}\t{pair[1]}\n")

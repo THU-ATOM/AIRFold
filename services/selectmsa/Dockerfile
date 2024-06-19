@@ -14,6 +14,16 @@ RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 RUN pip install -U setuptools pip
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
+# Install PyTorch
+ENV PYTORCH_VERSION=1.8.1+cu111
+ENV TORCHVISION_VERSION=0.9.1+cu111
+RUN pip install --no-cache-dir \
+    torch==${PYTORCH_VERSION} \
+    torchvision==${TORCHVISION_VERSION} \
+    -f https://mirror.sjtu.edu.cn/pytorch-wheels/torch_stable.html
+
+RUN pip install git+https://github.com/facebookresearch/esm.git
+
 # add user
 RUN if [ $USER_NAME != "root" ] ; \
     then addgroup --gid ${GROUP_ID} ${USER_NAME} \

@@ -14,7 +14,6 @@ from lib.pathtree import get_pathtree
 import lib.utils.datatool as dtool
 from lib.monitor import info_report
 from lib.tool import plot
-# from lib.utils.systool import get_available_gpus
 from lib.utils import misc
 from lib.constant import AF_PARAMS_ROOT
 
@@ -345,14 +344,15 @@ class AirFoldRunner(BaseRunner):
 
         # get selected_template_feat
         self.selected_template_feat_path = str(ptree.alphafold.selected_template_feat)
-        # selected_template_feat = dtool.read_pickle(selected_template_feat_path)
-        # if not selected_template_feat:
-        #     return
-        pool = Pool(processes=5)
+
+        # run prediction
+        # pool = Pool(processes=5)
+        # for m_name in models:
+        #     pool.apply_async(AirFoldRunner.run_one_model, (m_name))
+        # logger.info(f"AirFoldRunner.run_one_model start!")
+        # pool.close()
+        # pool.join()
+        # logger.info(f"AirFoldRunner.run_one_model finished.")
+        # Q for multi processing: https://blog.csdn.net/lenfranky/article/details/103975566
         for m_name in models:
-            pool.apply_async(AirFoldRunner.run_one_model, (m_name))
-        logger.info(f"AirFoldRunner.run_one_model start!")
-        pool.close()
-        pool.join()
-        logger.info(f"AirFoldRunner.run_one_model finished.")
-        
+            self.run_one_model(m_name=m_name)

@@ -1,4 +1,4 @@
-from string import ascii_uppercase, ascii_lowercase
+# from string import ascii_uppercase, ascii_lowercase
 import hashlib, re, os
 import numpy as np
 import torch
@@ -86,7 +86,7 @@ def esm_main():
         time.sleep(5)
 
 
-    alphabet_list = list(ascii_uppercase+ascii_lowercase)
+    # alphabet_list = list(ascii_uppercase+ascii_lowercase)
 
     jobname = "test" #@param {type:"string"}
     jobname = re.sub(r'\W+', '', jobname)[:50]
