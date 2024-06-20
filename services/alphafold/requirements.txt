@@ -15,7 +15,12 @@ ipykernel==6.13.0
 jupyter==1.0.0
 # tensorflow-cpu==2.5.0
 celery[redis]
+pymongo
 loguru
 jsonlines
 rich
 gpustat
+matplotlib
+requests
+py3Dmol
+psutil

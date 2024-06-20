@@ -48,27 +48,6 @@ services:
       - HOST=0.0.0.0
       - PORT=8081
     command: uvicorn api:app --host 0.0.0.0 --port 8081
-  
-  worker_monitor:
-    build:
-      context: ./services/monitor
-      dockerfile: Dockerfile
-      args:
-        - http_proxy=${http_proxy}
-        - https_proxy=${https_proxy}
-        - USER_ID=${UID}
-        - GROUP_ID=${GID}
-        - USER_NAME=${USER_NAME}
-    depends_on:
-      - rabbitmq
-    environment:
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
-      - CELERY_RESULT_BACKEND=redis://redis
-    volumes:
-      - ./services/monitor:/worker
-      - /data:/data
-      - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_monitor --concurrency=1
 
   worker_preprocess:
     build:
@@ -216,7 +195,7 @@ services:
       - ./services/mergemsa:/worker
       - /data:/data
       - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_mergemsa --concurrency=20
+    command: celery -A worker worker --loglevel=info -Q queue_mergemsa --concurrency=8
 
   worker_selectmsa:
     build:
@@ -245,7 +224,7 @@ services:
       - ./services/selectmsa:/worker
       - /data:/data
       - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_selectmsa --concurrency=20
+    command: celery -A worker worker --loglevel=info -Q queue_selectmsa --concurrency=8
 
   worker_alphafold:
     build:
@@ -280,93 +259,6 @@ services:
       - /tmp:/tmp
       - ./lib:/worker/lib
     command: celery -A worker worker --loglevel=info -Q queue_alphafold --concurrency=20
-
-  worker_searchtpl:
-    build:
-      context: ./services/searchtpl
-      dockerfile: Dockerfile
-      args:
-        - http_proxy=${http_proxy}
-        - https_proxy=${https_proxy}
-        - USER_ID=${UID}
-        - GROUP_ID=${GID}
-        - USER_NAME=${USER_NAME}
-    depends_on:
-      - rabbitmq
-    environment:
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
-      - CELERY_RESULT_BACKEND=redis://redis
-    volumes:
-      - ./services/searchtpl:/worker
-      - /data:/data
-      - /tmp:/tmp
-      - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_searchtpl --concurrency=20
-
-  worker_selecttpl:
-    build:
-      context: ./services/selecttpl
-      dockerfile: Dockerfile
-      args:
-        - http_proxy=${http_proxy}
-        - https_proxy=${https_proxy}
-        - USER_ID=${UID}
-        - GROUP_ID=${GID}
-        - USER_NAME=${USER_NAME}
-    depends_on:
-      - rabbitmq
-    environment:
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
-      - CELERY_RESULT_BACKEND=redis://redis
-    volumes:
-      - ./services/selecttpl:/worker
-      - /data:/data
-      - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_selecttpl --concurrency=20
-
-  worker_tplfeature:
-    build:
-      context: ./services/tplfeature
-      dockerfile: Dockerfile
-      args:
-        - http_proxy=${http_proxy}
-        - https_proxy=${https_proxy}
-        - USER_ID=${UID}
-        - GROUP_ID=${GID}
-        - USER_NAME=${USER_NAME}
-    depends_on:
-      - rabbitmq
-    environment:
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
-      - CELERY_RESULT_BACKEND=redis://redis
-    volumes:
-      - ./services/tplfeature:/worker
-      - /data:/data
-      - /tmp:/tmp
-      - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_tplfeature --concurrency=20
-
-  worker_monostructure:
-    build:
-      context: ./services/monostructure
-      dockerfile: Dockerfile
-      args:
-        - http_proxy=${http_proxy}
-        - https_proxy=${https_proxy}
-        - USER_ID=${UID}
-        - GROUP_ID=${GID}
-        - USER_NAME=${USER_NAME}
-    depends_on:
-      - rabbitmq
-    environment:
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
-      - CELERY_RESULT_BACKEND=redis://redis
-    volumes:
-      - ./services/monostructure:/worker
-      - /data:/data
-      - /tmp:/tmp
-      - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_monostructure --concurrency=20
 
   worker_analysis:
     build:

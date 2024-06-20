@@ -1,25 +1,17 @@
 import argparse
 import os
-import random
-import time
 
 import dataclasses
-import multiprocessing
 import pickle
 import torch
 import torch.nn as nn
 from loguru import logger
 from pathlib import Path
-from gpustat import new_query
 
 from lib.strategy.plmsim.plmsearch_util.model import plmsearch
 from lib.strategy.plmsim import embedding_generate, similarity_calculate
-import lib.utils.datatool as dtool
+from lib.utils.systool import get_available_gpus
 
-
-REFRESH_SECONDS = 30
-
-cpu_num = multiprocessing.cpu_count()
 
 esm_model_path = "/data/protein/datasets_2024/plmsearch_data/model/esm/esm1b_t33_650M_UR50S.pt"
 sim_model_path = "/data/protein/datasets_2024/plmsearch_data/model/plmsearch.sav"
@@ -74,55 +66,6 @@ def read_a3m_file(file_path: str):
         a3m_entries.append(A3Mentry(seq_id, seq_src, desc, sequence, a3m_sequence_to_fasta(sequence)))
     return a3m_entries
 
-
-def get_available_gpus(
-    num: int = -1,
-    min_memory: int = 20000,
-    random_select: bool = True,
-    wait_time: float = float("inf"),
-):
-    """Get available GPUs.
-
-    Parameters
-    ----------
-    num : int, optional
-        Number of GPUs to get. The default is -1.
-    min_memory : int, optional
-        Minimum memory available in GB. The default is 20000.
-    random_select : bool, optional
-        Random select a GPU. The default is True.
-    wait_time : float, optional
-        Wait time in seconds. The default is inf.
-    """
-
-    start = time.time()
-    while time.time() - start < wait_time:
-        gpu_list = new_query().gpus
-        if random_select:
-            random.shuffle(gpu_list)
-        sorted_gpu_list = sorted(
-            gpu_list,
-            key=lambda card: (
-                card.entry["utilization.gpu"],
-                card.entry["memory.used"],
-            ),
-        )
-        available_gpus = [
-            gpu.entry["index"]
-            for gpu in sorted_gpu_list
-            if gpu.entry["memory.total"] - gpu.entry["memory.used"]
-            >= min_memory
-        ]
-        if num > 0:
-            available_gpus = available_gpus[:num]
-        if len(available_gpus) > 0:
-            return available_gpus
-        else:
-            logger.info(
-                f"No GPU available, having waited {time.time() - start} seconds"
-            )
-            return False
-    raise Exception("No GPU available")
 
 def process(args):
     os.makedirs(Path(args.output_a3m_path).parent, exist_ok=True)
