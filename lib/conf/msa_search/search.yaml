@@ -36,4 +36,7 @@ blast:
   blasttype: 'psiblast'
   evalue: 0.001
   num_iterations: 3
+
+deepmsa:
+        runtype: "qdm"
  

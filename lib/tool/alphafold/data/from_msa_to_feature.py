@@ -16,18 +16,14 @@
 
 from copy import copy
 import os
-from typing import Any, Mapping, MutableMapping, Optional, Sequence, Union, List
+from typing import Any, Mapping, MutableMapping, Optional, Sequence, Union
 from absl import logging
-from yaml import parse
 from lib.tool.alphafold.common import residue_constants
 from lib.tool.alphafold.data import msa_identifiers
 from lib.tool.alphafold.data import parsers
 from lib.tool.alphafold.data import templates
-from lib.tool.alphafold.data.tools import hhblits
 from lib.tool.alphafold.data.tools import hhsearch
 from lib.tool.alphafold.data.tools import hmmsearch
-from lib.tool.alphafold.data.tools import jackhmmer
-from lib.tool.alphafold.model import features
 
 import numpy as np
 

@@ -26,7 +26,7 @@ if rlaunch_exists():
 
     # Runtime
     TMP_ROOT = Path("/sharefs/thuhc-data/CAMEO/tmp/")
-    DB_PATH = Path("/sharefs/thuhc-data/CAMEO/database/cameo.db")
+    # DB_PATH = Path("/sharefs/thuhc-data/CAMEO/database/cameo.db")
     LOG_ROOT = Path("/sharefs/thuhc-data/CAMEO/log/")
     TORCH_ROOT = Path("/sharefs/thuhc-data/torch_model/")
 else:
@@ -49,7 +49,7 @@ else:
 
     # Runtime
     TMP_ROOT = Path("/data/protein/CAMEO/tmp/")
-    DB_PATH = Path("/data/protein/CAMEO/database/cameo.db")
+    # DB_PATH = Path("/data/protein/CAMEO/database/cameo.db")
     LOG_ROOT = Path("/data/protein/CAMEO/log/")
     SBFD_ROOT = Path("/data/protein/alphafold/small_bfd")
     TORCH_ROOT = Path("/data/protein/torch_model/")

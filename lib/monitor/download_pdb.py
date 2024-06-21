@@ -7,7 +7,7 @@ from multiprocessing import Process
 from loguru import logger
 
 from lib.monitor.info_report import InfoReport
-from lib.constant import DB_PATH
+# from lib.constant import DB_PATH
 import traceback
 
 DATE = "date"

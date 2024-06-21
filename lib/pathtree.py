@@ -326,7 +326,7 @@ class AlphaFoldPathTree(BasePathTree):
     
     @property
     def processed_feat(self):
-        return self.root / "processed_feat.pkl"
+        return self.root / "processed_feat"
 
     @property
     def relaxed_pdbs(self):

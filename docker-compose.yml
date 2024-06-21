@@ -195,7 +195,7 @@ services:
       - ./services/mergemsa:/worker
       - /data:/data
       - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_mergemsa --concurrency=8
+    command: celery -A worker worker --loglevel=info -Q queue_mergemsa --concurrency=20
 
   worker_selectmsa:
     build:
@@ -258,7 +258,7 @@ services:
       - /data:/data
       - /tmp:/tmp
       - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_alphafold --concurrency=20
+    command: celery -A worker worker --loglevel=info -Q queue_alphafold --concurrency=8
 
   worker_analysis:
     build:

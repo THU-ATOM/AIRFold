@@ -32,7 +32,7 @@ def a3m_sequence_to_fasta(sequence):
     # 2. remove "_" and change lower letter to upper
     
     # res = "".join([ch for ch in res if not (ch.islower() or ch == "-")])
-    res = "".join([ch for ch in res if not ch == "-"])
+    res = "".join([ch for ch in res if not (ch == "-" or ch in ["j", "J"])])
     return res.upper()
 
 
@@ -145,4 +145,8 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--least_seqs", required=True, type=int)
     
     argv = parser.parse_args()
-    process(argv)
+    
+    if not os.path.exists(argv.output_a3m_path):
+        process(argv)
+    else:
+        logger.info(f"{argv.output_a3m_path} already exists, skip!")
