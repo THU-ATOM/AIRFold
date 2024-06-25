@@ -9,7 +9,7 @@
 - Flower for monitoring the Celery tasks
 
 ## Introduction
-![AIRFold Framework](imgs/Frame.png)
+![AIRFold Framework](imgs/Frame1.png)
 
 AIRFold is an open-source platform for protein structure prediction.
 
