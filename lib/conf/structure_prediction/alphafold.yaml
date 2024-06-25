@@ -1,7 +1,7 @@
 alphafold:
   seqcov: 0
   seqqid: 0
-  max_recycles: 128
+  max_recycles: 64
   max_msa_clusters: 508
   max_extra_msa: 5120
   num_ensemble: 1
