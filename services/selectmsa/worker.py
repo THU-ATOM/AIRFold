@@ -142,15 +142,18 @@ class MSASelectRunner(BaseCommandRunner):
         for idx in range(len(key_list)):
             """TODO current implementation could not be compatible with ABA-like strategy"""
             
-            method_ = select_args[key_list[idx]]
+            method_ = key_list[idx]
+            logger.info(f"The Method for msa selection: {method_}")
             executed_file = (Path(__file__).resolve().parent / "lib" / "strategy" / f"{method_}.py")
             input_fasta_path = str(ptree.seq.fasta)
-            self.output_prefix = ptree.strategy.strategy_list[idx]
-            self.output_prefix.parent.mkdir(exist_ok=True, parents=True)
+            output_prefix = ptree.strategy.strategy_list[idx]
+            output_prefix.parent.mkdir(exist_ok=True, parents=True)
+            self.output_prefix = str(output_prefix)
             
-            for tag in select_args[method_]["least_seqs"]:
+            ls_dict = misc.safe_get(select_args, [method_, "least_seqs"])
+            for tag in ls_dict.keys():
                 
-                least_seqs = select_args[method_]["least_seqs"][tag]
+                least_seqs = ls_dict[tag]
                 if tag == "hj" and "hhblits" in search_args.keys() and "jackhmmer" in search_args.keys():
                     input_path = str(ptree.search.integrated_search_hj_a3m_dp)
                 if tag == "bl" and "blast" in search_args.keys():

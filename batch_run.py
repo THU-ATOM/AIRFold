@@ -124,7 +124,7 @@ def main():
     # json_file = argv.input_path
     # with open("./tmp/temp_5000_128_1_mmseqs.json", 'r') as jf:
     #     request_dict = json.load(jf)
-    with open("./tmp/temp_10000_128_1_plmsim.json", 'r') as jf:
+    with open("./tmp/temp_6000_64_1_plmsim.json", 'r') as jf:
         request_dict = json.load(jf)
     
     # weeks = ['2024.02.17', '2024.02.24', '2024.03.02', '2024.03.09', 

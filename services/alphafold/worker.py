@@ -285,7 +285,7 @@ class MonoFeatureRunner(BaseRunner):
         key_list = list(str_dict.keys())
         msa_paths = []
         for idx in range(len(key_list)):
-            selected_msa_path = ptree.strategy.strategy_list[idx] + "_dp.a3m"
+            selected_msa_path = str(ptree.strategy.strategy_list[idx]) + "_dp.a3m"
             msa_paths.append(str(selected_msa_path))
         
         # get selected_template_feat
@@ -428,9 +428,10 @@ class AlphaStrucRunner(BaseRunner):
         # get msa_path
         str_dict = misc.safe_get(self.requests[0], ["run_config", "msa_select"])
         key_list = list(str_dict.keys())
-        for index in range(len(key_list)):
-            selected_msa_path = ptree.strategy.strategy_list[index]
-        msa_paths = [str(selected_msa_path)]
+        msa_paths = []
+        for idx in range(len(key_list)):
+            selected_msa_path = str(ptree.strategy.strategy_list[idx]) + "_dp.a3m"
+            msa_paths.append(str(selected_msa_path))
         
         # get selected_template_feat
         selected_template_feat_path = str(ptree.alphafold.selected_template_feat)

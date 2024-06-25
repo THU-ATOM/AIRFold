@@ -9,7 +9,9 @@
 - Flower for monitoring the Celery tasks
 
 ## Introduction
-AIRFold is 
+![AIRFold Framework](imgs/Frame.png)
+
+AIRFold is an open-source platform for protein structure prediction.
 
 ## Quick Start
 
@@ -103,25 +105,32 @@ Please follow these steps:
 ## Command for different functions
 
 ### Multiple sequence alignment generation
-
-    ```bash
-    python run_mode.py --input_path example.fasta --mode msa
-    ```
+```bash
+# Input: Protein sequences in fasta format.
+# Output: Multiple sequence alignment results in a3m format.
+python run_mode.py --input_path example.fasta --mode msa
+```
 ### Pretrained embedding generation
 
-    ```bash
-    python run_mode.py --input_path example.fasta --mode feature
-    ```
+```bash
+# Input: Protein sequences in fasta format.
+# Output: Generated sequence embeddings in pickle format.
+python run_mode.py --input_path example.fasta --mode feature
+```
 ### Protein contact map prediction
 
-    ```bash
-    python run_mode.py --input_path example.fasta --mode disgram
-    ```
+```bash
+# Input: Protein sequences in fasta format.
+# Output: Generated contact map in pickle format.
+python run_mode.py --input_path example.fasta --mode disgram
+```
 
 ### Protein structure prediction
 
-    ```bash
-    python run_mode.py --input_path example.fasta --mode pipline
-    ```
+```bash
+# Input: Protein sequences in fasta format.
+# Output: Protein structure in pdb format.
+python run_mode.py --input_path example.fasta --mode pipline
+```
 
 
