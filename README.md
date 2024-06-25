@@ -134,3 +134,34 @@ python run_mode.py --input_path example.fasta --mode pipline
 ```
 
 
+
+## Citation
+
+If you find our open-sourced code & models helpful to your research, please also consider star🌟 and cite📑 this repo. Thank you for your support!
+```
+@misc{AIRFold_code,
+  author={Hongliang, Li and Xin, Hong and Yanyan, Lan},
+  title={Code of AIRFold},
+  year={2024},
+  howpublished = {\url{https://github.com/health-air/AIRFold}}
+}
+```
+I also recommended that you reference the third-party tools (listed above) you use.
+
+
+## License and Disclaimer
+
+Copyright 2024 health-air.
+
+Extended from AlphaFold, OpenComplex is licensed under
+the permissive Apache Licence, Version 2.0.
+
+## Contributing
+
+If you encounter problems using AIRFold, feel free to create an issue! We also
+welcome pull requests from the community.
+
+## Contact Information
+For help or issues using the repos, please submit a GitHub issue.
+
+For other communications, please contact Yanyan Lan (lanyanyan@air.tsinghua.edu.cn).
