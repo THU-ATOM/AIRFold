@@ -103,9 +103,42 @@ class SearchPathTree(BasePathTree):
     @property
     def integrated_search_a3m(self) -> Path:
         return self.root / "intergrated_a3m" / f"{self.id}.a3m"
+    # integrate part
+    @property
+    def integrated_search_hj_a3m(self) -> Path:
+        return self.root / "intergrated_a3m" / f"{self.id}_hj.a3m"
+    @property
+    def integrated_search_bl_a3m(self) -> Path:
+        return self.root / "intergrated_a3m" / f"{self.id}_bl.a3m"
+    @property
+    def integrated_search_dq_a3m(self) -> Path:
+        return self.root / "intergrated_a3m" / f"{self.id}_dq.a3m"
+    @property
+    def integrated_search_dm_a3m(self) -> Path:
+        return self.root / "intergrated_a3m" / f"{self.id}_dm.a3m"
+    @property
+    def integrated_search_mm_a3m(self) -> Path:
+        return self.root / "intergrated_a3m" / f"{self.id}_mm.a3m"
+    
     @property
     def integrated_search_a3m_dp(self) -> Path:
         return self.root / "intergrated_a3m_dp" / f"{self.id}.a3m"
+    # integrate part duplicated
+    @property
+    def integrated_search_hj_a3m_dp(self) -> Path:
+        return self.root / "intergrated_a3m_dp" / f"{self.id}_hj.a3m"
+    @property
+    def integrated_search_bl_a3m_dp(self) -> Path:
+        return self.root / "intergrated_a3m_dp" / f"{self.id}_bl.a3m"
+    @property
+    def integrated_search_dq_a3m_dp(self) -> Path:
+        return self.root / "intergrated_a3m_dp" / f"{self.id}_dq.a3m"
+    @property
+    def integrated_search_dm_a3m_dp(self) -> Path:
+        return self.root / "intergrated_a3m_dp" / f"{self.id}_dm.a3m"
+    @property
+    def integrated_search_mm_a3m_dp(self) -> Path:
+        return self.root / "intergrated_a3m_dp" / f"{self.id}_mm.a3m"
 
     @property
     def integrated_search_fa(self) -> Path:
@@ -295,8 +328,9 @@ class StrategyPathTree(BasePathTree):
         # print(p_)
         for method_ in str_dict.keys():
             # print(p_)
-            p_ = p_ / (method_[:5] + parse_strgy(str_dict[method_]))
-            path_l.append(p_ / f"{self.id}.a3m")
+            p_ = p_ / (method_[:5] + parse_strgy(str_dict[method_]["least_seqs"]))
+            # path_l.append(p_ / f"{self.id}.a3m")
+            path_l.append(p_ / f"{self.id}")
         # return the list of
         return path_l
 

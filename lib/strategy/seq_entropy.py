@@ -130,7 +130,7 @@ if __name__ == "__main__":
     # a3m_dir,strategy_dir,seq_id,cov_id,sample,rm_tmp_files=False
     parser.add_argument("-i", "--input_a3m_path", required=True, type=str)
     parser.add_argument("-o", "--output_a3m_path", required=True, type=str)
-    parser.add_argument("-r", "--reduce_ratio", required=True, type=float)
+    parser.add_argument("-r", "--reduce_ratio", default=0.1, type=float)
     parser.add_argument("-l", "--least_seqs", required=True, type=int)
     # parser.add_argument("--cid", default=0.8)
     # parser.add_argument("--rm", default=False)

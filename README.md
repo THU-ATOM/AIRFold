@@ -9,7 +9,7 @@
 - Flower for monitoring the Celery tasks
 
 ## Introduction
-AIRFold is
+AIRFold is 
 
 ## Quick Start
 
@@ -55,6 +55,23 @@ Please follow these steps:
 
 *   [PDB70](http://wwwuser.gwdg.de/~compbiol/data/hhsuite/databases/hhsuite_dbs/),
 *   [PDB (MMCIF format)](https://www.rcsb.org/)
+
+**Data structure**
+
+```tree
+├── model_params (models and parameters for AlphaFold2, RoseTTAFold2, ect.)
+├── bfd
+├── blast_dbs
+├── JGIclust
+├── metaclust
+├── mgnify
+├── pdb70
+├── pdb_mmcif
+├── small_bfd
+├── uniclust30
+├── uniref30
+└── uniref90
+```
 
 
 ### Third-party tools
@@ -108,12 +125,3 @@ Please follow these steps:
     ```
 
 
-## Reference
-
-
-- If you’re using **AlphaFold**, please also cite: <br />
-  Jumper et al. "Highly accurate protein structure prediction with AlphaFold." <br />
-  Nature (2021) doi: [10.1038/s41586-021-03819-2](https://doi.org/10.1038/s41586-021-03819-2)
-- If you are using **RoseTTAFold**, please also cite: <br />
-  Minkyung et al. "Accurate prediction of protein structures and interactions using a three-track neural network." <br />
-  Science (2021) doi: [10.1126/science.abj8754](https://doi.org/10.1126/science.abj8754)

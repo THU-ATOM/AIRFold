@@ -168,9 +168,9 @@ class MSAMergeRunner(BaseRunner):
         ptree.search.integrated_search_a3m_dp.parent.mkdir(exist_ok=True, parents=True)
         ptree.search.jackhammer_uniref90_a3m.parent.mkdir(exist_ok=True, parents=True)
         integrated_search_a3m = str(ptree.search.integrated_search_a3m)
-        integrated_search_a3m_dp = str(ptree.search.integrated_search_a3m_dp)
-        jackhammer_uniref90_a3m = str(ptree.search.jackhammer_uniref90_a3m)
-        template_msa_a3m = jackhammer_uniref90_a3m
+        # integrated_search_a3m_dp = str(ptree.search.integrated_search_a3m_dp)
+        # jackhammer_uniref90_a3m = str(ptree.search.jackhammer_uniref90_a3m)
+        template_msa_a3m = str(ptree.search.jackhammer_uniref90_a3m)
         try:
             logger.info(f"copying from {copy_int_msa_from}")
             if copy_int_msa_from == "None" or not copy_int_msa_from:
@@ -225,65 +225,88 @@ class MSAMergeRunner(BaseRunner):
                 target=self.requests[0][TARGET],
             )
             
-            segment_merge = lambda path: self.merge_segmented_a3m_files(
-                target_path=path,
-                target_sequence=self.requests[0][SEQUENCE],
-                target=self.requests[0][TARGET],
-            )
-            
-            msa_paths={
+            self.outputs_paths = [template_msa_a3m]
+            search_args = misc.safe_get(self.requests[0], ["run_config", "msa_search"])
+            if "hhblits" in search_args.keys() and "jackhmmer" in search_args.keys():
+                # hhblits and jackhmmer: 3000
+                integrated_search_hj_a3m = str(ptree.search.integrated_search_hj_a3m)
+                integrated_search_hj_a3m_dp = str(ptree.search.integrated_search_hj_a3m_dp)
+                hj_msa_paths = {
                     "hh_bfd_uni": segment_merge(ptree.search.hhblist_bfd_uniclust_a3m),
                     "jh_mgn": segment_merge(ptree.search.jackhammer_mgnify_a3m),
                     "jh_uni": segment_merge(ptree.search.jackhammer_uniref90_a3m),
-                    "bl": segment_merge(ptree.search.blast_a3m),
                 }
-            search_args = misc.safe_get(self.requests[0], ["run_config", "msa_search"])
+                self.merge_a3m_files(
+                    target_path=integrated_search_hj_a3m,
+                    msa_paths=hj_msa_paths,
+                    target_sequence=self.requests[0][SEQUENCE],
+                    target=self.requests[0][TARGET],
+                )
+                dtool.deduplicate_msa_a3m([integrated_search_hj_a3m], integrated_search_hj_a3m_dp)
+                self.outputs_paths.append(integrated_search_hj_a3m_dp)
+                
+            if "blast" in search_args.keys():
+                # blast: 1000
+                integrated_search_bl_a3m = str(ptree.search.integrated_search_bl_a3m)
+                integrated_search_bl_a3m_dp = str(ptree.search.integrated_search_bl_a3m_dp)
+                bl_msa_paths = {"bl": segment_merge(ptree.search.blast_a3m)}
+                self.merge_a3m_files(
+                    target_path=integrated_search_bl_a3m,
+                    msa_paths=bl_msa_paths,
+                    target_sequence=self.requests[0][SEQUENCE],
+                    target=self.requests[0][TARGET],
+                )
+                dtool.deduplicate_msa_a3m([integrated_search_bl_a3m], integrated_search_bl_a3m_dp)
+                self.outputs_paths.append(integrated_search_bl_a3m_dp)
+            
             if "deepmsa" in search_args.keys():
-                msa_paths["dq"] = segment_merge(ptree.search.deepqmsa_a3m)
-                msa_paths["dd"] = segment_merge(ptree.search.deepdmsa_a3m)
-                msa_paths["dm_q3j"] = segment_merge(ptree.search.deepmmsa_q3jgi)
-                msa_paths["dm_q4j"] = segment_merge(ptree.search.deepmmsa_q4jgi)
-                msa_paths["dm_dj"] = segment_merge(ptree.search.deepmmsa_djgi)
-            if "mmseqs" in search_args.keys():
-                msa_paths["mm"] = segment_merge(ptree.search.mmseqs_a3m)
+                # deepqmsa and deepdmsa: 1000
+                integrated_search_dq_a3m = str(ptree.search.integrated_search_dq_a3m)
+                integrated_search_dq_a3m_dp = str(ptree.search.integrated_search_dq_a3m_dp)
+                dq_msa_paths = {
+                    "dq": segment_merge(ptree.search.deepqmsa_a3m),
+                    "dd": segment_merge(ptree.search.deepdmsa_a3m),
+                }
+                self.merge_a3m_files(
+                    target_path=integrated_search_dq_a3m,
+                    msa_paths=dq_msa_paths,
+                    target_sequence=self.requests[0][SEQUENCE],
+                    target=self.requests[0][TARGET],
+                )
+                dtool.deduplicate_msa_a3m([integrated_search_dq_a3m], integrated_search_dq_a3m_dp)
+                self.outputs_paths.append(integrated_search_dq_a3m_dp)
                 
-            self.merge_a3m_files(
-                target_path=integrated_search_a3m,
-                msa_paths=msa_paths,
-                target_sequence=self.requests[0][SEQUENCE],
-                target=self.requests[0][TARGET],
-            )
-                
-            # msa_fils = [ptool.ProteinFile.from_file(segment_merge(ptree.search.hhblist_bfd_uniclust_a3m)), 
-            #             ptool.ProteinFile.from_file(segment_merge(ptree.search.jackhammer_mgnify_a3m)),
-            #             ptool.ProteinFile.from_file(segment_merge(ptree.search.jackhammer_uniref90_a3m)),
-            #             ptool.ProteinFile.from_file(segment_merge(ptree.search.blast_a3m))
-            #             ]
-            # names=["hh_bfd_uni", "jh_mgn", "jh_uni", "bl"]
-            
-            # search_args = misc.safe_get(self.requests[0], ["run_config", "msa_search"])
-            # if "deepmsa" in search_args.keys():
-            #     msa_fils.append(ptool.ProteinFile.from_file(segment_merge(ptree.search.deepqmsa_a3m)))
-            #     msa_fils.append(ptool.ProteinFile.from_file(segment_merge(ptree.search.deepdmsa_a3m)))
-            #     msa_fils.append(ptool.ProteinFile.from_file(segment_merge(ptree.search.deepmmsa_q3jgi)))
-            #     msa_fils.append(ptool.ProteinFile.from_file(segment_merge(ptree.search.deepmmsa_q4jgi)))
-            #     msa_fils.append(ptool.ProteinFile.from_file(segment_merge(ptree.search.deepmmsa_djgi)))
-                
-            #     names += ["dq", "dd", "dm_q3j", "dm_q4j", "dm_dj"]
-            # if "mmseqs" in search_args.keys():
-            #     msa_fils.append(ptool.ProteinFile.from_file(segment_merge(ptree.search.mmseqs_a3m)))
-            #     names += ["mm"]
-            
-            # # Merge msa and Remove deduplicate msa
-            # merge_file = ptool.ProteinFile.merge(msa_fils, names=names, deduplicate=True)
+                # deeepmmsa: 1000
+                integrated_search_dm_a3m = str(ptree.search.integrated_search_dm_a3m)
+                integrated_search_dm_a3m_dp = str(ptree.search.integrated_search_dm_a3m_dp)
+                dm_msa_paths = {
+                    "dm_q3j": segment_merge(ptree.search.deepmmsa_q3jgi),
+                    "dm_q4j": segment_merge(ptree.search.deepmmsa_q4jgi),
+                    "dm_dj": segment_merge(ptree.search.deepmmsa_djgi),
+                }
+                self.merge_a3m_files(
+                    target_path=integrated_search_dm_a3m,
+                    msa_paths=dm_msa_paths,
+                    target_sequence=self.requests[0][SEQUENCE],
+                    target=self.requests[0][TARGET],
+                )
+                dtool.deduplicate_msa_a3m([integrated_search_dm_a3m], integrated_search_dm_a3m_dp)
+                self.outputs_paths.append(integrated_search_dm_a3m_dp)
 
-            # a3m to fasta
-            # mrege_fasta = merge_file.to_fasta()
-            # logger.info(f"The merged num of a3m: ({len(mrege_fasta)}): \n{mrege_fasta}")
-            # merge_file.save(integrated_search_a3m)
-        dtool.deduplicate_msa_a3m([integrated_search_a3m], integrated_search_a3m_dp)
-        self.outputs_paths = [integrated_search_a3m_dp, template_msa_a3m]
-        # return integrated_search_a3m, template_msa_a3m
+            if "mmseqs" in search_args.keys():
+                # mmseqs: 1000
+                integrated_search_mm_a3m = str(ptree.search.integrated_search_mm_a3m)
+                integrated_search_mm_a3m_dp = str(ptree.search.integrated_search_mm_a3m_dp)
+                mm_msa_paths = {"mm": segment_merge(ptree.search.mmseqs_a3m)}
+                self.merge_a3m_files(
+                    target_path=integrated_search_mm_a3m,
+                    msa_paths=mm_msa_paths,
+                    target_sequence=self.requests[0][SEQUENCE],
+                    target=self.requests[0][TARGET],
+                )
+                dtool.deduplicate_msa_a3m([integrated_search_mm_a3m], integrated_search_mm_a3m_dp)
+                self.outputs_paths.append(integrated_search_mm_a3m_dp)
+
 
 
     def on_run_end(self):
