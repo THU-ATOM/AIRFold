@@ -22,6 +22,7 @@ RUN pip install --no-cache-dir \
     torchvision==${TORCHVISION_VERSION} \
     -f https://mirror.sjtu.edu.cn/pytorch-wheels/torch_stable.html
 
+# Install ESM
 RUN pip install git+https://github.com/facebookresearch/esm.git
 
 # add user

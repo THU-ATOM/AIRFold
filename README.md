@@ -99,7 +99,6 @@ Please follow these steps:
 
 **Protein model quality assessment**
 *   [EnQA](https://github.com/BioinfoMachineLearning/EnQA)
-*   [QATEN](https://github.com/CQ-zhang-2016/QATEN)
 
 
 ## Command for different functions

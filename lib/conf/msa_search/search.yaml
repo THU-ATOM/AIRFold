@@ -38,5 +38,11 @@ blast:
   num_iterations: 3
 
 deepmsa:
-        runtype: "qdm"
+  runtype: "qdm"
+
+mmseqs:
+  sensitivity: 8
+  align_eval: 10
+  diff: 3000
+  qsc": -20.0
  

@@ -112,8 +112,8 @@ def pipelineWorker(request_dicts, mode):
         # pip_request= {"requests" : request_dicts}
         if mode == "msa":
             pipeline_url = f"http://10.0.0.12:8081/msaGen"
-        if mode == "eomega":
-            pipeline_url = f"http://10.0.0.12:8081/omegafold"
+        if mode == "omega":
+            pipeline_url = f"http://10.0.0.12:8081/pipeline"
         if mode == "disgram":
             pipeline_url = f"http://10.0.0.12:8081/analysis"
         if mode == "pipeline":
