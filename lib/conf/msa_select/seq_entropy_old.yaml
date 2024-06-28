@@ -1,0 +1,4 @@
+seq_entropy:
+  reduce_ratio: 0.1
+  least_seqs: 5000
+  

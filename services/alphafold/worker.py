@@ -422,6 +422,23 @@ class AlphaStrucRunner(BaseRunner):
     @property
     def start_stage(self) -> State:
         return self.start_code
+    
+    @staticmethod
+    def save_msa_fig_from_a3m_files(msa_paths, save_path):
+
+        delete_lowercase = lambda line: "".join(
+            [t for t in list(line) if not t.islower()]
+        )
+        msa_collection = []
+        for p in msa_paths:
+            with open(p) as fd:
+                _lines = fd.read().strip().split("\n")
+            _lines = [
+                delete_lowercase(l) for l in _lines if not l.startswith(">") and l
+            ]
+            msa_collection.extend(_lines)
+        plot.plot_msas([msa_collection])
+        plt.savefig(save_path, bbox_inches="tight", dpi=200)
 
     def run(self):
         ptree = get_pathtree(request=self.requests[0])
@@ -433,6 +450,10 @@ class AlphaStrucRunner(BaseRunner):
             selected_msa_path = str(ptree.strategy.strategy_list[idx]) + "_dp.a3m"
             msa_paths.append(str(selected_msa_path))
         
+        self.save_msa_fig_from_a3m_files(
+            msa_paths=msa_paths,
+            save_path=ptree.alphafold.msa_coverage_image,
+        )
         # get selected_template_feat
         selected_template_feat_path = str(ptree.alphafold.selected_template_feat)
         
@@ -564,7 +585,7 @@ def alphafold_func(run_stage: str, output_path: str, argument_dict: Dict[str, An
     os.environ['CUDA_VISIBLE_DEVICES'] = gpu_devices
     # ref: https://github.com/google-deepmind/alphafold/issues/140
     # for CUDA_ERROR_ILLEGAL_ADDRESS error
-    os.system("unset TF_FORCE_UNIFIED_MEMORY")
+    # os.system("unset TF_FORCE_UNIFIED_MEMORY")
     
     if run_stage == "search_template":
         pdb_template_hits = search_template(**argument_dict)

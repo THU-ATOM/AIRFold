@@ -1,0 +1,1 @@
+# python pred.py example/seq/ params/RaptorX-Single-ESM1b.pt --out_dir=example/out/ --device_id=0

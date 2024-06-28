@@ -364,7 +364,92 @@ def mmseqs_search_monomer(
         shutil.rmtree(base.joinpath("tmp3"))
 
 
-def main():
+def main(args):
+    logging.basicConfig(level = logging.INFO)
+
+    queries, _ = get_queries(args.query, None)
+
+    queries_unique = []
+    for job_number, (raw_jobname, query_sequences, a3m_lines) in enumerate(queries):
+        # remove duplicates before searching
+        query_sequences = (
+            [query_sequences] if isinstance(query_sequences, str) else query_sequences
+        )
+        query_seqs_unique = []
+        for x in query_sequences:
+            if x not in query_seqs_unique:
+                query_seqs_unique.append(x)
+        query_seqs_cardinality = [0] * len(query_seqs_unique)
+        for seq in query_sequences:
+            seq_idx = query_seqs_unique.index(seq)
+            query_seqs_cardinality[seq_idx] += 1
+
+        queries_unique.append([raw_jobname, query_seqs_unique, query_seqs_cardinality])
+
+    args.base.mkdir(exist_ok=True, parents=True)
+    query_file = args.base.joinpath("query.fas")
+    with query_file.open("w") as f:
+        for job_number, (
+            raw_jobname,
+            query_sequences,
+            query_seqs_cardinality,
+        ) in enumerate(queries_unique):
+            for j, seq in enumerate(query_sequences):
+                # The header of first sequence set as 101
+                query_seq_headername = 101 + j
+                f.write(f">{query_seq_headername}\n{seq}\n")
+
+    run_mmseqs(
+        args.mmseqs,
+        ["createdb", query_file, args.base.joinpath("qdb"), "--shuffle", "0"],
+    )
+    with args.base.joinpath("qdb.lookup").open("w") as f:
+        id = 0
+        file_number = 0
+        for job_number, (
+            raw_jobname,
+            query_sequences,
+            query_seqs_cardinality,
+        ) in enumerate(queries_unique):
+            for seq in query_sequences:
+                raw_jobname_first = raw_jobname.split()[0]
+                f.write(f"{id}\t{raw_jobname_first}\t{file_number}\n")
+                id += 1
+            file_number += 1
+
+    mmseqs_search_monomer(
+        mmseqs=args.mmseqs,
+        dbbase=args.dbbase,
+        base=args.base,
+        uniref_db=args.db1,
+        template_db=args.db2,
+        metagenomic_db=args.db3,
+        use_env=args.use_env,
+        use_templates=args.use_templates,
+        filter=args.filter,
+        expand_eval=args.expand_eval,
+        align_eval=args.align_eval,
+        diff=args.diff,
+        qsc=args.qsc,
+        max_accept=args.max_accept,
+        s=args.s,
+        db_load_mode=args.db_load_mode,
+        threads=args.threads,
+    )
+
+    # rename a3m files
+    for job_number, (raw_jobname, query_sequences, query_seqs_cardinality) in enumerate(queries_unique):
+        os.rename(
+            args.base.joinpath(f"{job_number}.a3m"),
+            args.base.joinpath(f"{safe_filename(raw_jobname)}.a3m"),
+        )
+
+    query_file.unlink()
+    run_mmseqs(args.mmseqs, ["rmdb", args.base.joinpath("qdb")])
+    run_mmseqs(args.mmseqs, ["rmdb", args.base.joinpath("qdb_h")])
+
+
+if __name__ == "__main__":
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument(
         "--query",
@@ -459,91 +544,6 @@ def main():
     parser.add_argument(
         "--threads", type=int, default=64, help="Number of threads to use."
     )
-    args = parser.parse_args()
-
-    logging.basicConfig(level = logging.INFO)
-
-    queries, _ = get_queries(args.query, None)
-
-    queries_unique = []
-    for job_number, (raw_jobname, query_sequences, a3m_lines) in enumerate(queries):
-        # remove duplicates before searching
-        query_sequences = (
-            [query_sequences] if isinstance(query_sequences, str) else query_sequences
-        )
-        query_seqs_unique = []
-        for x in query_sequences:
-            if x not in query_seqs_unique:
-                query_seqs_unique.append(x)
-        query_seqs_cardinality = [0] * len(query_seqs_unique)
-        for seq in query_sequences:
-            seq_idx = query_seqs_unique.index(seq)
-            query_seqs_cardinality[seq_idx] += 1
-
-        queries_unique.append([raw_jobname, query_seqs_unique, query_seqs_cardinality])
-
-    args.base.mkdir(exist_ok=True, parents=True)
-    query_file = args.base.joinpath("query.fas")
-    with query_file.open("w") as f:
-        for job_number, (
-            raw_jobname,
-            query_sequences,
-            query_seqs_cardinality,
-        ) in enumerate(queries_unique):
-            for j, seq in enumerate(query_sequences):
-                # The header of first sequence set as 101
-                query_seq_headername = 101 + j
-                f.write(f">{query_seq_headername}\n{seq}\n")
-
-    run_mmseqs(
-        args.mmseqs,
-        ["createdb", query_file, args.base.joinpath("qdb"), "--shuffle", "0"],
-    )
-    with args.base.joinpath("qdb.lookup").open("w") as f:
-        id = 0
-        file_number = 0
-        for job_number, (
-            raw_jobname,
-            query_sequences,
-            query_seqs_cardinality,
-        ) in enumerate(queries_unique):
-            for seq in query_sequences:
-                raw_jobname_first = raw_jobname.split()[0]
-                f.write(f"{id}\t{raw_jobname_first}\t{file_number}\n")
-                id += 1
-            file_number += 1
-
-    mmseqs_search_monomer(
-        mmseqs=args.mmseqs,
-        dbbase=args.dbbase,
-        base=args.base,
-        uniref_db=args.db1,
-        template_db=args.db2,
-        metagenomic_db=args.db3,
-        use_env=args.use_env,
-        use_templates=args.use_templates,
-        filter=args.filter,
-        expand_eval=args.expand_eval,
-        align_eval=args.align_eval,
-        diff=args.diff,
-        qsc=args.qsc,
-        max_accept=args.max_accept,
-        s=args.s,
-        db_load_mode=args.db_load_mode,
-        threads=args.threads,
-    )
-
-    # rename a3m files
-    for job_number, (raw_jobname, query_sequences, query_seqs_cardinality) in enumerate(queries_unique):
-        os.rename(
-            args.base.joinpath(f"{job_number}.a3m"),
-            args.base.joinpath(f"{safe_filename(raw_jobname)}.a3m"),
-        )
-
-    query_file.unlink()
-    run_mmseqs(args.mmseqs, ["rmdb", args.base.joinpath("qdb")])
-    run_mmseqs(args.mmseqs, ["rmdb", args.base.joinpath("qdb_h")])
-
-
-if __name__ == "__main__":
-    main()
+    argv = parser.parse_args()
+    
+    main(argv)

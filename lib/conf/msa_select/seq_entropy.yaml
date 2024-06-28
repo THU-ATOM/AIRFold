@@ -1,4 +1,8 @@
 seq_entropy:
-  reduce_ratio: 0.1
-  least_seqs: 5000
+  least_seqs:
+    hj: 3000
+    bl: 1000
+    dq: 1000
+    dm: 1000
+    mm: 1000
   

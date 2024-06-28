@@ -503,6 +503,33 @@ class RoseTTAFoldPathTree(BasePathTree):
         return files
 
 
+class MQEPathTree(BasePathTree):
+    def __init__(self, root: Union[str, Path], request: Dict[str, Any]) -> None:
+        super().__init__(root, request)
+        self.root = self.root / self.id
+
+    @property
+    def enqa(self)-> Path:
+        return self.root / "enqa"
+    
+    @property
+    def enqa_temp(self)-> Path:
+        return self.root / "enqa" / "temp"
+    
+    @property
+    def enqa_rankfile(self)-> Path:
+        return self.root / "enqa" / "rank.json"
+    
+    @property
+    def qaten(self)-> Path:
+        return self.root / "qaten"
+    
+    @property
+    def qaten_temp(self)-> Path:
+        return self.root / "qaten" / "temp"
+
+
+
 class CAMEOPathTree(BasePathTree):
     def __init__(
         self,
@@ -534,6 +561,10 @@ class CAMEOPathTree(BasePathTree):
         )
 
     @property
+    def struc_root(self):
+        return self.root / "structure"
+        
+    @property
     def alphafold(self):
         return AlphaFoldPathTree(
             self.root / "structure" / self.final_msa_fasta.parent.name,
@@ -544,6 +575,13 @@ class CAMEOPathTree(BasePathTree):
     def rosettafold2(self):
         return RoseTTAFoldPathTree(
             self.root / "structure" / self.final_msa_fasta.parent.name,
+            self.request,
+        )
+    
+    @property
+    def mqe(self):
+        return MQEPathTree(
+            self.root / "mqe",
             self.request,
         )
 

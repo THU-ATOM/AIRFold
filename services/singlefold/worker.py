@@ -13,7 +13,6 @@ from lib.utils.execute import rlaunch_exists, rlaunch_wrapper
 from lib.tool.rosettafold2 import run_predict
 
 SEQUENCE = "sequence"
-RF2_PT = "/data/protein/datasets_2024/rosettafold2/RF2_apr23.pt"
 
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "rpc://")
 CELERY_BROKER_URL = (
@@ -30,12 +29,11 @@ celery.conf.task_routes = {
     "worker.*": {"queue": "queue_rosettafold"},
 }
 
-@celery.task(name="rosettafold")
-def rosettafoldTask(requests: List[Dict[str, Any]]):
-    RoseTTAFoldRunner(requests=requests)()
+@celery.task(name="singlefold")
+def singlefoldTask(requests: List[Dict[str, Any]]):
+    SingleFoldRunner(requests=requests)()
 
-
-class RoseTTAFoldRunner(BaseCommandRunner):
+class SingleFoldRunner(BaseCommandRunner):
     def __init__(
         self, requests: List[Dict[str, Any]]
     ):
@@ -54,35 +52,17 @@ class RoseTTAFoldRunner(BaseCommandRunner):
         
         # query fasta
         ptree = get_pathtree(request=request)
-
-        # get msa_path
         str_dict = misc.safe_get(self.requests[0], ["run_config", "msa_select"])
         key_list = list(str_dict.keys())
-        for idx in range(len(key_list)):
-            selected_msa_path = str(ptree.strategy.strategy_list[idx]) + "_dp.a3m"
+        for index in range(len(key_list)):
+            selected_msa_path = ptree.strategy.strategy_list[index]
+        if not selected_msa_path:
+            return
         
         # get args of rose
         args = misc.safe_get(request, ["run_config", "structure_prediction", "rosettafold2"])
                   
-        command = "".join(
-            [
-                f"python {pathtool.get_module_path(run_predict)} ",
-                f"--fasta_path {ptree.seq.fasta} ",
-                f"--a3m_path {selected_msa_path} ",
-                f"--rose_dir {ptree.rosettafold2.root} ",
-                f"--rf2_pt {RF2_PT} ",
-                f"--random_seed {misc.safe_get(args, 'random_seed')} " if misc.safe_get(args, "random_seed") else "",
-                f"--num_models {misc.safe_get(args, 'num_models')} " if misc.safe_get(args, "num_models") else "",
-                f"--msa_concat_mode {misc.safe_get(args, 'msa_concat_mode')} " if misc.safe_get(args, "msa_concat_mode") else "",
-                f"--num_recycles {misc.safe_get(args, 'num_recycles')} " if misc.safe_get(args, "num_recycles") else "",
-                f"--max_msa {misc.safe_get(args, 'max_msa')} " if misc.safe_get(args, "max_msa") else "",
-                f"--collapse_identical {misc.safe_get(args, 'collapse_identical')} " if misc.safe_get(args, "collapse_identical") else "",
-                f"--use_mlm {misc.safe_get(args, 'use_mlm')} " if misc.safe_get(args, "use_mlm") else "",
-                f"--use_dropout {misc.safe_get(args, 'use_dropout')} " if misc.safe_get(args, "use_dropout") else "",
-
-            ]
-        ) 
-                  
+        command = ""      
         if rlaunch_exists():
             command = rlaunch_wrapper(
                 command,

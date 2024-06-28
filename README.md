@@ -117,7 +117,6 @@ AIRFold searches for MSA and templates from various databases. The following lis
 
 **Protein model quality assessment**
 *   [EnQA](https://github.com/BioinfoMachineLearning/EnQA)
-*   [QATEN](https://github.com/CQ-zhang-2016/QATEN)
 
 
 ## Quick commands for main functions

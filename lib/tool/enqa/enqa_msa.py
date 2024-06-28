@@ -1,7 +1,6 @@
 import os
 
 import torch
-import argparse
 import numpy as np
 import esm
 from Bio.PDB import PDBParser
@@ -11,18 +10,21 @@ from biopandas.pdb import PandasPdb
 from lib.tool.enqa.data.loader import expand_sh
 from lib.tool.enqa.feature import create_basic_features
 from lib.tool.enqa.network.resEGNN import resEGNN_with_ne
+from lib.utils.systool import get_available_gpus
 
-def main(args):
-    device = torch.device('cuda:4') if torch.cuda.is_available() else 'cpu'
+def evaluation(input_pdb, tmp_dir):
+    
+    device_ids = get_available_gpus(1)
+    device = torch.device(f"cuda:{device_ids[0]}") if torch.cuda.is_available() else 'cpu'
 
-    if not os.path.isdir(args.output):
-        os.mkdir(args.output)
+    if not os.path.isdir(tmp_dir):
+        os.mkdir(tmp_dir)
 
-    one_hot, features, pos_data, sh_adj, el = create_basic_features(args.input, args.output)
+    one_hot, features, pos_data, sh_adj, el = create_basic_features(input_pdb, tmp_dir)
 
     # plddt
     ppdb = PandasPdb()
-    ppdb.read_pdb(args.input)
+    ppdb.read_pdb(input_pdb)
     plddt = ppdb.df['ATOM'][ppdb.df['ATOM']['atom_name'] == 'CA']['b_factor']
     plddt = plddt.to_numpy().astype(np.float32) / 100
 
@@ -31,14 +33,14 @@ def main(args):
 
     parser = PDBParser(QUIET=True)
     d3to1 = {'CYS': 'C', 'ASP': 'D', 'SER': 'S', 'GLN': 'Q', 'LYS': 'K',
-             'ILE': 'I', 'PRO': 'P', 'THR': 'T', 'PHE': 'F', 'ASN': 'N',
-             'GLY': 'G', 'HIS': 'H', 'LEU': 'L', 'ARG': 'R', 'TRP': 'W',
-             'ALA': 'A', 'VAL': 'V', 'GLU': 'E', 'TYR': 'Y', 'MET': 'M'}
+            'ILE': 'I', 'PRO': 'P', 'THR': 'T', 'PHE': 'F', 'ASN': 'N',
+            'GLY': 'G', 'HIS': 'H', 'LEU': 'L', 'ARG': 'R', 'TRP': 'W',
+            'ALA': 'A', 'VAL': 'V', 'GLU': 'E', 'TYR': 'Y', 'MET': 'M'}
 
 
     model_esm, alphabet = esm.pretrained.esm2_t6_8M_UR50D()
     model_esm.eval()
-    structure = parser.get_structure('struct', args.input)
+    structure = parser.get_structure('struct', input_pdb)
     for m in structure:
         for chain in m:
             seq = []
@@ -63,8 +65,6 @@ def main(args):
     model.load_state_dict(torch.load("/data/protein/datasets_2024/enqa/EnQA-MSA.pth", map_location=device))
     model.eval()
 
-
-
     x = [one_hot, features, np.expand_dims(plddt, axis=0)]
     f1d = torch.tensor(np.concatenate(x, 0)).to(device)
     f1d = torch.unsqueeze(f1d, 0)
@@ -82,16 +82,5 @@ def main(args):
         _, _, lddt_pred = model(f1d, f2d, pos, el, cmap)
 
     out = lddt_pred.cpu().detach().numpy().astype(np.float16)
-    np.save(os.path.join(args.output, os.path.basename(args.input).replace('.pdb', '.npy')), out)
-    
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Predict model quality and output numpy array format.')
-    parser.add_argument('--input', type=str, required=True,
-                        help='Path to input pdb file.')
-    parser.add_argument('--output', type=str, required=True,
-                        help='Path to output folder.')
-
-    argv = parser.parse_args()
-
-    main(args=argv)
+    out_score = np.mean(out)
+    return out_score
