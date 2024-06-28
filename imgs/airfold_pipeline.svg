@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 550.4 222.5">
+  <defs>
+    <style>
+      .cls-1 {
+        stroke-width: 1.2px;
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4, .cls-5, .cls-6, .cls-7, .cls-8, .cls-9, .cls-10, .cls-11 {
+        stroke: #231f20;
+        stroke-miterlimit: 10;
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-9, .cls-10, .cls-11 {
+        fill: #fff;
+      }
+
+      .cls-2 {
+        stroke-width: 1.1px;
+      }
+
+      .cls-3 {
+        stroke-width: 1px;
+      }
+
+      .cls-12 {
+        font-family: Helvetica-Bold, Helvetica;
+        font-size: 8px;
+      }
+
+      .cls-12, .cls-13, .cls-14, .cls-15, .cls-16 {
+        fill: #000;
+      }
+
+      .cls-12, .cls-14, .cls-15 {
+        font-weight: 700;
+      }
+
+      .cls-4 {
+        fill: #ffd5da;
+      }
+
+      .cls-5 {
+        fill: none;
+      }
+
+      .cls-13, .cls-14 {
+        font-size: 10.2px;
+      }
+
+      .cls-13, .cls-16 {
+        font-family: Helvetica, Helvetica;
+      }
+
+      .cls-14, .cls-15 {
+        font-family: Helvetica-BoldOblique, Helvetica;
+        font-style: oblique;
+      }
+
+      .cls-6 {
+        fill: #fde2ff;
+      }
+
+      .cls-15 {
+        font-size: 14px;
+      }
+
+      .cls-7 {
+        fill: #e0e5fb;
+      }
+
+      .cls-8 {
+        fill: #efefef;
+      }
+
+      .cls-9 {
+        stroke-width: 1.1px;
+      }
+
+      .cls-10 {
+        stroke-width: 1.2px;
+      }
+
+      .cls-16 {
+        font-size: 6.8px;
+      }
+
+      .cls-17 {
+        fill: #231f20;
+        stroke-width: 0px;
+      }
+
+      .cls-11 {
+        stroke-width: 1.2px;
+      }
+    </style>
+  </defs>
+  <rect class="cls-6" x="104.8" y="39.4" width="131.5" height="112" rx="9" ry="9"/>
+  <rect class="cls-6" x="102.8" y="37.4" width="131.5" height="112" rx="9" ry="9"/>
+  <g>
+    <line class="cls-5" x1="170.8" y1="97" x2="170.8" y2="102"/>
+    <polygon class="cls-17" points="170.8 107.3 167.8 99.8 170.8 101.6 173.9 99.8 170.8 107.3"/>
+  </g>
+  <text class="cls-14" transform="translate(113.3 55.8)"><tspan x="0" y="0">Homology Miner</tspan></text>
+  <text class="cls-15" transform="translate(26.6 215.1)"><tspan x="0" y="0">AIRFold</tspan></text>
+  <rect class="cls-1" x="114.2" y="64.8" width="112.9" height="31.8" rx="1.8" ry="1.8"/>
+  <text class="cls-13" transform="translate(128.2 76.2)"><tspan x="0" y="0">Basic MSA Search</tspan></text>
+  <text class="cls-16" transform="translate(123.4 84.6)"><tspan x="0" y="0">HHblits / JackHmmer / BLAST /</tspan><tspan x="11.9" y="8.1">DeepMSA2 / MMSeqs2</tspan></text>
+  <rect class="cls-10" x="114.2" y="107.6" width="112.9" height="32.7" rx="1.8" ry="1.8"/>
+  <text class="cls-13" transform="translate(137.3 119)"><tspan x="0" y="0">MSA Selection</tspan></text>
+  <text class="cls-16" transform="translate(134.8 127.4)"><tspan x="0" y="0">Sequence-based filter / </tspan><tspan x="4.3" y="8.1">Structure-based filter</tspan></text>
+  <rect class="cls-7" x="258.9" y="135.1" width="131.5" height="82" rx="9" ry="9"/>
+  <rect class="cls-7" x="256.9" y="133.1" width="131.5" height="82" rx="9" ry="9"/>
+  <text class="cls-14" transform="translate(267.4 153.5)"><tspan x="0" y="0">Single sequence</tspan><tspan x="0" y="12.2">structure prediction</tspan></text>
+  <rect class="cls-11" x="268.3" y="174.4" width="112.9" height="32.7" rx="1.8" ry="1.8"/>
+  <text class="cls-13" transform="translate(280.1 185.8)"><tspan x="0" y="0">Structure Prediction</tspan></text>
+  <text class="cls-16" transform="translate(288.4 194.1)"><tspan x="0" y="0">ESMFold / OmegaFold /</tspan><tspan x="13.9" y="8.1">RaptorX-single</tspan></text>
+  <rect class="cls-7" x="258.1" y="8.9" width="131.5" height="119" rx="9" ry="9"/>
+  <rect class="cls-7" x="256.1" y="6.9" width="131.5" height="119" rx="9" ry="9"/>
+  <text class="cls-14" transform="translate(266.6 27.3)"><tspan x="0" y="0">Multiple sequence</tspan><tspan x="0" y="12.2">structure prediction</tspan></text>
+  <rect class="cls-1" x="267.5" y="49.3" width="112.9" height="31.8" rx="1.8" ry="1.8"/>
+  <text class="cls-13" transform="translate(275 60.7)"><tspan x="0" y="0">Template Preparation</tspan></text>
+  <text class="cls-16" transform="translate(298.1 69.1)"><tspan x="0" y="0">Template Search</tspan><tspan x="-6.4" y="8.1">&amp; Template Selection</tspan></text>
+  <rect class="cls-3" x="267.5" y="92.9" width="112.9" height="25.5" rx="1.8" ry="1.8"/>
+  <text class="cls-13" transform="translate(279.3 104.3)"><tspan x="0" y="0">Structure Prediction</tspan></text>
+  <text class="cls-16" transform="translate(281.2 112.6)"><tspan x="0" y="0">AlphaFold2 / RoseTTAFold2</tspan></text>
+  <rect class="cls-4" x="411.6" y="72.9" width="131.5" height="101" rx="9" ry="9"/>
+  <rect class="cls-4" x="409.6" y="70.9" width="131.5" height="101" rx="9" ry="9"/>
+  <text class="cls-14" transform="translate(420.1 91.3)"><tspan x="0" y="0">Structure Selection</tspan></text>
+  <rect class="cls-2" x="419.1" y="100.4" width="116.7" height="26" rx="1.8" ry="1.8"/>
+  <text class="cls-13" transform="translate(424.6 111.7)"><tspan x="0" y="0">Conformation Selection</tspan></text>
+  <text class="cls-16" transform="translate(442.4 120.1)"><tspan x="0" y="0">conformation clustering</tspan></text>
+  <rect class="cls-9" x="419.1" y="136.9" width="116.7" height="25.5" rx="1.8" ry="1.8"/>
+  <text class="cls-13" transform="translate(421.2 148.3)"><tspan x="0" y="0">Model Quality Estimation</tspan></text>
+  <text class="cls-16" transform="translate(453.9 156.7)"><tspan x="0" y="0">EnQA / QATEN</tspan></text>
+  <text class="cls-12" transform="translate(88.6 161.3) rotate(-90)"><tspan x="0" y="0">sequence</tspan></text>
+  <text class="cls-12" transform="translate(248.3 64.7) rotate(-90)"><tspan x="0" y="0">MSA</tspan></text>
+  <rect class="cls-8" x="26" y="11.8" width="53.5" height="53.5" rx="4.5" ry="4.5"/>
+  <rect class="cls-8" x="24" y="9.8" width="53.5" height="53.5" rx="4.5" ry="4.5"/>
+  <rect class="cls-8" x="26" y="81" width="53.5" height="53.5" rx="4.5" ry="4.5"/>
+  <rect class="cls-8" x="24" y="79" width="53.5" height="53.5" rx="4.5" ry="4.5"/>
+  <text class="cls-14" transform="translate(40.1 33.1)"><tspan x="0" y="0">Web</tspan><tspan x="-10.5" y="12.2">Interface</tspan></text>
+  <text class="cls-14" transform="translate(42.3 102.7)"><tspan x="0" y="0">API</tspan><tspan x="-7.4" y="12.2">Server</tspan></text>
+  <g>
+    <g>
+      <line class="cls-5" x1="39.1" y1="65.6" x2="39.1" y2="77.3"/>
+      <path class="cls-17" d="M35.5,72.1c.2-.1.4,0,.5.1l3.1,4.8,3.1-4.8c.1-.2.3-.2.5-.1.2.1.2.3.1.5l-3.4,5.3c0,.1-.2.2-.3.2s-.2,0-.3-.2l-3.4-5.3c0,0,0-.1,0-.2,0-.1,0-.2.2-.3Z"/>
+    </g>
+    <g>
+      <line class="cls-5" x1="62.5" y1="78.2" x2="62.5" y2="66.5"/>
+      <path class="cls-17" d="M66.1,71.6c-.2.1-.4,0-.5-.1l-3.1-4.8-3.1,4.8c-.1.2-.3.2-.5.1-.2-.1-.2-.3-.1-.5l3.4-5.3c0-.1.2-.2.3-.2s.2,0,.3.2l3.4,5.3c0,0,0,.1,0,.2,0,.1,0,.2-.2.3Z"/>
+    </g>
+  </g>
+  <g>
+    <line class="cls-5" x1="477.4" y1="179.9" x2="477.4" y2="191.3"/>
+    <path class="cls-17" d="M472.6,184.5c.2-.1.5,0,.7.2l4.1,6.5,4.1-6.5c.1-.2.5-.3.7-.2s.3.5.2.7l-4.5,7.1c0,.1-.3.2-.4.2s-.3,0-.4-.2l-4.5-7.1c0,0,0-.2,0-.3,0-.2,0-.3.2-.4Z"/>
+  </g>
+  <g>
+    <line class="cls-5" x1="80" y1="105.8" x2="100.9" y2="105.8"/>
+    <path class="cls-17" d="M94.1,110.6c-.1-.2,0-.5.2-.7l6.5-4.1-6.5-4.1c-.2-.1-.3-.5-.2-.7.1-.2.5-.3.7-.2l7.1,4.5c.1,0,.2.3.2.4s0,.3-.2.4l-7.1,4.5c0,0-.2,0-.3,0-.2,0-.3,0-.4-.2Z"/>
+  </g>
+  <g>
+    <line class="cls-5" x1="236.3" y1="74.5" x2="254.6" y2="74.5"/>
+    <path class="cls-17" d="M247.8,79.3c-.1-.2,0-.5.2-.7l6.5-4.1-6.5-4.1c-.2-.1-.3-.5-.2-.7.1-.2.5-.3.7-.2l7.1,4.5c.1,0,.2.3.2.4s0,.3-.2.4l-7.1,4.5c0,0-.2,0-.3,0-.2,0-.3,0-.4-.2Z"/>
+  </g>
+  <g>
+    <line class="cls-5" x1="390.8" y1="151.4" x2="408" y2="151.4"/>
+    <path class="cls-17" d="M401.1,156.2c-.1-.2,0-.5.2-.7l6.5-4.1-6.5-4.1c-.2-.1-.3-.5-.2-.7.1-.2.5-.3.7-.2l7.1,4.5c.1,0,.2.3.2.4s0,.3-.2.4l-7.1,4.5c0,0-.2,0-.3,0-.2,0-.3,0-.4-.2Z"/>
+  </g>
+  <text class="cls-12" transform="translate(397.1 88.1) rotate(90)"><tspan x="0" y="0">structures</tspan></text>
+  <text class="cls-12" transform="translate(448.5 201.5)"><tspan x="0" y="0">final structures</tspan></text>
+  <g>
+    <path class="cls-5" d="M390,56.1h83.4c2.3,0,4.1,1.8,4.1,4.1v9"/>
+    <path class="cls-17" d="M472.6,62.4c.2-.1.5,0,.7.2l4.1,6.5,4.1-6.5c.1-.2.5-.3.7-.2.2.1.3.5.2.7l-4.5,7.1c0,.1-.3.2-.4.2s-.3,0-.4-.2l-4.5-7.1c0,0,0-.2,0-.3,0-.2,0-.3.2-.4Z"/>
+  </g>
+  <g>
+    <path class="cls-5" d="M80,106l2.9-.2c5.6,0,10.1,4.5,10.1,10.1v54c0,5.6,4.5,10.1,10.1,10.1h152.5"/>
+    <path class="cls-17" d="M248.8,184.6c-.1-.2,0-.5.2-.7l6.5-4.1-6.5-4.1c-.2-.1-.3-.5-.2-.7.1-.2.5-.3.7-.2l7.1,4.5c.1,0,.2.3.2.4s0,.3-.2.4l-7.1,4.5c0,0-.2,0-.3,0-.2,0-.3,0-.4-.2Z"/>
+  </g>
+  <g>
+    <line class="cls-5" x1="323.9" y1="81.9" x2="323.9" y2="86.9"/>
+    <polygon class="cls-17" points="323.9 92.1 320.9 84.7 323.9 86.5 327 84.7 323.9 92.1"/>
+  </g>
+</svg>
