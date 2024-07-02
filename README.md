@@ -1,9 +1,12 @@
+![](imgs/airfold_banner.jpg)
+
 # AIRFold
 
-AIRFold, is built on the foundation of AlphaFold2, aims to provide scalable, systematic solutions for the critical issue of protein structure prediction in the field of life sciences. AIRFold's unique *Homology Miner* module focuses on the mining and extraction of co-evolutionary information, intelligently and automatically extracting, analyzing, and processing the co-evolution information within protein homologous sequences (MSA). In addition, AIRFold offers a systematic structural prediction solution, integrating various leading structural prediction models such as AlphaFold2, RoseTTAFold2, single-sequence structure models like OmegaFold and ESMFold, energy-based structural prediction models like RaptorX-Single, and ultimately ranking and screening all predicted structures using a model quality estimation (MQE) module. To fully integrate these different modules, we provide a microservices architecture and provide user-friendly APIs and a web-based graphical interface, making it convenient for developers and biochemical researchers to use our platform for structural prediction.
+AIRFold, built on the foundation of AlphaFold2, aims to provide scalable, systematic solutions for the critical issue of protein structure prediction in the field of life sciences. AIRFold's unique *Homology Miner* module focuses on the mining and extraction of co-evolutionary information, intelligently and automatically extracting, analyzing, and processing the co-evolution information within protein homologous sequences (MSA). In addition, AIRFold offers a systematic structural prediction solution, integrating various leading structural prediction models such as AlphaFold2, RoseTTAFold2, single-sequence structure models like OmegaFold and ESMFold, and ultimately ranking and screening all predicted structures using a model quality estimation (MQE) module. To fully integrate these different modules, we provide a microservices architecture along with user-friendly APIs and a web-based graphical interface, making it convenient for developers and biochemical researchers to use our platform for structural prediction.
 
-
-![](imgs/7VTI_A.gif)
+<p align="center">
+<img src="imgs/7VTI_A.gif" width="600" >
+</p>
 
 
 
@@ -15,7 +18,7 @@ AIRFold adopts a microservices architecture and uses Docker to manage all module
 
 AIRFold Framework             |  AIRFold Web Interface
 :-------------------------:|:-------------------------:
-![](imgs/frame.svg)  |  ![](imgs/airfold_web.png)
+<img src="imgs/airfold_pipeline.svg" width="400" > | <img src="imgs/airfold_web.png" width="400" >
 
 
 
