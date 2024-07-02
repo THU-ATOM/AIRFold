@@ -44,5 +44,5 @@ mmseqs:
   sensitivity: 8
   align_eval: 10
   diff: 3000
-  qsc": -20.0
+  qsc: -20.0
  

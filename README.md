@@ -48,7 +48,6 @@ Please follow these steps:
 
 5.  Interact with AIRFold via Web page or RESTful API:
     - Submit page: http://127.0.0.1
-    - RESTful API URL: http://127.0.0.1:8081
     - API document page: http://127.0.0.1:8081/docs
     - Tasks monitor page: http://127.0.0.1:5555
 
