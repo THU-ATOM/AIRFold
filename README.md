@@ -103,6 +103,7 @@ AIRFold searches for MSA and templates from various databases. The following lis
 *   [OmegaFold](https://github.com/HeliXonProtein/OmegaFold)
 *   [ESMFold](https://github.com/facebookresearch/esm)
 *   [RaptorX-Single](https://github.com/AndersJing/RaptorX-Single)
+*   [trRosettaX-Single](https://yanglab.qd.sdu.edu.cn/trRosetta/benchmark_single/)
 
 **Multiple sequence alignment generation**
 *   [HH-suite3](https://github.com/soedinglab/hh-suite),
@@ -113,9 +114,12 @@ AIRFold searches for MSA and templates from various databases. The following lis
 
 **Multiple sequence alignment selection**
 *   [PLMSearch](https://github.com/maovshao/PLMSearch)
+*   [MMseq2](https://github.com/soedinglab/mmseqs2?tab=readme-ov-file)
+*   [CCMpred](https://github.com/soedinglab/CCMpred)
 
 **Protein model quality assessment**
 *   [EnQA](https://github.com/BioinfoMachineLearning/EnQA)
+*   [GraphCPLMQA](https://github.com/iobio-zjut/GraphCPLMQA?tab=readme-ov-file)
 
 
 ## Quick commands for main functions
