@@ -120,8 +120,9 @@ def _run(fasta_dir, strategy_dir, reduce_ratio, least_seqs):
         process(sfn, tfn, reduce_ratio, least_seqs)
     else:
         # since the strategy changed, msa selection must reprocess every time
-        logger.info("File already exists, but since msa change, selection reprocessing...")
-        process(sfn, tfn, reduce_ratio, least_seqs)
+        logger.info("File already exists, skipping...")
+        # logger.info("File already exists, but since msa change, selection reprocessing...")
+        # process(sfn, tfn, reduce_ratio, least_seqs)
         
 
 

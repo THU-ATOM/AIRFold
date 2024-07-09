@@ -34,7 +34,7 @@ RUN wget -O cmake-3.22.5-linux-x86_64.tar.gz https://github.com/Kitware/CMake/re
     && rm -rf /tmp/cmake-3.22.5-linux-x86_64 \
     && rm -rf /tmp/cmake-3.22.5-linux-x86_64.tar.gz
 
-# Install HH-suite3
+# Install mmseqs2
 RUN git clone --recursive https://github.com/soedinglab/MMseqs2.git /tmp/mmseqs2 \
     && mkdir /tmp/mmseqs2/build \
     && cd /tmp/mmseqs2/build \

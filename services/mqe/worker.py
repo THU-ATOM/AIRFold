@@ -47,33 +47,36 @@ class MQERunner(BaseRunner):
         return self.start_code
     
     def run(self):
-        request = self.requests[0]
-        ptree = get_pathtree(request)
-        struc_root = ptree.struc_root
-        seq_id = request["name"]
-        
-        predicted_result = {}
-        for select_mode in os.listdir(struc_root):
-            target_dir = str(struc_root) + "/" + select_mode + "/" + seq_id + "alpha/"
-            
-            plddt_file = target_dir + "plddt_results.json"
-            if os.path.exists(plddt_file):
-                with open(plddt_file, "r") as pf:
-                    plddt_dict = json.load(pf)
-                
-                for key, val in plddt_dict.items():
-                    predicted_pdb = target_dir + key + "_relaxed.pdb"
-                    predicted_result[predicted_pdb] = val
-        
-        mqe_method = misc.safe_get(request, ["run_config", "mse"])
-        
-        rank_json = {}
+        ptree_base = get_pathtree(self.requests[0])
+        mqe_method = misc.safe_get(self.requests[0], ["run_config", "mse"])
         if mqe_method == "enqa":
-            ptree.mqe.enqa_temp.parent.mkdir(exist_ok=True, parents=True)
-            for pdb_file, plddt_val in predicted_result.items():
-                score = enqa_msa.evaluation(input_pdb=pdb_file, tmp_dir=ptree.mqe.enqa_temp)
-                rank_json[pdb_file] = {"enqa_score": score, "plddt": plddt_val}
-        dtool.write_json(ptree.mqe.enqa_rankfile, data=rank_json)
+            ptree_base.mqe.enqa_temp.parent.mkdir(exist_ok=True, parents=True)
+            mqe_tmp_dir = ptree_base.mqe.enqa_temp
+            mqe_rank_file = ptree_base.mqe.enqa_rankfile
+        else:
+            ptree_base.mqe.qaten_temp.parent.mkdir(exist_ok=True, parents=True)
+            mqe_tmp_dir = ptree_base.mqe.qaten_temp
+            mqe_rank_file = ptree_base.mqe.qaten_rankfile
+            
+        predicted_result = {}
+        for request in self.requests:
+            ptree = get_pathtree(request)
+            struc_args = misc.safe_get(request, ["run_config", "structure_prediction"])
+            ms_config = ptree.final_msa_fasta.parent.name
+            if "alphafold" in struc_args.keys():
+                target_dir = str(ptree.alphafold.root)
+                plddt_file = target_dir + "plddt_results.json"
+                if os.path.exists(plddt_file):
+                    with open(plddt_file, "r") as pf:
+                        plddt_dict = json.load(pf)
+                    
+                    for key, val in plddt_dict.items():
+                        predicted_pdb = target_dir + key + "_relaxed.pdb"
+                        predicted_result[predicted_pdb] = val
+                        score = enqa_msa.evaluation(input_pdb=predicted_pdb, tmp_dir=mqe_tmp_dir)
+                        predicted_result[ms_config+"_"+key] = {"predicted_pdb": predicted_pdb, "plddt": val, "score": score}
+    
+        dtool.write_json(mqe_rank_file, data=predicted_result)
             
 
     def on_run_end(self):

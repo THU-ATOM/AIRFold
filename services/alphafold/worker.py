@@ -244,168 +244,6 @@ class TemplateFeaturizationRunner(BaseRunner):
                         state=self.success_code,
                     )
 
-class MonoFeatureRunner(BaseRunner):
-    def __init__(
-        self,
-        requests: List[Dict[str, Any]],
-    ) -> None:
-        super().__init__(requests)
-        self.error_code = State.MSA2FEATURE_ERROR
-        self.success_code = State.MSA2FEATURE_SUCCESS
-        self.start_code = State.MSA2FEATURE_START
-        self.sequence = self.requests[0][SEQUENCE]
-        self.target_name = self.requests[0][TARGET]
-
-    @property
-    def start_stage(self) -> State:
-        return self.start_code
-
-    @staticmethod
-    def save_msa_fig_from_a3m_files(msa_paths, save_path):
-
-        delete_lowercase = lambda line: "".join(
-            [t for t in list(line) if not t.islower()]
-        )
-        msa_collection = []
-        for p in msa_paths:
-            with open(p) as fd:
-                _lines = fd.read().strip().split("\n")
-            _lines = [
-                delete_lowercase(l) for l in _lines if not l.startswith(">") and l
-            ]
-            msa_collection.extend(_lines)
-        plot.plot_msas([msa_collection])
-        plt.savefig(save_path, bbox_inches="tight", dpi=200)
-
-    def run(self):
-        ptree = get_pathtree(request=self.requests[0])
-        # get msa_path
-        str_dict = misc.safe_get(self.requests[0], ["run_config", "msa_select"])
-        key_list = list(str_dict.keys())
-        msa_paths = []
-        for idx in range(len(key_list)):
-            selected_msa_path = str(ptree.strategy.strategy_list[idx]) + "_dp.a3m"
-            msa_paths.append(str(selected_msa_path))
-        
-        # get selected_template_feat
-        selected_template_feat_path = str(ptree.alphafold.selected_template_feat)
-        
-        af2_config = self.requests[0]["run_config"]["structure_prediction"]["alphafold"]
-        models = af2_config["model_name"].split(",")
-        random_seed = af2_config.get("random_seed", 0)
-        
-        self.output_paths = []
-        for model_name in models:
-            output_path = str(ptree.alphafold.processed_feat) + f"_{model_name}.pkl"
-            template_feat = dtool.read_pickle(selected_template_feat_path)
-            argument_dict = {
-                "sequence": self.sequence,
-                "target_name": self.target_name,
-                "msa_paths": msa_paths,
-                "template_feature": template_feat,
-                "model_name": model_name,
-                "random_seed": random_seed,
-            }
-            argument_dict = deepcopy(argument_dict)
-            for k, v in af2_config.items():
-                if k not in argument_dict:
-                    argument_dict[k] = v
-            
-            try:
-                processed_fea_path = alphafold_func(run_stage="monomer_msa2feature", 
-                                            output_path=output_path, 
-                                            argument_dict=argument_dict
-                                            )
-                
-                self.output_paths.append(processed_fea_path)
-            except TimeoutError as exc:
-                logger.exception(exc)
-                return False
-
-
-    def on_run_end(self):
-        if self.info_reportor is not None:
-            for request in self.requests:
-                if all([Path(p).exists() for p in self.output_paths]):
-                    self.info_reportor.update_state(
-                        hash_id=request[info_report.HASH_ID],
-                        state=self.success_code,
-                    )
-                else:
-                    self.info_reportor.update_state(
-                        hash_id=request[info_report.HASH_ID],
-                        state=self.error_code,
-                    )
-            
-
-class MonoStructureRunner(BaseRunner):
-    def __init__(
-        self,
-        requests: List[Dict[str, Any]]
-    ) -> None:
-        super().__init__(requests)
-        self.error_code = State.STRUCTURE_ERROR
-        self.success_code = State.STRUCTURE_SUCCESS
-        self.start_code = State.STRUCTURE_START
-        self.target_name = self.requests[0][TARGET]
-
-    @property
-    def start_stage(self) -> State:
-        return self.start_code
-
-    def run(self):
-        ptree = get_pathtree(request=self.requests[0])
-        af2_config = self.requests[0]["run_config"]["structure_prediction"]["alphafold"]
-        models = af2_config["model_name"].split(",")
-        random_seed = af2_config.get("random_seed", 0)
-        self.output_paths = []
-        for model_name in models:
-            fea_path = str(ptree.alphafold.processed_feat) + f"_{model_name}.pkl"
-            processed_feature = dtool.read_pickle(fea_path)
-            os.remove(fea_path)
-            
-            argument_dict = {
-                "target_name": self.target_name,
-                "processed_feature": processed_feature,
-                "model_name": model_name,
-                "data_dir": str(AF_PARAMS_ROOT),
-                "random_seed": random_seed,
-                "return_representations": True,
-            }
-            argument_dict = deepcopy(argument_dict)
-            for k, v in af2_config.items():
-                if k not in argument_dict:
-                    argument_dict[k] = v
-        
-            out_preffix = str(os.path.join(str(ptree.alphafold.root), model_name))
-            out_path = str(os.path.join(str(ptree.alphafold.root), model_name)) + "_unrelaxed.pdb"
-            if not os.path.exists(out_path):
-                try:
-                    pdb_output = alphafold_func(run_stage="predict_structure", 
-                                                output_path=out_preffix, 
-                                                argument_dict=argument_dict
-                                                )
-                    self.output_paths.append(pdb_output)
-                except TimeoutError as exc:
-                    logger.exception(exc)
-                    return False
-        
-
-    def on_run_end(self):
-        if self.info_reportor is not None:
-            for request in self.requests:
-                if all([Path(p).exists() for p in self.output_paths]):
-                    self.info_reportor.update_state(
-                        hash_id=request[info_report.HASH_ID],
-                        state=self.success_code,
-                    )
-                else:
-                    self.info_reportor.update_state(
-                        hash_id=request[info_report.HASH_ID],
-                        state=self.error_code,
-                    )
-
-
 class AlphaStrucRunner(BaseRunner):
     def __init__(
         self,
@@ -449,12 +287,14 @@ class AlphaStrucRunner(BaseRunner):
             selected_msa_path = str(ptree.strategy.strategy_list[idx]) + "_dp.a3m"
             msa_paths.append(str(selected_msa_path))
         
+        msa_image = ptree.alphafold.msa_coverage_image
+        Path(msa_image).parent.mkdir(exist_ok=True, parents=True)
         self.save_msa_fig_from_a3m_files(
             msa_paths=msa_paths,
-            save_path=ptree.alphafold.msa_coverage_image,
+            save_path=msa_image,
         )
         # get selected_template_feat
-        selected_template_feat_path = str(ptree.alphafold.selected_template_feat)
+        selected_template_feat_path = str(ptree.search.selected_template_feat)
         
         af2_config = self.requests[0]["run_config"]["structure_prediction"]["alphafold"]
         models = af2_config["model_name"].split(",")
@@ -462,42 +302,41 @@ class AlphaStrucRunner(BaseRunner):
         
         self.output_paths = []
         for model_name in models:
-            fea_output_path = str(ptree.alphafold.processed_feat) + f"_{model_name}.pkl"
-            template_feat = dtool.read_pickle(selected_template_feat_path)
-            argument_dict1 = {
-                "sequence": self.sequence,
-                "target_name": self.target_name,
-                "msa_paths": msa_paths,
-                "template_feature": template_feat,
-                "model_name": model_name,
-                "random_seed": random_seed,
-            }
-            argument_dict1 = deepcopy(argument_dict1)
-            for k, v in af2_config.items():
-                if k not in argument_dict1:
-                    argument_dict1[k] = v
-            
-            processed_feature = alphafold_func(run_stage="monomer_msa2feature", 
-                                            output_path=fea_output_path, 
-                                            argument_dict=argument_dict1
-                                            )
-            
-            argument_dict2 = {
-                "target_name": self.target_name,
-                "processed_feature": processed_feature,
-                "model_name": model_name,
-                "data_dir": str(AF_PARAMS_ROOT),
-                "random_seed": random_seed,
-                "return_representations": True,
-            }
-            argument_dict2 = deepcopy(argument_dict2)
-            for k, v in af2_config.items():
-                if k not in argument_dict2:
-                    argument_dict2[k] = v
-        
             out_preffix = str(os.path.join(str(ptree.alphafold.root), model_name))
             out_path = str(os.path.join(str(ptree.alphafold.root), model_name)) + "_unrelaxed.pdb"
             if not os.path.exists(out_path):
+                fea_output_path = str(ptree.alphafold.processed_feat) + f"_{model_name}.pkl"
+                template_feat = dtool.read_pickle(selected_template_feat_path)
+                argument_dict1 = {
+                    "sequence": self.sequence,
+                    "target_name": self.target_name,
+                    "msa_paths": msa_paths,
+                    "template_feature": template_feat,
+                    "model_name": model_name,
+                    "random_seed": random_seed,
+                }
+                argument_dict1 = deepcopy(argument_dict1)
+                for k, v in af2_config.items():
+                    if k not in argument_dict1:
+                        argument_dict1[k] = v
+                
+                processed_feature = alphafold_func(run_stage="monomer_msa2feature", 
+                                                output_path=fea_output_path, 
+                                                argument_dict=argument_dict1
+                                                )
+                
+                argument_dict2 = {
+                    "target_name": self.target_name,
+                    "processed_feature": processed_feature,
+                    "model_name": model_name,
+                    "data_dir": str(AF_PARAMS_ROOT),
+                    "random_seed": random_seed,
+                    "return_representations": True,
+                }
+                argument_dict2 = deepcopy(argument_dict2)
+                for k, v in af2_config.items():
+                    if k not in argument_dict2:
+                        argument_dict2[k] = v
                 try:
                     pdb_output = alphafold_func(run_stage="predict_structure", 
                                                 output_path=out_preffix, 

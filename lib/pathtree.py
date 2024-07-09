@@ -377,6 +377,10 @@ class AlphaFoldPathTree(BasePathTree):
     @property
     def result(self):
         return self.root / "result.json"
+    
+    @property
+    def plddt_results(self):
+        return self.root / "plddt_results.json"
 
     @property
     def lddt(self):
@@ -519,6 +523,10 @@ class MQEPathTree(BasePathTree):
     @property
     def qaten_temp(self)-> Path:
         return self.root / "qaten" / "temp"
+    
+    @property
+    def qaten_rankfile(self)-> Path:
+        return self.root / "qaten" / "rank.json"
 
 
 

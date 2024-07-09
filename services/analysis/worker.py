@@ -218,8 +218,8 @@ class GenAnalysisRunner(BaseRunner):
             data = dtool.read_pickle(pkl_path)
             return [(k["name"].split()[0], k["sum_probs"]) for k in data]
 
-        template_feat_pkl_path = str(ptree.alphafold.template_feat)
-        selected_template_pkl_path = str(ptree.alphafold.selected_template_feat)
+        template_feat_pkl_path = str(ptree.search.template_feat)
+        selected_template_pkl_path = str(ptree.search.selected_template_feat)
         all_searched_template_pkl_path = str(ptree.search.template_hits)
 
         ret_dict = {}
