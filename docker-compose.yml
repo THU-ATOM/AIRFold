@@ -4,6 +4,7 @@ services:
     volumes:
       - /data/protein/CAMEO/mongodb:/data/db
     environment:
+      - TZ=Asia/Shanghai
       - MONGODB_INITDB_ROOT_USERNAME=admin
       - MONGODB_INITDB_ROOT_PASSWORD=admin123
     ports:
@@ -43,6 +44,7 @@ services:
       - /data:/data
       - ./lib:/app/lib
     environment:
+      - TZ=Asia/Shanghai
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
       - CELERY_RESULT_BACKEND=redis://redis
       - HOST=0.0.0.0
@@ -62,6 +64,7 @@ services:
     depends_on:
       - rabbitmq
     environment:
+      - TZ=Asia/Shanghai
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
@@ -83,6 +86,7 @@ services:
     depends_on:
       - rabbitmq
     environment:
+      - TZ=Asia/Shanghai
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
@@ -104,6 +108,7 @@ services:
     depends_on:
       - rabbitmq
     environment:
+      - TZ=Asia/Shanghai
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
@@ -125,6 +130,7 @@ services:
     depends_on:
       - rabbitmq
     environment:
+      - TZ=Asia/Shanghai
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
@@ -146,6 +152,7 @@ services:
     depends_on:
       - rabbitmq
     environment:
+      - TZ=Asia/Shanghai
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
@@ -167,6 +174,7 @@ services:
     depends_on:
       - rabbitmq
     environment:
+      - TZ=Asia/Shanghai
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
@@ -189,6 +197,7 @@ services:
     depends_on:
       - rabbitmq
     environment:
+      - TZ=Asia/Shanghai
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
@@ -210,6 +219,7 @@ services:
     depends_on:
       - rabbitmq
     environment:
+      - TZ=Asia/Shanghai
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
       - CELERY_RESULT_BACKEND=redis://redis
       - NVIDIA_VISIBLE_DEVICES=all
@@ -239,6 +249,7 @@ services:
     depends_on:
       - rabbitmq
     environment:
+      - TZ=Asia/Shanghai
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
       - CELERY_RESULT_BACKEND=redis://redis
       - DOCKER_CLIENT_TIMEOUT=${DOCKER_CLIENT_TIMEOUT}
@@ -273,6 +284,7 @@ services:
     depends_on:
       - rabbitmq
     environment:
+      - TZ=Asia/Shanghai
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
@@ -294,6 +306,7 @@ services:
     depends_on:
       - rabbitmq
     environment:
+      - TZ=Asia/Shanghai
       - CELERY_BROKER_URL=amqp://rabbitmq:5672
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:

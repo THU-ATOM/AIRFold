@@ -77,7 +77,7 @@ var Data = {
   },
 
   parse_analysis: function (record) {
-    if (record.path_tree) {
+    if (record.path_tree && record.path_tree.alphafold) {
       var root = record.path_tree.alphafold.root;
       let conformations = [];
       forEach(record.path_tree.alphafold.model_files, (model_file) => {

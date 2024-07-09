@@ -46,35 +46,39 @@ class MMseqsRunner(BaseCommandRunner):
         return State.MMSEQS_START
 
     def build_command(self, request: Dict[str, Any]) -> str:
-
-        executed_file = (
-                Path(__file__).resolve().parent / "lib" / "tool" / "mmseqs" / "search.py")
-        params = []
-        # query fasta
-        ptree = get_pathtree(request=request)
-        params.append(f"--query {ptree.seq.fasta} ")
-        # database dir: uniref30_2302_db and colabfold_envdb_202108_db
-        # dbbase: "/data/protein/datasets_2024"
-        params.append(f"--dbbase {DB_BASE} ")
-        params.append(f"--db1 {UniRef30} ")
-        params.append(f"--db3 {ColabFoldDB} ")
-        # results dir
-        params.append(f"--base {ptree.search.mmseqs_base} ")
-        
-        # # colabfold mmseqs config
-        # SENSITIVITY=8
-        # EXPAND_EVAL=inf
-        # ALIGN_EVAL=10
-        # DIFF=3000
-        # QSC=-20.0
-        # MAX_ACCEPT=1000000
-        args = misc.safe_get(request, ["run_config", "msa_search", "mmseqs"])
-        params.append(f"-s {misc.safe_get(args, 'sensitivity')} ")
-        params.append(f"--align-eval {misc.safe_get(args, 'align_eval')} ")
-        params.append(f"--diff {misc.safe_get(args, 'diff')} ")
-        params.append(f"--qsc {misc.safe_get(args, 'qsc')} ")
-        
-        command = f"python {executed_file} " + "".join(params)
+        tree = get_pathtree(request=request)
+        if not tree.search.mmseqs_a3m.exists():
+            executed_file = (
+                    Path(__file__).resolve().parent / "lib" / "tool" / "mmseqs" / "search.py")
+            params = []
+            # query fasta
+            ptree = get_pathtree(request=request)
+            params.append(f"--query {ptree.seq.fasta} ")
+            # database dir: uniref30_2302_db and colabfold_envdb_202108_db
+            # dbbase: "/data/protein/datasets_2024"
+            params.append(f"--dbbase {DB_BASE} ")
+            params.append(f"--db1 {UniRef30} ")
+            params.append(f"--db3 {ColabFoldDB} ")
+            # results dir
+            params.append(f"--base {ptree.search.mmseqs_base} ")
+            
+            # # colabfold mmseqs config
+            # SENSITIVITY=8
+            # EXPAND_EVAL=inf
+            # ALIGN_EVAL=10
+            # DIFF=3000
+            # QSC=-20.0
+            # MAX_ACCEPT=1000000
+            args = misc.safe_get(request, ["run_config", "msa_search", "mmseqs"])
+            params.append(f"-s {misc.safe_get(args, 'sensitivity')} ")
+            params.append(f"--align-eval {misc.safe_get(args, 'align_eval')} ")
+            params.append(f"--diff {misc.safe_get(args, 'diff')} ")
+            params.append(f"--qsc {misc.safe_get(args, 'qsc')} ")
+            
+            command = f"python {executed_file} " + "".join(params)
+        else:
+            print(f"{tree.search.mmseqs_a3m} already exists, skip!")
+            command = ""
         return command
 
     def on_run_end(self):

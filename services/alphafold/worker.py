@@ -72,31 +72,31 @@ class TemplateSearchRunner(BaseRunner):
     def run(self):
         ptree = get_pathtree(request=self.requests[0])
         template_searching_msa_path = str(ptree.search.jackhammer_uniref90_a3m)
-        output_path = str(ptree.search.template_hits)
-        Path(output_path).parent.mkdir(exist_ok=True, parents=True)
-        self.outputs_paths = [output_path]
+        self.output_path = str(ptree.search.template_hits)
+        if not Path(self.output_path).exists():
+            Path(self.output_path).parent.mkdir(exist_ok=True, parents=True)
 
-        argument_dict = {
-            "input_sequence": self.sequence,
-            "template_searching_msa_path": template_searching_msa_path,
-            "pdb70_database_path": str(PDB70_ROOT / "pdb70"),
-            "hhsearch_binary_path": "hhsearch",
-        }
-        
-        try:
-            out_tpl_path = alphafold_func(run_stage="search_template", 
-                                          output_path=output_path, 
-                                          argument_dict=argument_dict
-                                          )
-            return out_tpl_path
-        except TimeoutError as exc:
-            logger.exception(exc)
-            return False
+            argument_dict = {
+                "input_sequence": self.sequence,
+                "template_searching_msa_path": template_searching_msa_path,
+                "pdb70_database_path": str(PDB70_ROOT / "pdb70"),
+                "hhsearch_binary_path": "hhsearch",
+            }
+            
+            try:
+                alphafold_func(run_stage="search_template", 
+                            output_path=self.output_path, 
+                            argument_dict=argument_dict
+                            )
+                return True
+            except TimeoutError as exc:
+                logger.exception(exc)
+                return False
 
     def on_run_end(self):
         if self.info_reportor is not None:
             for request in self.requests:
-                if all([Path(p).exists() for p in self.outputs_paths]):
+                if Path(self.output_path).exists():
                     self.info_reportor.update_state(
                         hash_id=request[info_report.HASH_ID],
                         state=self.success_code,
@@ -156,21 +156,20 @@ class TPLTSelectRunner(BaseCommandRunner):
         # get template features
         request = self.requests[0]
         ptree = get_pathtree(request)
-        template_feats_path = str(ptree.alphafold.template_feat)
-        
-
-        self.output_path = ptree.alphafold.selected_template_feat
-        
-        if (
-            "template_select_strategy" in request["run_config"]["template"]
-            and request["run_config"]["template"]["template_select_strategy"] == "none"
-        ):
-            template_feats = dtool.read_pickle(template_feats_path)
-            with open(self.output_path, "wb") as fd:
-                pkl.dump(template_feats, fd)
-        else:
-            self.input_path = template_feats_path
-            super().run(dry)
+        template_feats_path = str(ptree.search.template_feat)
+        self.output_path = ptree.search.selected_template_feat
+        Path(self.output_path).parent.mkdir(exist_ok=True, parents=True)
+        if not Path(self.output_path).exists():
+            if (
+                "template_select_strategy" in request["run_config"]["template"]
+                and request["run_config"]["template"]["template_select_strategy"] == "none"
+            ):
+                template_feats = dtool.read_pickle(template_feats_path)
+                with open(self.output_path, "wb") as fd:
+                    pkl.dump(template_feats, fd)
+            else:
+                self.input_path = template_feats_path
+                super().run(dry)
             
 
     def on_run_end(self):
@@ -210,36 +209,36 @@ class TemplateFeaturizationRunner(BaseRunner):
         logger.info(f"template_hits_path: {template_hits_path}")
         template_hits = dtool.read_pickle(template_hits_path)
 
-        output_path = str(ptree.alphafold.template_feat)
-        self.outputs_paths = [output_path]
-        Path(output_path).parent.mkdir(exist_ok=True, parents=True)
+        self.output_path = str(ptree.search.template_feat)
+        Path(self.output_path).parent.mkdir(exist_ok=True, parents=True)
+        if not Path(self.output_path).exists():
 
-        argument_dict = {
-            "input_sequence": self.sequence,
-            "pdb_template_hits": template_hits,
-            "max_template_hits": 20,
-            "template_mmcif_dir": str(PDBMMCIF_ROOT / "mmcif_files"),
-            "max_template_date": "2022-05-31",
-            "obsolete_pdbs_path": str(PDBMMCIF_ROOT / "obsolete.dat"),
-            "kalign_binary_path": "kalign",
-        }
-        
-        try:
-            output_path = alphafold_func(run_stage="make_template_feature", 
-                                          output_path=output_path, 
-                                          argument_dict=argument_dict
-                                          )
+            argument_dict = {
+                "input_sequence": self.sequence,
+                "pdb_template_hits": template_hits,
+                "max_template_hits": 20,
+                "template_mmcif_dir": str(PDBMMCIF_ROOT / "mmcif_files"),
+                "max_template_date": "2022-05-31",
+                "obsolete_pdbs_path": str(PDBMMCIF_ROOT / "obsolete.dat"),
+                "kalign_binary_path": "kalign",
+            }
+            
+            try:
+                alphafold_func(run_stage="make_template_feature", 
+                            output_path=self.output_path, 
+                            argument_dict=argument_dict
+                            )
 
-            return output_path
-        except TimeoutError as exc:
-            logger.exception(exc)
-            return False
+                return True
+            except TimeoutError as exc:
+                logger.exception(exc)
+                return False
 
 
     def on_run_end(self):
         if self.info_reportor is not None:
             for request in self.requests:
-                if all([Path(p).exists() for p in self.outputs_paths]):
+                if Path(self.output_path).exists():
                     self.info_reportor.update_state(
                         hash_id=request[info_report.HASH_ID],
                         state=self.success_code,

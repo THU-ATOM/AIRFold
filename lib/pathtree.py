@@ -302,6 +302,14 @@ class SearchPathTree(BasePathTree):
     def template_hits(self):
         return self.root / "template_hits" / f"{self.id}.hits.pkl"
 
+    @property
+    def template_feat(self):
+        return self.root / "template_feat" / f"{self.id}.pkl"
+    
+    @property
+    def selected_template_feat(self):
+        return self.root / "selected_template_feat" / f"{self.id}.pkl"
+
 class StrategyPathTree(BasePathTree):
     @property
     def strategy_list(self):
@@ -349,14 +357,6 @@ class AlphaFoldPathTree(BasePathTree):
     @property
     def time_cost(self):
         return self.root / "time_cost.txt"
-
-    @property
-    def template_feat(self):
-        return self.root / "template_feat.pkl"
-
-    @property
-    def selected_template_feat(self):
-        return self.root / "selected_template_feat.pkl"
     
     @property
     def processed_feat(self):
@@ -432,14 +432,6 @@ class RoseTTAFoldPathTree(BasePathTree):
     @property
     def time_cost(self):
         return self.root / "time_cost.txt"
-
-    @property
-    def template_feat(self):
-        return self.root / "template_feat.pkl"
-
-    @property
-    def selected_template_feat(self):
-        return self.root / "selected_template_feat.pkl"
 
     @property
     def relaxed_pdbs(self):

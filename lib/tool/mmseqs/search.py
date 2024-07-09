@@ -231,7 +231,10 @@ def msa_to_str(
 def run_mmseqs(mmseqs: Path, params: List[Union[str, Path]]):
     params_log = " ".join(str(i) for i in params)
     logger.info(f"Running {mmseqs} {params_log}")
-    subprocess.check_call([mmseqs] + params)
+    try:
+        subprocess.check_call([mmseqs] + params)
+    except subprocess.CalledProcessError as exc:
+        logger.exception(exc)
 
 
 def mmseqs_search_monomer(
@@ -304,7 +307,8 @@ def mmseqs_search_monomer(
     filter_param = ["--filter-msa", str(filter), "--filter-min-enable", "1000", "--diff", str(diff), "--qid", "0.0,0.2,0.4,0.6,0.8,1.0", "--qsc", "0", "--max-seq-id", "0.95",]
     expand_param = ["--expansion-mode", "0", "-e", str(expand_eval), "--expand-filter-clusters", str(filter), "--max-seq-id", "0.95",]
 
-    run_mmseqs(mmseqs, ["search", base.joinpath("qdb"), dbbase.joinpath(uniref_db), base.joinpath("res"), base.joinpath("tmp"), "--threads", str(threads)] + search_param)
+    if not os.path.exists(base.joinpath("res.dbtype")):
+        run_mmseqs(mmseqs, ["search", base.joinpath("qdb"), dbbase.joinpath(uniref_db), base.joinpath("res"), base.joinpath("tmp"), "--threads", str(threads)] + search_param)
     run_mmseqs(mmseqs, ["mvdb", base.joinpath("tmp/latest/profile_1"), base.joinpath("prof_res")])
     run_mmseqs(mmseqs, ["lndb", base.joinpath("qdb_h"), base.joinpath("prof_res_h")])
     run_mmseqs(mmseqs, ["expandaln", base.joinpath("qdb"), dbbase.joinpath(f"{uniref_db}{dbSuffix1}"), base.joinpath("res"), dbbase.joinpath(f"{uniref_db}{dbSuffix2}"), base.joinpath("res_exp"), "--db-load-mode", str(db_load_mode), "--threads", str(threads)] + expand_param)
@@ -322,8 +326,9 @@ def mmseqs_search_monomer(
     subprocess.run([mmseqs] + ["rmdb", base.joinpath("res_exp_realign_filter")])
 
     if use_env:
-        run_mmseqs(mmseqs, ["search", base.joinpath("prof_res"), dbbase.joinpath(metagenomic_db), base.joinpath("res_env"),
-                            base.joinpath("tmp3"), "--threads", str(threads)] + search_param)
+        if not os.path.exists(base.joinpath("res_env.dbtype")):
+            run_mmseqs(mmseqs, ["search", base.joinpath("prof_res"), dbbase.joinpath(metagenomic_db), base.joinpath("res_env"),
+                                base.joinpath("tmp3"), "--threads", str(threads)] + search_param)
         run_mmseqs(mmseqs, ["expandaln", base.joinpath("prof_res"), dbbase.joinpath(f"{metagenomic_db}{dbSuffix1}"), base.joinpath("res_env"),
                             dbbase.joinpath(f"{metagenomic_db}{dbSuffix2}"), base.joinpath("res_env_exp"), "-e", str(expand_eval),
                             "--expansion-mode", "0", "--db-load-mode", str(db_load_mode), "--threads", str(threads)])
@@ -542,7 +547,7 @@ if __name__ == "__main__":
         help="Database preload mode 0: auto, 1: fread, 2: mmap, 3: mmap+touch",
     )
     parser.add_argument(
-        "--threads", type=int, default=64, help="Number of threads to use."
+        "--threads", type=int, default=16, help="Number of threads to use."
     )
     argv = parser.parse_args()
     
