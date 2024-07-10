@@ -1,0 +1,14 @@
+celery[redis]
+pymongo
+loguru
+matplotlib
+requests
+jsonlines
+rich
+biopython
+py3Dmol
+psutil
+gpustat
+tqdm
+absl-py
+hydra-core
