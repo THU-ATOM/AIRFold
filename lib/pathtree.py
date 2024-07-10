@@ -517,16 +517,16 @@ class MQEPathTree(BasePathTree):
         return self.root / "enqa" / "rank.json"
     
     @property
-    def qaten(self)-> Path:
-        return self.root / "qaten"
+    def gcpl(self)-> Path:
+        return self.root / "gcpl"
     
     @property
-    def qaten_temp(self)-> Path:
-        return self.root / "qaten" / "temp"
+    def gcpl_temp(self)-> Path:
+        return self.root / "gcpl" / "temp"
     
     @property
-    def qaten_rankfile(self)-> Path:
-        return self.root / "qaten" / "rank.json"
+    def gcpl_rankfile(self)-> Path:
+        return self.root / "gcpl" / "rank.json"
 
 
 

@@ -5,10 +5,10 @@ from celery import Celery
 from typing import Any, Dict, List
 
 from lib.base import BaseRunner
-from lib.state import State
+# from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.utils import misc
-from lib.monitor import info_report
+# from lib.monitor import info_report
 import lib.utils.datatool as dtool
 from lib.tool.enqa import enqa_msa
 
@@ -38,25 +38,27 @@ class MQERunner(BaseRunner):
         self, requests: List[Dict[str, Any]]
     ):
         super().__init__(requests)
-        self.error_code = State.MQE_ERROR
-        self.success_code = State.MQE_SUCCESS
-        self.start_code = State.MQE_START
+    #     self.error_code = State.MQE_ERROR
+    #     self.success_code = State.MQE_SUCCESS
+    #     self.start_code = State.MQE_START
 
-    @property
-    def start_stage(self) -> int:
-        return self.start_code
+    # @property
+    # def start_stage(self) -> int:
+    #     return self.start_code
     
     def run(self):
         ptree_base = get_pathtree(self.requests[0])
         mqe_method = misc.safe_get(self.requests[0], ["run_config", "mse"])
         if mqe_method == "enqa":
+            # EnQA
             ptree_base.mqe.enqa_temp.parent.mkdir(exist_ok=True, parents=True)
             mqe_tmp_dir = ptree_base.mqe.enqa_temp
             mqe_rank_file = ptree_base.mqe.enqa_rankfile
         else:
-            ptree_base.mqe.qaten_temp.parent.mkdir(exist_ok=True, parents=True)
-            mqe_tmp_dir = ptree_base.mqe.qaten_temp
-            mqe_rank_file = ptree_base.mqe.qaten_rankfile
+            # GraphCPLMQA
+            ptree_base.mqe.gcpl_temp.parent.mkdir(exist_ok=True, parents=True)
+            mqe_tmp_dir = ptree_base.mqe.gcpl_temp
+            mqe_rank_file = ptree_base.mqe.gcpl_rankfile
             
         predicted_result = {}
         for request in self.requests:
@@ -79,18 +81,18 @@ class MQERunner(BaseRunner):
         dtool.write_json(mqe_rank_file, data=predicted_result)
             
 
-    def on_run_end(self):
-        if self.info_reportor is not None:
-            for request in self.requests:
-                tree = get_pathtree(request=request)
-                if tree.mqe.enqa_rankfile.exists():
-                    self.info_reportor.update_state(
-                        hash_id=request[info_report.HASH_ID],
-                        state=self.success_code,
-                    )
-                else:
-                    self.info_reportor.update_state(
-                        hash_id=request[info_report.HASH_ID],
-                        state=self.error_code,
-                    )
+    # def on_run_end(self):
+    #     if self.info_reportor is not None:
+    #         for request in self.requests:
+    #             tree = get_pathtree(request=request)
+    #             if tree.mqe.enqa_rankfile.exists():
+    #                 self.info_reportor.update_state(
+    #                     hash_id=request[info_report.HASH_ID],
+    #                     state=self.success_code,
+    #                 )
+    #             else:
+    #                 self.info_reportor.update_state(
+    #                     hash_id=request[info_report.HASH_ID],
+    #                     state=self.error_code,
+    #                 )
                     
