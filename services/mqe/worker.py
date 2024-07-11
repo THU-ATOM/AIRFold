@@ -11,6 +11,7 @@ from lib.utils import misc
 # from lib.monitor import info_report
 import lib.utils.datatool as dtool
 from lib.tool.enqa import enqa_msa
+from lib.tool.gcpl import gcpl_qa
 
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "rpc://")
 CELERY_BROKER_URL = (
@@ -75,24 +76,12 @@ class MQERunner(BaseRunner):
                     for key, val in plddt_dict.items():
                         predicted_pdb = target_dir + key + "_relaxed.pdb"
                         predicted_result[predicted_pdb] = val
-                        score = enqa_msa.evaluation(input_pdb=predicted_pdb, tmp_dir=mqe_tmp_dir)
+                        if mqe_method == "enqa":
+                            score = enqa_msa.evaluation(input_pdb=predicted_pdb, tmp_dir=mqe_tmp_dir)
+                        else:
+                            score = gcpl_qa.evaluation(fasta_file=ptree.seq.fasta, decoy_file=predicted_pdb, tmp_dir=mqe_tmp_dir)
                         predicted_result[ms_config+"_"+key] = {"predicted_pdb": predicted_pdb, "plddt": val, "score": score}
     
         dtool.write_json(mqe_rank_file, data=predicted_result)
             
-
-    # def on_run_end(self):
-    #     if self.info_reportor is not None:
-    #         for request in self.requests:
-    #             tree = get_pathtree(request=request)
-    #             if tree.mqe.enqa_rankfile.exists():
-    #                 self.info_reportor.update_state(
-    #                     hash_id=request[info_report.HASH_ID],
-    #                     state=self.success_code,
-    #                 )
-    #             else:
-    #                 self.info_reportor.update_state(
-    #                     hash_id=request[info_report.HASH_ID],
-    #                     state=self.error_code,
-    #                 )
                     

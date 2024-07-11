@@ -127,7 +127,7 @@ def main():
     # with open("./tmp/temp_6000_64_1_seqentropy_mmseqs.json", 'r') as jf:
     # with open("./tmp/temp_6000_64_1_plmsim_mmseqs.json", 'r') as jf:
     # with open("./tmp/temp_6000_64_1_seqentropy.json", 'r') as jf:
-    with open("./tmp/temp_8000_64_1_seqentropy_mmseqs.json", 'r') as jf:
+    with open("./tmp/temp_8000_64_1_plmsim_mmseqs.json", 'r') as jf:
         request_dict = json.load(jf)
     
     # weeks = ['2024.02.17', '2024.02.24', '2024.03.02', '2024.03.09', 

@@ -250,9 +250,9 @@ class AlphaStrucRunner(BaseRunner):
         requests: List[Dict[str, Any]]
     ) -> None:
         super().__init__(requests)
-        self.error_code = State.STRUCTURE_ERROR
-        self.success_code = State.STRUCTURE_SUCCESS
-        self.start_code = State.STRUCTURE_START
+        self.error_code = State.AlphaFold_ERROR
+        self.success_code = State.AlphaFold_SUCCESS
+        self.start_code = State.AlphaFold_START
         self.sequence = self.requests[0][SEQUENCE]
         self.target_name = self.requests[0][TARGET]
 

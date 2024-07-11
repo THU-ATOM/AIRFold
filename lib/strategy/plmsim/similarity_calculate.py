@@ -49,3 +49,4 @@ def main(query_embedding_dic, target_embedding_dic, device, model, least_seqs, s
                     # print("Select seq_id: %d" % select_id)
                     # select_ids.append(select_id)
                     f.write(f"{protein}\t{pair[0]}\t{pair[1]}\n")
+    torch.cuda.empty_cache()

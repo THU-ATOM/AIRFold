@@ -228,43 +228,6 @@ class CcmpredCluster(ClusterStrategy):
             dtool.list2fasta(Path(self.clustered) / name /("cluster_"+str(i)+".fasta"),results[i])
                         # dtool.list2fasta(Path(self.clustered) / Path(name+"_cluster_"+str(i)+".fasta"),results[i])
 
-
-    # def cluster_Aff(self,dam=0.5):
-    #     mask = self.gen_cluster_mask()
-    #     with open(self.original_msa) as f:
-    #         lines = f.readlines()
-    #         lines = [line.strip() for line in lines]
-    #     seq = lines[0]
-    #     lines = np.asarray(lines[1:])
-    #     if self.metric == "leven":
-    #         dist = distance.levenshtein
-    #     else:
-    #         raise NotImplementedError
-        
-    #     similarity = -1*np.array([[dist(w1 * mask,w2* mask) for w1 in lines] for w2 in lines])
-
-    #     af = AffinityPropagation(affinity="precomputed", damping=dam)
-
-    #     af.fit(similarity)
-
-    #     cluster_result = []
-
-    #     for cluster_id in np.unique(af.labels_):
-    #         exemplar = lines[af.cluster_centers_indices_[cluster_id]]
-    #         cluster = seq + np.unique(lines[np.nonzero(af.labels_==cluster_id)]).to_list()
-    #         cluster_result.append({"exemplar":exemplar,"cluster":cluster})
-        
-    #     os.mkdir(self.clustered,exists_ok=True)
-    #     name = self.original_msa.split('/')[-1].split('.')[0]
-    #     with open(self.clustered+"/"+name+".cluster","w") as f:
-    #         for cluster in cluster_result:
-    #             f.write(f"{cluster['exemplar']}\n")
-    #             #f.write(f"{cluster['cluster']}\n")
-    #     for i,cluster in enumerate(cluster_result):
-    #         dtool.list2fasta((Path(self.clustered) / name /"cluster_"+str(i)+".fasta"),cluster['cluster'])
-        
-    #     print(f"cluster result is saved in {self.clustered}")
-
 # c = CcmpredCluster("/data/protein/CASP15/data/2022-05-06/search/intergrated_fa/2022-05-06_T1110___Q9zm@s@50@e@100.fasta","/data/train_log/songyuxuan/tmp",160)
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="cluster the msa file")

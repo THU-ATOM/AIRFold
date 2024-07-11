@@ -64,37 +64,48 @@ class State(Enum):
     TPLT_FEAT_SUCCESS = 241
     TPLT_FEAT_ERROR = 942
 
-    MSA2FEATURE_START = 300
-    MSA2FEATURE_SUCCESS = 301
-    MSA2FEATURE_ERROR = 930
-
-    STRUCTURE_START = 310
-    STRUCTURE_SUCCESS = 311
-    STRUCTURE_ERROR = 931
+    AlphaFold_START = 300
+    AlphaFold_SUCCESS = 310
+    AlphaFold_ERROR = 950
     
-    RoseTTAFold_START = 320
-    RoseTTAFold_SUCCESS = 321
-    RoseTTAFold_ERROR = 932
+    RoseTTAFold_START = 301
+    RoseTTAFold_SUCCESS = 311
+    RoseTTAFold_ERROR = 951
+
+    ESMFold_START = 302
+    ESMFold_SUCCESS = 312
+    ESMFold_ERROR = 952
+    
+    OmegaFold_START = 303
+    OmegaFold_SUCCESS = 313
+    OmegaFold_ERROR = 953
+    
+    RaptorX_START = 304
+    RaptorX_SUCCESS = 314
+    RaptorX_ERROR = 954
+    
+    trRosettaX_START = 305
+    trRosettaX_SUCCESS = 315
+    trRosettaX_ERROR = 955
 
     RELAX_START = 330
     RELAX_SUCCESS = 331
-    RELAX_ERROR = 933
+    RELAX_ERROR = 960
 
     ANALYSIS_GEN = 380
 
     SUBMIT_START = 400
     SUBMIT_SUCCESS = 401
     SUBMIT_SKIP = 402
-
     SUBMIT_ERROR = 991
 
     PREPROCESS_START = 500
     PREPROCESS_SUCCESS = 501
-    PREPROCESS_ERROR = 950
+    PREPROCESS_ERROR = 970
 
     MQE_START = 600
     MQE_SUCCESS = 601
-    MQE_ERROR = 960
+    MQE_ERROR = 980
 
     KILLED = 998
     RUNTIME_ERROR = 999

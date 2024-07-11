@@ -1,5 +1,5 @@
 import os
-
+import shutil
 import torch
 import numpy as np
 import esm
@@ -83,4 +83,6 @@ def evaluation(input_pdb, tmp_dir):
 
     out = lddt_pred.cpu().detach().numpy().astype(np.float16)
     out_score = np.mean(out)
+    
+    shutil.rmtree(tmp_dir)
     return out_score

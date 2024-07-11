@@ -107,12 +107,12 @@ def process(args):
     
     model = plmsearch(embed_dim = 1280)
     model.load_pretrained(sim_model_path)
+    model.to(device)
     model.eval()
     model_methods = model
     if (device != "cpu"):
         model = nn.DataParallel(model, device_ids=device_ids)
         model_methods = model.module
-    model.to(device)
     
     search_result_path = path_prefix + "_similarity.csv"
     # if not os.path.exists(search_result_path):
@@ -123,7 +123,7 @@ def process(args):
         for line in lines:
             select_id_src = line.split("\t")[1]
             select_id = int(select_id_src.split("|")[0])
-            print("Select seq_id: %d" % select_id)
+            # print("Select seq_id: %d" % select_id)
             select_ids.append(select_id)
             
     

@@ -41,3 +41,4 @@ def main(esm_model_path, fasta, embedding_result, device, device_id):
         
         with open(embedding_result, 'wb') as handle:
             pickle.dump(embedding_result_dic, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    torch.cuda.empty_cache()
