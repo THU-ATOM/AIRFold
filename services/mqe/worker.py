@@ -4,14 +4,13 @@ from celery import Celery
 
 from typing import Any, Dict, List
 
-from lib.base import BaseRunner
 # from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.utils import misc
 # from lib.monitor import info_report
 import lib.utils.datatool as dtool
 from lib.tool.enqa import enqa_msa
-from lib.tool.gcpl import gcpl_qa
+# from lib.tool.gcpl import gcpl_qa
 
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "rpc://")
 CELERY_BROKER_URL = (
@@ -31,14 +30,16 @@ celery.conf.task_routes = {
 
 @celery.task(name="mqe")
 def mqeTask(requests: List[Dict[str, Any]]):
-    MQERunner(requests=requests)()
+    MQERunner(requests=requests, method="enqa").run()
 
 
-class MQERunner(BaseRunner):
+class MQERunner():
     def __init__(
-        self, requests: List[Dict[str, Any]]
+        self, requests: List[Dict[str, Any]], method: str
     ):
-        super().__init__(requests)
+        # super().__init__(requests)
+        self.requests = requests
+        self.mqe_method = method
     #     self.error_code = State.MQE_ERROR
     #     self.success_code = State.MQE_SUCCESS
     #     self.start_code = State.MQE_START
@@ -49,8 +50,7 @@ class MQERunner(BaseRunner):
     
     def run(self):
         ptree_base = get_pathtree(self.requests[0])
-        mqe_method = misc.safe_get(self.requests[0], ["run_config", "mse"])
-        if mqe_method == "enqa":
+        if self.mqe_method == "enqa":
             # EnQA
             ptree_base.mqe.enqa_temp.parent.mkdir(exist_ok=True, parents=True)
             mqe_tmp_dir = ptree_base.mqe.enqa_temp
@@ -76,10 +76,10 @@ class MQERunner(BaseRunner):
                     for key, val in plddt_dict.items():
                         predicted_pdb = target_dir + key + "_relaxed.pdb"
                         predicted_result[predicted_pdb] = val
-                        if mqe_method == "enqa":
+                        if self.mqe_method == "enqa":
                             score = enqa_msa.evaluation(input_pdb=predicted_pdb, tmp_dir=mqe_tmp_dir)
-                        else:
-                            score = gcpl_qa.evaluation(fasta_file=ptree.seq.fasta, decoy_file=predicted_pdb, tmp_dir=mqe_tmp_dir)
+                        # else:
+                        #     score = gcpl_qa.evaluation(fasta_file=ptree.seq.fasta, decoy_file=predicted_pdb, tmp_dir=mqe_tmp_dir)
                         predicted_result[ms_config+"_"+key] = {"predicted_pdb": predicted_pdb, "plddt": val, "score": score}
     
         dtool.write_json(mqe_rank_file, data=predicted_result)

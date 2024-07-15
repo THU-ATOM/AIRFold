@@ -4,7 +4,7 @@ import os
 import re
 import shutil
 
-from utils.SGCN.common import names
+from lib.tool.enqa.utils.SGCN.common import names
 
 
 def path(parts):

@@ -1,7 +1,7 @@
 import os
 
-from utils.SGCN.common import utils
-from utils.SGCN.common.format import create_atom_label
+from lib.tool.enqa.utils.SGCN.common import utils
+from lib.tool.enqa.utils.SGCN.common.format import create_atom_label
 
 
 def is_hydrogen(atom_name):

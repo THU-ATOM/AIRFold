@@ -1,7 +1,6 @@
 import json
 import requests
 from loguru import logger
-import os
 
 
 def load_fasta(file_path, dir_name, data_suffix):
@@ -21,10 +20,22 @@ def load_fasta(file_path, dir_name, data_suffix):
 
 def MQEWorker(request_dicts):
     
-    mqe_url = f"http://10.0.0.12:8081/mqe"
+    
+    TOKEN = "***"
+    HEADERS = {
+    "User-Agent": "Python API Sample",
+    "Authorization": "Bearer " + TOKEN,
+    "Content-Type": "application/json"
+    }
+    API_URL = f"http://10.0.0.12:8081/mqe"
     try:
-        logger.info(f"------- Requests of mqe task: {request_dicts}")
-        requests.post(mqe_url , json={'requests': request_dicts})
+        # logger.info(f"------- Requests of mqe task: {request_dicts}")
+        # response = requests.post(url=API_URL , json={"requests": request_dicts})
+        
+        data = {'requests': request_dicts}
+        json_data =json.dumps(data).encode('utf8')
+        response = requests.post(url=API_URL, headers=HEADERS, data=json_data)
+        print(json.dumps(json.loads(response.text), sort_keys=True, indent=4, separators=(",", ": ")))
     except Exception as e:
         logger.error(str(e))
 
@@ -40,7 +51,8 @@ def main():
                  "./tmp/temp_6000_64_1_seqentropy_mmseqs.json",
                  "./tmp/temp_6000_64_1_plmsim_mmseqs.json"]
 
-    dir_names = os.listdir(cameo_dir)
+    # dir_names = os.listdir(cameo_dir)
+    dir_names = ['8BL5_A']
     for dir_name in  dir_names:
         request_dicts = []
         for json_file in json_files:
@@ -51,7 +63,7 @@ def main():
             request_dict["sequence"] = sequence
             request_dict["name"] = seq_name + "_" + case_suffix
             request_dict["target"] = seq_name
-            
+            print(request_dict)
             request_dicts.append(request_dict)
         
         MQEWorker(request_dicts)

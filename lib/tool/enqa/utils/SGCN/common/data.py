@@ -4,7 +4,7 @@ import pandas as pd
 import torch
 import torch.sparse as sparse
 
-from utils.SGCN.common import names, utils
+from lib.tool.enqa.utils.SGCN.common import names, utils
 
 
 CORRECT_MODEL_FILES_SET = {

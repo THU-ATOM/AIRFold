@@ -113,6 +113,7 @@ def pipelineWorker(request_dicts):
 
         try:
             logger.info(f"------- Requests of pipeline task: {request_dicts}")
+            exit()
             requests.post(pipeline_url , json={'requests': request_dicts})
         except Exception as e:
             logger.error(str(e))
@@ -127,7 +128,7 @@ def main():
     # with open("./tmp/temp_6000_64_1_seqentropy_mmseqs.json", 'r') as jf:
     # with open("./tmp/temp_6000_64_1_plmsim_mmseqs.json", 'r') as jf:
     # with open("./tmp/temp_6000_64_1_seqentropy.json", 'r') as jf:
-    with open("./tmp/temp_8000_64_1_plmsim_mmseqs.json", 'r') as jf:
+    with open("./tmp/temp_5000_64_1_seqentropy_mmseqs.json", 'r') as jf:
         request_dict = json.load(jf)
     
     # weeks = ['2024.02.17', '2024.02.24', '2024.03.02', '2024.03.09', 
@@ -141,9 +142,9 @@ def main():
     
     # for run dir or run bad case
     # run dir
-    dir_names = os.listdir(cameo_dir)
+    # dir_names = os.listdir(cameo_dir)
     # run bad case
-    # dir_names = ['8BL5_A']
+    dir_names = ['8BL5_A']
     for dir_name in  dir_names:
         seq_file = cameo_dir + dir_name + "/" + "target.fasta"
         seq_name, sequence = load_fasta(seq_file, dir_name, data_suffix)

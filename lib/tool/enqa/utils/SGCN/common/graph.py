@@ -8,7 +8,7 @@ import time
 from biopandas.pdb import PandasPdb
 from functools import cmp_to_key
 
-from utils.SGCN.common import checks, covalent, format, names, utils
+from lib.tool.enqa.utils.SGCN.common import checks, covalent, format, names, utils
 
 TARGET_SCORES_DF_NAMES = ['chain_id', 'residue_number', '#2', '#3', '#4', 'residue_name', 'atom_name', 'score']
 CONTACTS_DF_NAMES = [

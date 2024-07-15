@@ -7,7 +7,7 @@ import numpy as np
 from scipy.special import softmax
 from scipy.spatial.distance import pdist, squareform
 
-from data.process_label import generate_lddt_score, parse_pdbfile, get_coords_ca
+from lib.tool.enqa.data.process_label import generate_lddt_score, parse_pdbfile, get_coords_ca
 
 
 def process_alphafold_model(input_model_path, alphafold_prediction_path, lddt_cmd, n_models=5,

@@ -7,8 +7,8 @@
 import torch
 from torch.nn import functional as F
 
-from network.EGNN import EGNN, EGNN_ne
-from network.resnet import ResNet
+from lib.tool.enqa.network.EGNN import EGNN, EGNN_ne
+from lib.tool.enqa.network.resnet import ResNet
 
 
 def task_loss(pred, target, use_mean=True):

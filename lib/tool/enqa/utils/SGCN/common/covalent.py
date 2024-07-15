@@ -1,7 +1,7 @@
 import numpy as np
 
 from Bio.PDB import NeighborSearch, PDBParser
-from utils.SGCN.common import format
+from lib.tool.enqa.utils.SGCN.common import format
 
 SEARCH_RADIUS = 6
 KMIN_DISTANCE_BETWEEN_ATOMS = 0.01
