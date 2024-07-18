@@ -1,12 +1,20 @@
+import os
 import torch
 import esm
 import biotite.structure.io as bsio
+from lib.utils.systool import get_available_gpus
+import lib.utils.datatool as dtool
 
 
 def esm_main(seq_name, sequence):
+    # get device
+    device_ids = get_available_gpus(1)
+    device = torch.device(f"cuda:{device_ids[0]}") if torch.cuda.is_available() else 'cpu'
+    
     # Load ESM-2 model
     model, alphabet = esm.pretrained.esm2_t33_650M_UR50D()
     batch_converter = alphabet.get_batch_converter()
+    model.to(device)
     model.eval()  # disables dropout for deterministic results
 
     # Prepare data (first 2 sequences from ESMStructuralSplitDataset superfamily / 4)
@@ -38,10 +46,15 @@ def esm_main(seq_name, sequence):
     #     plt.title(seq)
     #     plt.show()
 
-def esmfold_main(sequence):
+
+def prediction(sequence, esm_path):
+    # get device
+    device_ids = get_available_gpus(1)
+    device = torch.device(f"cuda:{device_ids[0]}") if torch.cuda.is_available() else 'cpu'
 
     model = esm.pretrained.esmfold_v1()
-    model = model.eval().cuda()
+    model = model.eval()
+    model.to(device)
 
     # Optionally, uncomment to set a chunk size for axial attention. This can help reduce memory.
     # Lower sizes will have lower memory requirements at the cost of increased speed.
@@ -53,10 +66,16 @@ def esmfold_main(sequence):
     with torch.no_grad():
         output = model.infer_pdb(sequence)
 
-    with open("result.pdb", "w") as f:
+    esm_pdb_path = os.path.join(esm_path, "model.pdb")
+    with open(esm_pdb_path, "w") as f:
         f.write(output)
 
 
-    struct = bsio.load_structure("result.pdb", extra_fields=["b_factor"])
-    print(struct.b_factor.mean())  # this will be the pLDDT
-    # 88.3
+    # struct = bsio.load_structure(esm_pdb_path, extra_fields=["b_factor"])
+    # plddt = struct.b_factor.mean()
+    # print("The pLDDT of ESMFold model: %.3f" % plddt)  # this will be the pLDDT
+    
+    # plddt_json = {"plddt": plddt}
+    # esm_json_path = os.path.join(esm_path, "plddt.json")
+    # dtool.write_json(esm_json_path, data=plddt_json)
+    

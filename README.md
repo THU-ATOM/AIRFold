@@ -46,7 +46,7 @@ Please follow these steps:
 4. Launch AIRFold via one line command:
 
     ```bash
-    docker-compose up
+    docker compose up
     ```
 
 5.  Interact with AIRFold via Web page or RESTful API:

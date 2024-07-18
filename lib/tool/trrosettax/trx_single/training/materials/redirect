@@ -1,0 +1,4 @@
+Pretrained ESM-1b: https://dl.fbaipublicfiles.com/fair-esm/models/esm1b_t33_650M_UR50S.pt
+Training sets for trRosettaX-Single:
+    Single15051/MSA15051: https://yanglab.nankai.edu.cn/trRosetta/benchmark/npz.tar.bz2
+    Cluster22503: https://yanglab.nankai.edu.cn/trRosetta/benchmark_single/Cluster22503.lst

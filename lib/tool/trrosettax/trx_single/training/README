@@ -1,0 +1,75 @@
+# Instructions for training the neural networks in trRosettaX-Single.
+
+
+Overview
+====
+
+This package is for training Res2Net_Single and s-ESM-1b following the two-stage procedure proposed in our paper.
+
+
+Requirements
+====
+
+* [Python (>= 3.8)](https://www.python.org/downloads)
+* [Pytorch (>=1.10)](https://pytorch.org/)
+* [Einops](https://github.com/arogozhnikov/einops)
+* [ESM-1b pretrained parameters](https://dl.fbaipublicfiles.com/fair-esm/models/esm1b_t33_650M_UR50S.pt)
+* [Training sets](https://yanglab.nankai.edu.cn/trRosetta/benchmark_single/)
+	Single15051/MSA15051: training set for stage 1, npz files consisting of the MSAs and the extracted geometries are available
+	Cluster22503: training set for stage 2, list of sample ids ("PDBid_Chainid") is provided
+	
+
+Usage
+====
+
+### Stage 1. Knowledge distillation guided by pretrained Res2Net_MSA.
+  
+Please download the pretrained ESM-1b model and the npz files of Single15051 before training.
+```
+wget -P materials/ https://dl.fbaipublicfiles.com/fair-esm/models/esm1b_t33_650M_UR50S.pt 
+wget -P materials/ https://yanglab.nankai.edu.cn/trRosetta/benchmark/npz.tar.bz2 
+tar -xjvf materials/npz.tar.bz2 -C materials/
+```
+
+Then the distillation training can be performed as below if you want to save the training results to `output/`:
+```
+python train.py materials/npz output/ \
+	materials/esm1b_t33_650M_UR50S.pt \
+	--train_stage 1 \
+	--teacher materials/res2net_MSA.pth.tar
+```
+
+
+### Stage 2. Supervised training of ESM-1b.
+
+As MSA is not needed for this stage of training, a larger training set can be used (e.g., Cluster22503, containing 330080 protein chains).  
+The users can generate npz files from PDB files using the given script, e.g.:
+```
+python scripts/label_calcu.py \
+	-pdb /library/pdbs/ \
+	-o materials/npz_cluster/ \
+	-cpu 16
+```
+These chains can be clustered by cd-hit. Every training epoch will cycle through all sequence clusters by picking a random protein chain from each cluster.
+
+```
+python train.py materials/npz_cluster/ output/ \
+	materials/esm1b_t33_650M_UR50S.pt \
+	--train_stage 2 \
+	--clstr xxx.clstr \
+	--init_model output/ckpt/res2net_stage1.pth.tar
+```
+Note that `xxx.clstr` is the output file of cd-hit containing the cluster information. If `--clstr` is not assigned, each training epoch will cycle through all sequences in the training set.  
+After training, the trained Res2Net_Single and s-ESM-1b parameters will be saved to `output/ckpt`.
+
+
+### Make prediction by the trained model.
+
+```
+python predict_from_trained.py \
+	-i ../../example/seq.fasta \
+	-o ../../example/seq.npz \
+	-mdir output/ckpt \ 
+	-gpu 0
+```
+

@@ -1,0 +1,17 @@
+# A brief Introduction to the contents in folder `trx_single`
+## esm_jit
+Modified from https://github.com/facebookresearch/esm/tree/main/esm to allow the use of TorchScript
+
+## models
+The architecture of network used in trRosettaX-Single
+### res2net.py
+Architecture of Res2Net_Single
+### res2net_MSA.py
+Architecture of Res2Net_MSA (i.e., the teacher model used for knowledge distillation)
+
+## scripts
+### label_calcu.py
+Generate npz file for training from PDB files
+
+## training
+The training scripts, see training/README for details.

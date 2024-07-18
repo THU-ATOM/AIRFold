@@ -16,21 +16,8 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
       cmake \
       cuda-command-line-tools-$(cut -f1,2 -d- <<< ${CUDA//./-}) \
       git \
-      hmmer \
-      kalign \
-      tzdata \
       wget \
     && rm -rf /var/lib/apt/lists/*
-
-# Compile HHsuite from source.
-RUN git clone --branch v3.3.0 https://github.com/soedinglab/hh-suite.git /tmp/hh-suite \
-    && mkdir /tmp/hh-suite/build \
-    && pushd /tmp/hh-suite/build \
-    && cmake -DCMAKE_INSTALL_PREFIX=/opt/hhsuite .. \
-    && make -j 4 && make install \
-    && ln -s /opt/hhsuite/bin/* /usr/bin \
-    && popd \
-    && rm -rf /tmp/hh-suite
 
 # Install Miniconda & use Python 3.8
 ARG python=3.8

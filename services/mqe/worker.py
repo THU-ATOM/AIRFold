@@ -10,7 +10,7 @@ from lib.utils import misc
 # from lib.monitor import info_report
 import lib.utils.datatool as dtool
 from lib.tool.enqa import enqa_msa
-# from lib.tool.gcpl import gcpl_qa
+from lib.tool.gcpl import gcpl_qa
 
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "rpc://")
 CELERY_BROKER_URL = (
@@ -78,8 +78,8 @@ class MQERunner():
                         predicted_result[predicted_pdb] = val
                         if self.mqe_method == "enqa":
                             score = enqa_msa.evaluation(input_pdb=predicted_pdb, tmp_dir=mqe_tmp_dir)
-                        # else:
-                        #     score = gcpl_qa.evaluation(fasta_file=ptree.seq.fasta, decoy_file=predicted_pdb, tmp_dir=mqe_tmp_dir)
+                        else:
+                            score = gcpl_qa.evaluation(fasta_file=ptree.seq.fasta, decoy_file=predicted_pdb, tmp_dir=mqe_tmp_dir)
                         predicted_result[ms_config+"_"+key] = {"predicted_pdb": predicted_pdb, "plddt": val, "score": score}
     
         dtool.write_json(mqe_rank_file, data=predicted_result)
