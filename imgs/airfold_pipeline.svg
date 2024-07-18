@@ -114,7 +114,7 @@
   <text class="cls-14" transform="translate(267.4 153.5)"><tspan x="0" y="0">Single sequence</tspan><tspan x="0" y="12.2">structure prediction</tspan></text>
   <rect class="cls-11" x="268.3" y="174.4" width="112.9" height="32.7" rx="1.8" ry="1.8"/>
   <text class="cls-13" transform="translate(280.1 185.8)"><tspan x="0" y="0">Structure Prediction</tspan></text>
-  <text class="cls-16" transform="translate(288.4 194.1)"><tspan x="0" y="0">ESMFold / OmegaFold /</tspan><tspan x="13.9" y="8.1">RaptorX-single</tspan></text>
+  <text class="cls-16" transform="translate(288.4 194.1)"><tspan x="0" y="0">ESMFold / OmegaFold /</tspan><tspan x="-15.4" y="8.1">RaptorX-single / trRosettaX-Single</tspan></text>
   <rect class="cls-7" x="258.1" y="8.9" width="131.5" height="119" rx="9" ry="9"/>
   <rect class="cls-7" x="256.1" y="6.9" width="131.5" height="119" rx="9" ry="9"/>
   <text class="cls-14" transform="translate(266.6 27.3)"><tspan x="0" y="0">Multiple sequence</tspan><tspan x="0" y="12.2">structure prediction</tspan></text>
@@ -132,7 +132,7 @@
   <text class="cls-16" transform="translate(442.4 120.1)"><tspan x="0" y="0">conformation clustering</tspan></text>
   <rect class="cls-9" x="419.1" y="136.9" width="116.7" height="25.5" rx="1.8" ry="1.8"/>
   <text class="cls-13" transform="translate(421.2 148.3)"><tspan x="0" y="0">Model Quality Estimation</tspan></text>
-  <text class="cls-16" transform="translate(453.9 156.7)"><tspan x="0" y="0">EnQA / QATEN</tspan></text>
+  <text class="cls-16" transform="translate(441.8 156.7)"><tspan x="0" y="0">EnQA / GraphCPLMQA</tspan></text>
   <text class="cls-12" transform="translate(88.6 161.3) rotate(-90)"><tspan x="0" y="0">sequence</tspan></text>
   <text class="cls-12" transform="translate(248.3 64.7) rotate(-90)"><tspan x="0" y="0">MSA</tspan></text>
   <rect class="cls-8" x="26" y="11.8" width="53.5" height="53.5" rx="4.5" ry="4.5"/>
