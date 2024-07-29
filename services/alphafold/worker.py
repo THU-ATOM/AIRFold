@@ -4,7 +4,6 @@ from copy import deepcopy
 from celery import Celery
 from pathlib import Path
 from typing import Any, Dict, List
-from loguru import logger
 
 import pickle as pkl
 import matplotlib.pyplot as plt

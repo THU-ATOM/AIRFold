@@ -1,7 +1,7 @@
 import os
 import json
 from celery import Celery
-
+from loguru import logger
 from typing import Any, Dict, List
 
 # from lib.state import State
@@ -50,6 +50,8 @@ class MQERunner():
     
     def run(self):
         ptree_base = get_pathtree(self.requests[0])
+        
+        logger.info(f"***** MQE Method: {self.mqe_method}")
         if self.mqe_method == "enqa":
             # EnQA
             ptree_base.mqe.enqa_temp.parent.mkdir(exist_ok=True, parents=True)
@@ -61,27 +63,39 @@ class MQERunner():
             mqe_tmp_dir = ptree_base.mqe.gcpl_temp
             mqe_rank_file = ptree_base.mqe.gcpl_rankfile
             
-        predicted_result = {}
+        predicted_result = []
         for request in self.requests:
             ptree = get_pathtree(request)
             struc_args = misc.safe_get(request, ["run_config", "structure_prediction"])
-            ms_config = ptree.final_msa_fasta.parent.name
+            logger.info(f"STRUC ARGS: {struc_args}")
+            # ms_config = ptree.final_msa_fasta.parent.name
             if "alphafold" in struc_args.keys():
                 target_dir = str(ptree.alphafold.root)
-                plddt_file = target_dir + "plddt_results.json"
+                
+                plddt_file = os.path.join(target_dir, "plddt_results.json")
+                logger.info(f"pLDDT File: {plddt_file}")
+                
                 if os.path.exists(plddt_file):
                     with open(plddt_file, "r") as pf:
                         plddt_dict = json.load(pf)
                     
                     for key, val in plddt_dict.items():
-                        predicted_pdb = target_dir + key + "_relaxed.pdb"
-                        predicted_result[predicted_pdb] = val
+                        
+                        predicted_pdb = os.path.join(target_dir, key + "_relaxed.pdb")
+                        logger.info(f"Evaluating decoy: {predicted_pdb}")
+                        
                         if self.mqe_method == "enqa":
                             score = enqa_msa.evaluation(input_pdb=predicted_pdb, tmp_dir=mqe_tmp_dir)
                         else:
                             score = gcpl_qa.evaluation(fasta_file=ptree.seq.fasta, decoy_file=predicted_pdb, tmp_dir=mqe_tmp_dir)
-                        predicted_result[ms_config+"_"+key] = {"predicted_pdb": predicted_pdb, "plddt": val, "score": score}
-    
-        dtool.write_json(mqe_rank_file, data=predicted_result)
+                        
+                        logger.info(f"Evaluation score: {score}")
+                        predicted_result.append({"predicted_pdb": str(predicted_pdb), "plddt": val, "score": score})
+        
+        
+        # dtool.write_json(mqe_rank_file, data=predicted_result)
+        import pickle
+        with open(mqe_rank_file, 'wb') as f:
+            pickle.dump(predicted_result, f)
             
                     

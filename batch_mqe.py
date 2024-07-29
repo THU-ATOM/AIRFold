@@ -1,4 +1,5 @@
 import json
+import os
 import requests
 from loguru import logger
 
@@ -41,18 +42,21 @@ def MQEWorker(request_dicts):
 
 def main():
     # new weeks: 2024.05.04  2024.05.11  2024.05.18  2024.05.25
-    cameo_dir = "/data/protein/datasets_2024/experiment/modeling/2024.05.18/"
-    data_suffix = "2024-06-05"
+    cameo_dir = "/data/protein/datasets_2024/experiment/modeling/modeling_one_week/modeling/2024.07.06/"
+    data_suffix = "2024-07-15"
     # case_suffix = "base_deepmsa_mmseqs"
     case_suffix = "bdm"
     
-    json_files = ["./tmp/temp_6000_64_1_seqentropy_nodq.json",
-                 "./tmp/temp_6000_64_1_seqentropy.json",
-                 "./tmp/temp_6000_64_1_seqentropy_mmseqs.json",
+    # json_files = ["./tmp/temp_6000_64_1_seqentropy_nodq.json",
+    #              "./tmp/temp_6000_64_1_seqentropy.json",
+    #              "./tmp/temp_6000_64_1_seqentropy_mmseqs.json",
+    #              "./tmp/temp_6000_64_1_plmsim_mmseqs.json"]
+    json_files = ["./tmp/temp_6000_64_1_seqentropy_mmseqs.json",
                  "./tmp/temp_6000_64_1_plmsim_mmseqs.json"]
+    # json_files = ["./tmp/temp_6000_64_1_seqentropy_mmseqs.json"]
 
-    # dir_names = os.listdir(cameo_dir)
-    dir_names = ['8BL5_A']
+    dir_names = os.listdir(cameo_dir)
+    # dir_names = ['8HZV_A']
     for dir_name in  dir_names:
         request_dicts = []
         for json_file in json_files:

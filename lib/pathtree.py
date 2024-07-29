@@ -585,7 +585,7 @@ class MQEPathTree(BasePathTree):
     
     @property
     def enqa_rankfile(self)-> Path:
-        return self.root / "enqa" / "rank.json"
+        return self.root / "enqa" / "rank.pkl"
     
     @property
     def gcpl(self)-> Path:
@@ -597,7 +597,7 @@ class MQEPathTree(BasePathTree):
     
     @property
     def gcpl_rankfile(self)-> Path:
-        return self.root / "gcpl" / "rank.json"
+        return self.root / "gcpl" / "rank.pkl"
 
 
 
@@ -645,6 +645,13 @@ class CAMEOPathTree(BasePathTree):
     @property
     def rosettafold2(self):
         return RoseTTAFoldPathTree(
+            self.root / "structure" / self.final_msa_fasta.parent.name,
+            self.request,
+        )
+    
+    @property
+    def esmfold(self):
+        return ESMFoldPathTree(
             self.root / "structure" / self.final_msa_fasta.parent.name,
             self.request,
         )

@@ -69,14 +69,24 @@ RUN git clone --recursive https://github.com/soedinglab/MMseqs2.git /tmp/mmseqs2
     && make install\
     && rm -rf /tmp/mmseqs2
 
+# Update CMake
+RUN wget -O cmake-3.22.5-linux-x86_64.tar.gz https://github.com/Kitware/CMake/releases/download/v3.22.5/cmake-3.22.5-linux-x86_64.tar.gz \
+    && tar zxvf cmake-3.22.5-linux-x86_64.tar.gz \
+    && cd cmake-3.22.5-linux-x86_64 \
+    && cp -r bin/ /usr/local \
+    && cp -r share/ /usr/local \
+    && rm -rf /tmp/cmake-3.22.5-linux-x86_64 \
+    && rm -rf /tmp/cmake-3.22.5-linux-x86_64.tar.gz
+
 # Install CCMpred
+ENV CUDACXX=/usr/local/cuda-11.1/bin/nvcc
 RUN git clone --recursive https://github.com/soedinglab/CCMpred.git /tmp/CCMpred \
-&& mkdir /tmp/CCMpred/build \
-&& cd /tmp/CCMpred/build \
-&& cmake -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-11.3 -DCMAKE_INSTALL_PREFIX=/usr/local .. \
-&& make \
-&& make install\
-&& rm -rf /tmp/CCMpred
+    && mkdir /tmp/CCMpred/build \
+    && cd /tmp/CCMpred/build \
+    && cmake -DCMAKE_INSTALL_PREFIX=/usr/local .. \
+    && make \
+    && make install\
+    && rm -rf /tmp/CCMpred
 
 # add user
 RUN if [ $USER_NAME != "root" ] ; \

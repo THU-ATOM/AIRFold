@@ -224,7 +224,7 @@ class BaseRunner:
         res = None
         try:
             # someting error when processing long sequence
-            wait_until_memory_available(min_percent=10.0, min_memory=10.0)
+            wait_until_memory_available(min_percent=20.0, min_memory=20.0)
             run_wrapper = timeit_logger(self.run)
             res = run_wrapper(*args, **kwds)
         except Exception as e:

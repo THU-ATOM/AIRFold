@@ -112,11 +112,6 @@ async def submit_task(requests: List[Dict[str, Any]]):
     task = celery_client.send_task("submit", args=[requests], queue="queue_submit")
     return {"task_id": task.id}
 
-@app.post("/mqe/")
-async def mqe_task(requests: List[Dict[str, Any]]):
-    task = celery_client.send_task("mqe", args=[requests], queue="queue_mqe")
-    return {"task_id": task.id}
-
 @app.get("/check/{task_id}")
 async def get_task_result(task_id: str):
     task_result = AsyncResult(task_id, app=celery_client)
@@ -169,6 +164,12 @@ async def get_group_task_result(group_task_id: str):
             "status": [task.status for task in task_result],
             "result": "Not ready",
         }
+
+
+@app.post("/mqe/")
+async def mqe_task(requests: List[Dict[str, Any]] = Body(..., embed=True)):
+    task = celery_client.send_task("mqe", args=[requests], queue="queue_mqe")
+    return {"task_id": task.id}
 
 
 @app.post("/pipeline/")

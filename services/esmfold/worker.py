@@ -7,8 +7,9 @@ from lib.base import BaseRunner
 from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.monitor import info_report
-from lib.utils import misc
-from lib.utils.execute import rlaunch_exists, rlaunch_wrapper
+from pathlib import Path
+# from lib.utils import misc
+# from lib.utils.execute import rlaunch_exists, rlaunch_wrapper
 from lib.tool import esmfold
 
 
@@ -48,18 +49,22 @@ class ESMFoldRunner(BaseRunner):
     
     def run(self):
         request=self.request[0]
-        # query fasta
         ptree = get_pathtree(request)
+        esm_config = request["run_config"]["structure_prediction"]["esmfold"]
         
-        # # get args of rose
+        # # get args of esm
         # args = misc.safe_get(request, ["run_config", "structure_prediction", "esmfold"])
-        
-        esmfold.prediction(sequence=ptree.seq.fasta, esm_path=ptree.esmfold.root)
+        models = esm_config["model_name"].split(",")
+        self.output_paths = []
+        for idx, model_name in enumerate(models):
+            pdb_path = str(os.path.join(str(ptree.alphafold.root), model_name)) + "_relaxed.pdb"
+            esmfold.prediction(sequence=ptree.seq.fasta, esm_pdb_path=pdb_path, random_seed=idx)
+            self.output_paths.append(pdb_path)
 
     def on_run_end(self):
         if self.info_reportor is not None:
             for request in self.requests:
-                if os.path.exists(self.output_path):
+                if all([Path(p).exists() for p in self.output_paths]):
                     self.info_reportor.update_state(
                         hash_id=request[info_report.HASH_ID],
                         state=self.success_code,

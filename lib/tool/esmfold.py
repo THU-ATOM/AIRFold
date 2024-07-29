@@ -4,13 +4,13 @@ import esm
 import biotite.structure.io as bsio
 from lib.utils.systool import get_available_gpus
 import lib.utils.datatool as dtool
+import random
 
 
 def esm_main(seq_name, sequence):
     # get device
     device_ids = get_available_gpus(1)
     device = torch.device(f"cuda:{device_ids[0]}") if torch.cuda.is_available() else 'cpu'
-    
     # Load ESM-2 model
     model, alphabet = esm.pretrained.esm2_t33_650M_UR50D()
     batch_converter = alphabet.get_batch_converter()
@@ -47,8 +47,9 @@ def esm_main(seq_name, sequence):
     #     plt.show()
 
 
-def prediction(sequence, esm_path):
+def prediction(sequence, esm_pdb_path, random_seed):
     # get device
+    random.seed(random_seed)
     device_ids = get_available_gpus(1)
     device = torch.device(f"cuda:{device_ids[0]}") if torch.cuda.is_available() else 'cpu'
 
@@ -66,16 +67,11 @@ def prediction(sequence, esm_path):
     with torch.no_grad():
         output = model.infer_pdb(sequence)
 
-    esm_pdb_path = os.path.join(esm_path, "model.pdb")
-    with open(esm_pdb_path, "w") as f:
-        f.write(output)
-
+    dtool.write_text_file(plaintext=output, path=esm_pdb_path)
 
     # struct = bsio.load_structure(esm_pdb_path, extra_fields=["b_factor"])
     # plddt = struct.b_factor.mean()
     # print("The pLDDT of ESMFold model: %.3f" % plddt)  # this will be the pLDDT
-    
     # plddt_json = {"plddt": plddt}
     # esm_json_path = os.path.join(esm_path, "plddt.json")
     # dtool.write_json(esm_json_path, data=plddt_json)
-    

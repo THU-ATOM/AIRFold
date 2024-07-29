@@ -1,3 +1,4 @@
+import argparse
 import os
 import shutil
 import torch
@@ -10,13 +11,17 @@ from biopandas.pdb import PandasPdb
 from lib.tool.enqa.data.loader import expand_sh
 from lib.tool.enqa.feature import create_basic_features
 from lib.tool.enqa.network.resEGNN import resEGNN_with_ne
-from lib.utils.systool import get_available_gpus
+# from lib.utils.systool import get_available_gpus
+
+ENQA_MSA_PTH = "/data/protein/datasets_2024/enqa/EnQA-MSA.pth"
+ESM_8M = "/data/protein/datasets_2024/enqa/esm2_t6_8M_UR50D.pt"
 
 def evaluation(input_pdb, tmp_dir):
     
-    device_ids = get_available_gpus(1)
-    device = torch.device(f"cuda:{device_ids[0]}") if torch.cuda.is_available() else 'cpu'
-
+    # device_ids = get_available_gpus(1)
+    # device = torch.device(f"cuda:{device_ids[0]}") if torch.cuda.is_available() else 'cpu'
+    device = 'cpu'
+    
     if not os.path.isdir(tmp_dir):
         os.mkdir(tmp_dir)
 
@@ -39,6 +44,8 @@ def evaluation(input_pdb, tmp_dir):
 
 
     model_esm, alphabet = esm.pretrained.esm2_t6_8M_UR50D()
+    # model_esm, alphabet = esm.pretrained.load_model_and_alphabet(ESM_8M)
+    # model_esm.to(device)
     model_esm.eval()
     structure = parser.get_structure('struct', input_pdb)
     for m in structure:
@@ -60,9 +67,8 @@ def evaluation(input_pdb, tmp_dir):
     token_representations = token_representations[:, 1: len(seq) + 1, 1: len(seq) + 1]
 
     model = resEGNN_with_ne(dim2d=dim2d, dim1d=dim1d)
-
-    model.to(device)
-    model.load_state_dict(torch.load("/data/protein/datasets_2024/enqa/EnQA-MSA.pth", map_location=device))
+    # model.to(device)
+    model.load_state_dict(torch.load(ENQA_MSA_PTH, map_location=device))
     model.eval()
 
     x = [one_hot, features, np.expand_dims(plddt, axis=0)]
@@ -86,3 +92,12 @@ def evaluation(input_pdb, tmp_dir):
     
     shutil.rmtree(tmp_dir)
     return out_score
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input_pdb", required=True, type=str)
+    parser.add_argument("--tmp_dir", required=True, type=str)
+    
+    args = parser.parse_args()
+    evaluation(args.input_pdb, args.tmp_dir)
