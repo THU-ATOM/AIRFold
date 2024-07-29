@@ -1,15 +1,18 @@
 from celery import Celery
 
 import os
+from pathlib import Path
 from typing import Any, Dict, List
+import matplotlib.pyplot as plt
 
-from lib.base import BaseCommandRunner
+from lib.base import BaseRunner
 from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.monitor import info_report
 from lib.utils import pathtool, misc
 from lib.utils.execute import rlaunch_exists, rlaunch_wrapper
-
+import lib.utils.datatool as dtool
+from lib.tool import plot
 from lib.tool.rosettafold2 import run_predict
 
 SEQUENCE = "sequence"
@@ -35,72 +38,72 @@ def rosettafoldTask(requests: List[Dict[str, Any]]):
     RoseTTAFoldRunner(requests=requests)()
 
 
-class RoseTTAFoldRunner(BaseCommandRunner):
+class RoseTTAFoldRunner(BaseRunner):
     def __init__(
         self, requests: List[Dict[str, Any]]
     ):
         super().__init__(requests)
-        self.cpu = 8
-        self.gpu = 8
         self.error_code = State.RoseTTAFold_ERROR
         self.success_code = State.RoseTTAFold_SUCCESS
         self.start_code = State.RoseTTAFold_START
 
     @property
-    def start_stage(self) -> int:
+    def start_stage(self) -> State:
         return self.start_code
+    
+    @staticmethod
+    def save_msa_fig_from_a3m_files(msa_paths, save_path):
 
-    def build_command(self, request: Dict[str, Any]) -> str:
-        
-        # query fasta
-        ptree = get_pathtree(request=request)
+        delete_lowercase = lambda line: "".join(
+            [t for t in list(line) if not t.islower()]
+        )
+        msa_collection = []
+        for p in msa_paths:
+            with open(p) as fd:
+                _lines = fd.read().strip().split("\n")
+            _lines = [
+                delete_lowercase(l) for l in _lines if not l.startswith(">") and l
+            ]
+            msa_collection.extend(_lines)
+        plot.plot_msas([msa_collection])
+        plt.savefig(save_path, bbox_inches="tight", dpi=200)
 
+    def run(self):
+        ptree = get_pathtree(request=self.requests[0])
         # get msa_path
         str_dict = misc.safe_get(self.requests[0], ["run_config", "msa_select"])
         key_list = list(str_dict.keys())
+        msa_paths = []
         for idx in range(len(key_list)):
             selected_msa_path = str(ptree.strategy.strategy_list[idx]) + "_dp.a3m"
+            msa_paths.append(str(selected_msa_path))
         
-        # get args of rose
-        args = misc.safe_get(request, ["run_config", "structure_prediction", "rosettafold2"])
-                  
-        command = "".join(
-            [
-                f"python {pathtool.get_module_path(run_predict)} ",
-                f"--fasta_path {ptree.seq.fasta} ",
-                f"--a3m_path {selected_msa_path} ",
-                f"--rose_dir {ptree.rosettafold2.root} ",
-                f"--rf2_pt {RF2_PT} ",
-                f"--random_seed {misc.safe_get(args, 'random_seed')} " if misc.safe_get(args, "random_seed") else "",
-                f"--num_models {misc.safe_get(args, 'num_models')} " if misc.safe_get(args, "num_models") else "",
-                f"--msa_concat_mode {misc.safe_get(args, 'msa_concat_mode')} " if misc.safe_get(args, "msa_concat_mode") else "",
-                f"--num_recycles {misc.safe_get(args, 'num_recycles')} " if misc.safe_get(args, "num_recycles") else "",
-                f"--max_msa {misc.safe_get(args, 'max_msa')} " if misc.safe_get(args, "max_msa") else "",
-                f"--collapse_identical {misc.safe_get(args, 'collapse_identical')} " if misc.safe_get(args, "collapse_identical") else "",
-                f"--use_mlm {misc.safe_get(args, 'use_mlm')} " if misc.safe_get(args, "use_mlm") else "",
-                f"--use_dropout {misc.safe_get(args, 'use_dropout')} " if misc.safe_get(args, "use_dropout") else "",
-
-            ]
-        ) 
-                  
-        if rlaunch_exists():
-            command = rlaunch_wrapper(
-                command,
-                cpu=self.cpu,
-                gpu=self.gpu,
-            )
-        random_seed = misc.safe_get(args, 'random_seed')
-        num_models = misc.safe_get(args, 'num_models')
-        # out_prefix=f"{out_base}/rf2_seed{seed}"
-        for seed in range(random_seed):
-            self.output_path = os.path.join(str(ptree.rosettafold2.root), f"/rf2_seed{seed}_00.pdb")
-        return command
+        dtool.deduplicate_msa_a3m(msa_paths, str(ptree.alphafold.input_a3m))
+        
+        msa_image = ptree.alphafold.msa_coverage_image
+        Path(msa_image).parent.mkdir(exist_ok=True, parents=True)
+        self.save_msa_fig_from_a3m_files(
+            msa_paths=msa_paths,
+            save_path=msa_image,
+        )
+        
+        rf2_config = self.requests[0]["run_config"]["structure_prediction"]["alphafold"]
+        models = rf2_config["model_name"].split(",")
+        
+        self.output_paths = []
+        for idx, model_name in enumerate(models):
+            out_prefix = str(os.path.join(str(ptree.alphafold.root), model_name)) + "_relaxed"
+            pdb_output = str(os.path.join(str(ptree.alphafold.root), model_name)) + "_relaxed.pdb"
+            run_predict.run_tf(ptree.seq.fasta, ptree.alphafold.input_a3m, out_prefix, 
+                               model_params="/data/protein/datasets_2024/rosettafold2/RF2_apr23.pt", 
+                               run_config=rf2_config, seed=idx)
+            self.output_paths.append(pdb_output)
         
 
     def on_run_end(self):
         if self.info_reportor is not None:
             for request in self.requests:
-                if os.path.exists(self.output_path):
+                if all([Path(p).exists() for p in self.output_paths]):
                     self.info_reportor.update_state(
                         hash_id=request[info_report.HASH_ID],
                         state=self.success_code,

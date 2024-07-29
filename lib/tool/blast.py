@@ -92,29 +92,30 @@ def _get_whole_seq(blast_file: Path, whole_seq: Path):
         for l_ in lines:
             if len(l_) == 5:
                 id = l_[0].split("|")[1]
-                with tool_utils.tmpdir_manager(base_dir="/tmp") as query_tmp_dir:
-                    out_path = os.path.join(query_tmp_dir, "output.sto")
-                    # command += f" -out {out_path}"
-                    cmd = [
-                        "blastdbcmd",
-                        "-db",
-                        str(BLAST_ROOT),
-                        "-entry",
-                        id,
-                        "-out",
-                        out_path,
-                    ]
-                    # by default in fasta format
-                    logger.info(" ".join(cmd))
-                    execute(" ".join(cmd))
-                    with open(out_path) as f:
-                        lines = f.readlines()
-                        lines = [line.strip() for line in lines]
-                        if len(lines) != 0 and santity_check(lines):
-                            for l_ in lines:
-                                result.append(l_)
-                        else:
-                            continue
+                if len(id) != 0:
+                    with tool_utils.tmpdir_manager(base_dir="/tmp") as query_tmp_dir:
+                        out_path = os.path.join(query_tmp_dir, "output.sto")
+                        # command += f" -out {out_path}"
+                        cmd = [
+                            "blastdbcmd",
+                            "-db",
+                            str(BLAST_ROOT),
+                            "-entry",
+                            id,
+                            "-out",
+                            out_path,
+                        ]
+                        # by default in fasta format
+                        logger.info(" ".join(cmd))
+                        execute(" ".join(cmd))
+                        with open(out_path) as f:
+                            lines = f.readlines()
+                            lines = [line.strip() for line in lines]
+                            if len(lines) != 0 and santity_check(lines):
+                                for l_ in lines:
+                                    result.append(l_)
+                            else:
+                                continue
             else:
                 continue
     with open(whole_seq, "w") as f:

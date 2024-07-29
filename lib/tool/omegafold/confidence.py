@@ -26,7 +26,7 @@ import argparse
 import torch
 from torch import nn
 
-from omegafold import modules, utils
+from lib.tool.omegafold import modules, utils
 
 
 # =============================================================================

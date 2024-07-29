@@ -1,7 +1,6 @@
-import os
 import torch
 import esm
-import biotite.structure.io as bsio
+import numpy as np
 from lib.utils.systool import get_available_gpus
 import lib.utils.datatool as dtool
 import random
@@ -50,6 +49,7 @@ def esm_main(seq_name, sequence):
 def prediction(sequence, esm_pdb_path, random_seed):
     # get device
     random.seed(random_seed)
+    np.random.seed(random_seed)
     device_ids = get_available_gpus(1)
     device = torch.device(f"cuda:{device_ids[0]}") if torch.cuda.is_available() else 'cpu'
 

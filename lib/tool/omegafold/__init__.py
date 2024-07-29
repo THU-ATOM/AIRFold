@@ -20,8 +20,8 @@
 # =============================================================================
 # Imports
 # =============================================================================
-from omegafold.config import make_config
-from omegafold.model import OmegaFold
+from lib.tool.omegafold.config import make_config
+from lib.tool.omegafold.model import OmegaFold
 
 # =============================================================================
 # Constants

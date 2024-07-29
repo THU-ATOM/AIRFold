@@ -27,7 +27,7 @@ import typing
 import torch
 from torch import nn
 
-from omegafold import utils
+from lib.tool.omegafold import utils
 
 
 # =============================================================================

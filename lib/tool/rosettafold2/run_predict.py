@@ -7,6 +7,7 @@ import re
 from collections import OrderedDict
 # import RoseTTAFold2
 from lib.tool.rosettafold2.network import predict
+from lib.utils.systool import get_available_gpus
 
 
 def get_sequence(path):
@@ -20,11 +21,8 @@ def get_unique_sequences(seq_list):
     unique_seqs = list(OrderedDict.fromkeys(seq_list))
     return unique_seqs
 
-def run_tf(sequence, a3m_file, out_base, model_params, run_config):
-    best_plddt = None
-    best_seed = None
-    
-
+def run_tf(fasta_path, a3m_file, out_base, model_params, run_config, seed):
+    sequence = get_sequence(fasta_path)
     # process sym
     sym = "X" #@param ["X","C", "D", "T", "I", "O"]
     order = 1 #@param ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"] {type:"raw"}
@@ -64,37 +62,38 @@ def run_tf(sequence, a3m_file, out_base, model_params, run_config):
     max_extra_msa = max_msa * 8
     
     # TODO: set models
-    random_seed = run_config["random_seed"] #@param {type:"integer"}
-    num_models = run_config["num_models"] #@param ["1", "2", "4", "8", "16", "32"] {type:"raw"}
+    # random_seed = run_config["random_seed"] #@param {type:"integer"}
+    # num_models = run_config["num_models"] #@param ["1", "2", "4", "8", "16", "32"] {type:"raw"}
     
     print(".... compile RoseTTAFold2")
     # model_params = "RF2_apr23.pt"
 
-    if (torch.cuda.is_available()):
-        pred = predict.Predictor(model_params, torch.device("cuda:0"))
-    else:
-        print ("WARNING: using CPU")
-        pred = predict.Predictor(model_params, torch.device("cpu"))
+    device_ids = get_available_gpus(1)
+    device = torch.device(f"cuda:{device_ids[0]}") if torch.cuda.is_available() else torch.device("cpu")
 
-    for seed in range(random_seed, random_seed + num_models):
-        torch.manual_seed(seed)
-        random.seed(seed)
-        np.random.seed(seed)
-        out_prefix=f"{out_base}/rf2_seed{seed}"
-        # npz = f"{jobname}/rf2_seed{seed}_00.npz
-        npz = f"{out_prefix}_00.npz"
-        pred.predict(inputs=a3m_file,
-                    out_prefix=out_prefix,
-                    symm=symm,
-                    ffdb=None,
-                    n_recycles=num_recycles,
-                    msa_mask=0.15 if use_mlm else 0.0,
-                    msa_concat_mode=msa_concat_mode,
-                    nseqs=max_msa,
-                    nseqs_full=max_extra_msa,
-                    subcrop=subcrop,
-                    is_training=use_dropout)
-        plddt = np.load(npz)["lddt"].mean()
+    pred = predict.Predictor(model_params, device)
+
+
+    # for seed in range(random_seed, random_seed + num_models):
+    torch.manual_seed(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    # out_prefix=f"{out_base}/rf2_seed{seed}"
+    out_prefix = out_base
+    # npz = f"{jobname}/rf2_seed{seed}_00.npz
+    # npz = f"{out_prefix}_00.npz"
+    pred.predict(inputs=a3m_file,
+                out_prefix=out_prefix,
+                symm=symm,
+                ffdb=None,
+                n_recycles=num_recycles,
+                msa_mask=0.15 if use_mlm else 0.0,
+                msa_concat_mode=msa_concat_mode,
+                nseqs=max_msa,
+                nseqs_full=max_extra_msa,
+                subcrop=subcrop,
+                is_training=use_dropout)
+        # plddt = np.load(npz)["lddt"].mean()
         # if best_plddt is None or plddt > best_plddt:
         #     best_plddt = plddt
         #     best_seed = seed
@@ -111,8 +110,7 @@ def main(args):
                     "use_dropout": False if args.use_dropout == 0 else True
                 }
     
-    sequence = get_sequence(args.fasta_path)
-    run_tf(sequence, args.a3m_path, args.rose_dir, args.rf2_pt, run_config=rose_config)
+    run_tf(args.fasta_path, args.a3m_path, args.rose_dir, args.rf2_pt, run_config=rose_config)
 
 
 if __name__ == "__main__":

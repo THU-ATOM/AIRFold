@@ -3,12 +3,14 @@ from celery import Celery
 import os
 from typing import Any, Dict, List
 
-from lib.base import BaseCommandRunner
+from lib.base import BaseRunner
 from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.monitor import info_report
-from lib.utils import misc
-from lib.utils.execute import rlaunch_exists, rlaunch_wrapper
+from pathlib import Path
+# from lib.utils import misc
+# from lib.utils.execute import rlaunch_exists, rlaunch_wrapper
+from lib.tool import omegafold_main
 
 
 SEQUENCE = "sequence"
@@ -29,51 +31,40 @@ celery.conf.task_routes = {
 }
 
 @celery.task(name="omegafold")
-def omegafoldTask(requests: List[Dict[str, Any]]):
+def singlefoldTask(requests: List[Dict[str, Any]]):
     OmegaFoldRunner(requests=requests)()
 
-class OmegaFoldRunner(BaseCommandRunner):
+class OmegaFoldRunner(BaseRunner):
     def __init__(
         self, requests: List[Dict[str, Any]]
     ):
         super().__init__(requests)
-        self.cpu = 8
-        self.gpu = 8
-        self.error_code = State.ESMFold_ERROR
-        self.success_code = State.ESMFold_SUCCESS
-        self.start_code = State.ESMFold_START
+        self.error_code = State.OmegaFold_ERROR
+        self.success_code = State.OmegaFold_SUCCESS
+        self.start_code = State.OmegaFold_START
 
     @property
     def start_stage(self) -> int:
         return self.start_code
-
-    def build_command(self, request: Dict[str, Any]) -> str:
+    
+    def run(self):
+        request=self.request[0]
+        ptree = get_pathtree(request)
+        esm_config = request["run_config"]["structure_prediction"]["omegafold"]
         
-        # query fasta
-        ptree = get_pathtree(request=request)
-        
-        # get args of rose
-        args = misc.safe_get(request, ["run_config", "structure_prediction", "esmfold"])
-                  
-        command = ""      
-        if rlaunch_exists():
-            command = rlaunch_wrapper(
-                command,
-                cpu=self.cpu,
-                gpu=self.gpu,
-            )
-        random_seed = misc.safe_get(args, 'random_seed')
-        num_models = misc.safe_get(args, 'num_models')
-        # out_prefix=f"{out_base}/rf2_seed{seed}"
-        for seed in range(random_seed):
-            self.output_path = os.path.join(str(ptree.rosettafold2.root), f"/rf2_seed{seed}_00.pdb")
-        return command
-        
+        # # get args of esm
+        # args = misc.safe_get(request, ["run_config", "structure_prediction", "esmfold"])
+        models = esm_config["model_name"].split(",")
+        self.output_paths = []
+        for idx, model_name in enumerate(models):
+            pdb_path = str(os.path.join(str(ptree.alphafold.root), model_name)) + "_relaxed.pdb"
+            omegafold_main.prediction(sequence=ptree.seq.fasta, esm_pdb_path=pdb_path, random_seed=idx)
+            self.output_paths.append(pdb_path)
 
     def on_run_end(self):
         if self.info_reportor is not None:
             for request in self.requests:
-                if os.path.exists(self.output_path):
+                if all([Path(p).exists() for p in self.output_paths]):
                     self.info_reportor.update_state(
                         hash_id=request[info_report.HASH_ID],
                         state=self.success_code,

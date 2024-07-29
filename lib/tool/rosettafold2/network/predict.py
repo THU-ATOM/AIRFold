@@ -321,7 +321,8 @@ class Predictor():
                 xyz_prev, mask_prev, same_chain, idx_pdb,
                 symmids, symmsub, symmRs, symmmeta,  Ls, 
                 n_recycles, nseqs, nseqs_full, subcrop,
-                "%s_%02d"%(out_prefix, i_trial),
+                # "%s_%02d"%(out_prefix, i_trial),
+                out_prefix,
                 msa_mask=msa_mask
             )
             runtime = time.time() - start_time
@@ -462,7 +463,8 @@ class Predictor():
         with open("%s.json"%(out_prefix), "w") as outfile:
             json.dump(outdata, outfile, indent=4)
 
-        util.writepdb("%s_pred.pdb"%(out_prefix), best_xyzfull[0], seq_full[0], L_s, bfacts=100*best_lddtfull[0])
+        # util.writepdb("%s_pred.pdb"%(out_prefix), best_xyzfull[0], seq_full[0], L_s, bfacts=100*best_lddtfull[0])
+        util.writepdb("%s.pdb"%(out_prefix), best_xyzfull[0], seq_full[0], L_s, bfacts=100*best_lddtfull[0])
 
         prob_s = [prob.permute(0,2,3,1).detach().cpu().numpy().astype(np.float16) for prob in prob_s]
         np.savez_compressed("%s.npz"%(out_prefix),

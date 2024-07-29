@@ -29,7 +29,7 @@ import time
 import torch
 
 import omegafold as of
-from . import pipeline
+from lib.tool.omegafold import pipeline
 
 
 # =============================================================================

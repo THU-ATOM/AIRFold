@@ -26,7 +26,7 @@ import typing
 import torch
 from torch import nn
 
-from omegafold import (
+from lib.tool.omegafold import (
     confidence,
     decode,
     embedders,
@@ -35,7 +35,7 @@ from omegafold import (
     omegaplm,
     utils,
 )
-from omegafold.utils import residue_constants as rc
+from lib.tool.omegafold.utils import residue_constants as rc
 
 
 # =============================================================================
