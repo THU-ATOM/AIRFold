@@ -286,7 +286,7 @@ class AlphaStrucRunner(BaseRunner):
             selected_msa_path = str(ptree.strategy.strategy_list[idx]) + "_dp.a3m"
             msa_paths.append(str(selected_msa_path))
         
-        dtool.deduplicate_msa_a3m(msa_paths, str(ptree.alphafold.input_a3m))
+        # dtool.deduplicate_msa_a3m(msa_paths, str(ptree.alphafold.input_a3m))
         
         msa_image = ptree.alphafold.msa_coverage_image
         Path(msa_image).parent.mkdir(exist_ok=True, parents=True)

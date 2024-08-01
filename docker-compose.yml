@@ -271,6 +271,41 @@ services:
       - ./lib:/worker/lib
     command: celery -A worker worker --loglevel=info -Q queue_alphafold --concurrency=8
 
+  worker_rosettafold:
+    build:
+      context: ./services/rosettafold
+      dockerfile: Dockerfile
+      args:
+        - http_proxy=${http_proxy}
+        - https_proxy=${https_proxy}
+        - USER_ID=${UID}
+        - GROUP_ID=${GID}
+        - USER_NAME=${USER_NAME}
+    depends_on:
+      - rabbitmq
+    environment:
+      - TZ=Asia/Shanghai
+      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_RESULT_BACKEND=redis://redis
+      - DOCKER_CLIENT_TIMEOUT=${DOCKER_CLIENT_TIMEOUT}
+      - COMPOSE_HTTP_TIMEOUT=${COMPOSE_HTTP_TIMEOUT}
+      - TF_FORCE_UNIFIED_MEMORY=${TF_FORCE_UNIFIED_MEMORY}
+      - XLA_PYTHON_CLIENT_MEM_FRACTION=${XLA_PYTHON_CLIENT_MEM_FRACTION}
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: "nvidia"
+            count: "all"
+            capabilities: ["gpu"]
+    volumes:
+      - ./services/rosettafold:/worker
+      - /data:/data
+      - /tmp:/tmp
+      - ./lib:/worker/lib
+    command: celery -A worker worker --loglevel=info -Q queue_rosettafold --concurrency=8
+
   worker_mqe:
     build:
       context: ./services/mqe

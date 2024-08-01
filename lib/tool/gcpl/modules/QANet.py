@@ -244,7 +244,7 @@ class Voxel(torch.nn.Module):
         self.add_module("pool3d_1", torch.nn.AvgPool3d(kernel_size=4, stride=4, padding=0))
 
     def forward(self, idx, val, nres):
-        print(idx.shape, val.shape, nres)
+        # print(idx.shape, val.shape, nres)
         x = scatter_nd(idx, val, (nres, 24, 24, 24, self.num_restype))
         x = x.permute(0, 4, 1, 2, 3)
         out_retype = self._modules["retype"](x)
@@ -257,13 +257,14 @@ class Voxel(torch.nn.Module):
 
 
 def scatter_nd(indices, updates, shape):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = "cpu"
     size = np.prod(shape)
     out = torch.zeros(size).to(device)
 
     temp = np.array([int(np.prod(shape[i + 1:])) for i in range(len(shape))])
     flattened_indices = torch.mul(indices.long(), torch.as_tensor(temp, dtype=torch.long).to(device)).sum(dim=1)
-    print(flattened_indices.shape, updates.shape)
+    # print(flattened_indices.shape, updates.shape)
     out = out.scatter_add(0, flattened_indices, updates)
     return out.view(shape)
 
@@ -567,14 +568,20 @@ class PositionalEncodings(torch.nn.Module):
 
         # N_nodes = E_idx.size(0)
         # N_neighbors = E_idx.size(1)
-        ii = torch.arange(N_nodes, dtype=torch.float32).view((1, -1, 1)).cuda()
+        # ii = torch.arange(N_nodes, dtype=torch.float32).view((1, -1, 1)).cuda()
+        ii = torch.arange(N_nodes, dtype=torch.float32).view((1, -1, 1))
         d = (E_idx.float() - ii).unsqueeze(-1)
 
         # Original Transformer frequencies
+        # frequency = torch.exp(
+        #     torch.arange(0, self.num_embeddings, 2, dtype=torch.float32)
+        #     * -(np.log(10000.0) / self.num_embeddings)
+        # ).cuda()
+        
         frequency = torch.exp(
             torch.arange(0, self.num_embeddings, 2, dtype=torch.float32)
             * -(np.log(10000.0) / self.num_embeddings)
-        ).cuda()
+        )
 
         angles = d * frequency.view((1, 1, 1, -1))
         E = torch.cat((torch.cos(angles), torch.sin(angles)), -1)
@@ -702,7 +709,8 @@ class Protein_feature(torch.nn.Module):
         # Distance radial basis function
 
         D_min, D_max, D_count = 0., 20., 15
-        D_mu = torch.linspace(D_min, D_max, D_count).cuda()
+        # D_mu = torch.linspace(D_min, D_max, D_count).cuda()
+        D_mu = torch.linspace(D_min, D_max, D_count)
         D_mu = D_mu.view([1, 1, 1, -1])
         D_sigma = (D_max - D_min) / D_count
         D_expand = torch.unsqueeze(D, -1)
@@ -717,5 +725,7 @@ class Protein_feature(torch.nn.Module):
 
         AD_features, O_features = self._orientations_coarse(coords, E_idx)
 
-        return pos_emb.cuda(), AD_features.squeeze(0).type(torch.FloatTensor).cuda(), \
-               O_features.cuda(), gs_d.cuda(), D_neighbors, E_idx
+        # return pos_emb.cuda(), AD_features.squeeze(0).type(torch.FloatTensor).cuda(), \
+        #        O_features.cuda(), gs_d.cuda(), D_neighbors, E_idx
+        return pos_emb, AD_features.squeeze(0).type(torch.FloatTensor), \
+               O_features, gs_d, D_neighbors, E_idx

@@ -43,8 +43,8 @@ def evaluation(input_pdb, tmp_dir):
             'ALA': 'A', 'VAL': 'V', 'GLU': 'E', 'TYR': 'Y', 'MET': 'M'}
 
 
-    model_esm, alphabet = esm.pretrained.esm2_t6_8M_UR50D()
-    # model_esm, alphabet = esm.pretrained.load_model_and_alphabet(ESM_8M)
+    # model_esm, alphabet = esm.pretrained.esm2_t6_8M_UR50D()
+    model_esm, alphabet = esm.pretrained.load_model_and_alphabet(ESM_8M)
     # model_esm.to(device)
     model_esm.eval()
     structure = parser.get_structure('struct', input_pdb)

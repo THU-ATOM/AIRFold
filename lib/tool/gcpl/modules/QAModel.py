@@ -50,7 +50,8 @@ class QA(torch.nn.Module):
 
         #
 
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        # self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = "cpu"
         # protein Three dimensional information Emb
 
         self.model_feature=Protein_feature(num_embeddings=16)
@@ -208,9 +209,10 @@ class QA(torch.nn.Module):
     def forward(self, idx, val, obt, tbt, bert_feat, model_coords, coords_label=None,lddt_ture=None):
 
         nres               = obt.shape[0]
-        print("nres",nres)
+        # print("nres",nres)
         # msa_emb
-        batch_mask = torch.ones((1, nres*4), dtype=bool).cuda()  # torch.Size([1, L])
+        # batch_mask = torch.ones((1, nres*4), dtype=bool).cuda()  # torch.Size([1, L])
+        batch_mask = torch.ones((1, nres*4), dtype=bool) # torch.Size([1, L])
         str_nodes = self.str_node_transform(bert_feat)  # linear embedding
 
         # model_emb

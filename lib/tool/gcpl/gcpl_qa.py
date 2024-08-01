@@ -2,7 +2,9 @@ import os
 import shutil
 import numpy as np
 import torch
+from loguru import logger
 import lib.tool.gcpl.modules as qa_file
+from lib.tool.gcpl.modules import featurize
 from lib.tool.gcpl.modules.QA_utils.folding import process_model
 from lib.utils.systool import get_available_gpus
 from esm import FastaBatchedDataset, pretrained, inverse_folding
@@ -11,6 +13,7 @@ from esm import FastaBatchedDataset, pretrained, inverse_folding
 def get_seq_embedding(fasta_file, device):
     esm_main="/data/protein/datasets_2024/GraphCPLMQA/esm2_t33_650M_UR50D.pt"
     model, alphabet = pretrained.load_model_and_alphabet(esm_main)
+    # model, alphabet = pretrained.esm2_t33_650M_UR50D()
     model.to(device)
     model.eval()
 
@@ -87,6 +90,7 @@ def get_str_embedding(decoy_path, device):
     # model setting
     esm_if1 = "/data/protein/datasets_2024/GraphCPLMQA/esm_if1_gvp4_t16_142M_UR50.pt"
     model, alphabet = pretrained.load_model_and_alphabet(esm_if1)
+    # model, alphabet = pretrained.esm_if1_gvp4_t16_142M_UR50()
     model.to(device)
     model = model.eval()
 
@@ -119,13 +123,15 @@ def get_str_embedding(decoy_path, device):
 
 def evaluation(fasta_file, decoy_file, tmp_dir):
     
-    device_ids = get_available_gpus(1)
-    device = torch.device(f"cuda:{device_ids[0]}") if torch.cuda.is_available() else 'cpu'
+    # device_ids = get_available_gpus(1)
+    # device = torch.device(f"cuda:{device_ids[0]}") if torch.cuda.is_available() else 'cpu'
+    device = 'cpu'
     
     if not os.path.isdir(tmp_dir):
         os.mkdir(tmp_dir)
     
-    checkpoint = "/data/protein/datasets_2024/GraphCPLMQA/QA_Model/GCPL.pkl"
+    model_path = "/data/protein/datasets_2024/GraphCPLMQA/QA_Model/GCPL.pkl"
+    checkpoint = torch.load(model_path, map_location=device)
     model = qa_file.QA(num_channel=128)
     model.load_state_dict(checkpoint["model_state_dict"])
     model.to(device)
@@ -134,15 +140,21 @@ def evaluation(fasta_file, decoy_file, tmp_dir):
     score = 0.0
     with torch.no_grad():
         
-        feature_file = os.path.join(tmp_dir, ".features.npz")
+        # get pdb pyroseta feature
+        logger.info("step1 --- get pdb pyroseta feature...")
+        feature_file = os.path.join(tmp_dir, "features.npz")
+        featurize.process(decoy_file, feature_file)
+        
         model_coords, _ = process_model(decoy_file)
         (idx, val), (f1d, bert), f2d, _ = qa_file.getData(feature_file, model_coords, bertpath="")
         
         # get sequence embedding
+        logger.info("step2 --- get sequence embedding...")
         msa_emb = get_seq_embedding(fasta_file, device)
         node_emb = np.expand_dims(msa_emb["only_last"],0)
         
         # get structure embedding
+        logger.info("step3 --- get structure embedding...")
         stru_emb = get_str_embedding(decoy_file, device)
         f1d = np.concatenate([f1d, stru_emb], axis=-1)
 
@@ -152,7 +164,7 @@ def evaluation(fasta_file, decoy_file, tmp_dir):
         val = torch.Tensor(val).to(device)
         node_emb = torch.Tensor(node_emb).to(device)
 
-
+        logger.info("step4 --- decoy evaluation...")
         output, _, _ = model(idx, val, f1d, f2d, node_emb, model_coords.to(device))
 
 

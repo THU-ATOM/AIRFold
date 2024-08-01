@@ -650,9 +650,9 @@ def DC(cb_d):
     scale_do = dist_order / 10
     return [norm_co,scale_do]
 
-def process(args):
+def process(filename, outfile, verbose=True):
 
-    filename, outfile, verbose = args
+    # filename, outfile, verbose = args
     # try:
     start_time = time.time()
     pose = Pose()
@@ -699,13 +699,9 @@ def process(args):
         scale_do = scale_do.astype(np.float16),
         tri = tri.astype(np.float16),)
 
-    if verbose: print("Processed "+filename+" (%0.2f seconds)" % (time.time() - start_time))
+    if verbose: print("Processed pdb feature: "+filename+" (%0.2f seconds)" % (time.time() - start_time))
     # except Exception as inst:
     #     print("While processing", outfile+":", inst)
-
-
-
-
 
 
 def parsePDB(filename, atom="CA"):

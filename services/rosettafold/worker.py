@@ -9,8 +9,7 @@ from lib.base import BaseRunner
 from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.monitor import info_report
-from lib.utils import pathtool, misc
-from lib.utils.execute import rlaunch_exists, rlaunch_wrapper
+from lib.utils import misc
 import lib.utils.datatool as dtool
 from lib.tool import plot
 from lib.tool.rosettafold2 import run_predict
@@ -78,23 +77,23 @@ class RoseTTAFoldRunner(BaseRunner):
             selected_msa_path = str(ptree.strategy.strategy_list[idx]) + "_dp.a3m"
             msa_paths.append(str(selected_msa_path))
         
-        dtool.deduplicate_msa_a3m(msa_paths, str(ptree.alphafold.input_a3m))
+        dtool.deduplicate_msa_a3m(msa_paths, str(ptree.rosettafold2.input_a3m))
         
-        msa_image = ptree.alphafold.msa_coverage_image
+        msa_image = ptree.rosettafold2.msa_coverage_image
         Path(msa_image).parent.mkdir(exist_ok=True, parents=True)
         self.save_msa_fig_from_a3m_files(
             msa_paths=msa_paths,
             save_path=msa_image,
         )
         
-        rf2_config = self.requests[0]["run_config"]["structure_prediction"]["alphafold"]
+        rf2_config = self.requests[0]["run_config"]["structure_prediction"]["rosettafold2"]
         models = rf2_config["model_name"].split(",")
         
         self.output_paths = []
         for idx, model_name in enumerate(models):
-            out_prefix = str(os.path.join(str(ptree.alphafold.root), model_name)) + "_relaxed"
-            pdb_output = str(os.path.join(str(ptree.alphafold.root), model_name)) + "_relaxed.pdb"
-            run_predict.run_tf(ptree.seq.fasta, ptree.alphafold.input_a3m, out_prefix, 
+            out_prefix = str(os.path.join(str(ptree.rosettafold2.root), model_name)) + "_relaxed"
+            pdb_output = str(os.path.join(str(ptree.rosettafold2.root), model_name)) + "_relaxed.pdb"
+            run_predict.run_tf(ptree.seq.fasta, ptree.rosettafold2.input_a3m, out_prefix, 
                                model_params="/data/protein/datasets_2024/rosettafold2/RF2_apr23.pt", 
                                run_config=rf2_config, seed=idx)
             self.output_paths.append(pdb_output)
