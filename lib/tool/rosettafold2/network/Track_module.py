@@ -3,12 +3,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import einsum
 import torch.utils.checkpoint as checkpoint
-from util import cross_product_matrix
-from util_module import *
-from Attention_module import *
-from SE3_network import SE3TransformerWrapper
-from kinematics import normQ, avgQ, Qs2Rs, Rs2Qs
-from symmetry import get_symm_map
+
+from lib.tool.rosettafold2.network.util_module import *
+from lib.tool.rosettafold2.network.Attention_module import *
+from lib.tool.rosettafold2.network.SE3_network import SE3TransformerWrapper
+from lib.tool.rosettafold2.network.kinematics import normQ, Qs2Rs
 
 
 # Components for three-track blocks

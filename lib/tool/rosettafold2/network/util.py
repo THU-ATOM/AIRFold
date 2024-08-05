@@ -1,13 +1,11 @@
-import sys
-
 import numpy as np
 import torch
 
 import scipy.sparse
 from scipy.spatial.transform import Rotation
 
-from chemical import *
-from scoring import *
+from lib.tool.rosettafold2.network.chemical import *
+from lib.tool.rosettafold2.network.scoring import *
 
 def random_rot_trans(xyz, random_noise=20.0):
     # xyz: (N, L, 27, 3)

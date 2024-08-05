@@ -1,14 +1,12 @@
 import numpy as np
-import scipy
-import scipy.spatial
 import string
-import os,re
-import random
+import re
 import util
 import gzip
 import torch
-from ffindex import *
-from chemical import INIT_CRDS
+
+from lib.tool.rosettafold2.network.ffindex import *
+from lib.tool.rosettafold2.network.chemical import INIT_CRDS
 
 to1letter = {
     "ALA":'A', "ARG":'R', "ASN":'N', "ASP":'D', "CYS":'C',

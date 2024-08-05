@@ -4,10 +4,11 @@ import os
 import csv
 from dateutil import parser
 import numpy as np
-from parsers import parse_a3m, parse_pdb
-from chemical import INIT_CRDS
-from util import center_and_realign_missing, random_rot_trans
-from symmetry import get_symmetry
+
+from lib.tool.rosettafold2.network.parsers import parse_a3m, parse_pdb
+from lib.tool.rosettafold2.network.chemical import INIT_CRDS
+from lib.tool.rosettafold2.network.util import center_and_realign_missing, random_rot_trans
+from lib.tool.rosettafold2.network.symmetry import get_symmetry
 
 base_dir = "/projects/ml/TrRosetta/PDB-2021AUG02"
 compl_dir = "/projects/ml/RoseTTAComplex"

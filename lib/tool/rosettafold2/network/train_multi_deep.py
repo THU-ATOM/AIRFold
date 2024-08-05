@@ -1,5 +1,5 @@
 import sys, os
-from contextlib import ExitStack, nullcontext
+from contextlib import ExitStack
 import time
 import numpy as np
 from copy import deepcopy
@@ -7,14 +7,15 @@ from collections import OrderedDict
 import torch
 import torch.nn as nn
 from torch.utils import data
-from data_loader import get_train_valid_set, loader_pdb, loader_fb, loader_complex, Dataset, DatasetComplex, DistilledDataset, DistributedWeightedSampler
-from kinematics import xyz_to_c6d, c6d_to_bins2, xyz_to_t2d
-from RoseTTAFoldModel  import RoseTTAFoldModule
-from loss import *
-from util import *
-from util_module import XYZConverter
-from scheduler import get_stepwise_decay_schedule_with_warmup
-from symmetry import symm_subunit_matrix, find_symm_subs, get_symm_map
+
+from lib.tool.rosettafold2.network.data_loader import get_train_valid_set, loader_pdb, loader_fb, loader_complex, Dataset, DatasetComplex, DistilledDataset, DistributedWeightedSampler
+from lib.tool.rosettafold2.network.kinematics import xyz_to_c6d, c6d_to_bins2, xyz_to_t2d
+from lib.tool.rosettafold2.network.RoseTTAFoldModel  import RoseTTAFoldModule
+from lib.tool.rosettafold2.network.loss import *
+from lib.tool.rosettafold2.network.util import *
+from lib.tool.rosettafold2.network.util_module import XYZConverter
+from lib.tool.rosettafold2.network.scheduler import get_stepwise_decay_schedule_with_warmup
+from lib.tool.rosettafold2.network.symmetry import symm_subunit_matrix, find_symm_subs
 
 # distributed data parallel
 import torch.distributed as dist

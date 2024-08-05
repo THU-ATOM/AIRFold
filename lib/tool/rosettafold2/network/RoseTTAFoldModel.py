@@ -1,10 +1,12 @@
 import torch
 import torch.nn as nn
-from Embeddings import MSA_emb, Extra_emb, Templ_emb, Recycling
-from Track_module import IterativeSimulator
-from AuxiliaryPredictor import DistanceNetwork, MaskedTokenNetwork, ExpResolvedNetwork, LDDTNetwork, PAENetwork, BinderNetwork
-from util import INIT_CRDS
 from torch import einsum
+
+from lib.tool.rosettafold2.network.Embeddings import MSA_emb, Extra_emb, Templ_emb, Recycling
+from lib.tool.rosettafold2.network.Track_module import IterativeSimulator
+from lib.tool.rosettafold2.network.AuxiliaryPredictor import DistanceNetwork, MaskedTokenNetwork, ExpResolvedNetwork, LDDTNetwork, PAENetwork, BinderNetwork
+from lib.tool.rosettafold2.network.util import INIT_CRDS
+
 
 class RoseTTAFoldModule(nn.Module):
     def __init__(self, n_extra_block=4, n_main_block=8, n_ref_block=4,\

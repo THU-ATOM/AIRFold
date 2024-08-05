@@ -3,20 +3,20 @@ import time
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils import data
-from parsers import parse_a3m, read_templates, read_template_pdb, parse_pdb
-from RoseTTAFoldModel  import RoseTTAFoldModule
-import util
 from collections import namedtuple
-from ffindex import *
-from featurizing import MSAFeaturize, MSABlockDeletion
-from kinematics import xyz_to_c6d, xyz_to_t2d
-from chemical import INIT_CRDS
-from util_module import XYZConverter
-from symmetry import symm_subunit_matrix, find_symm_subs, get_symm_map
-from data_loader import merge_a3m_hetero
 import json
-import random
+
+from lib.tool.rosettafold2.network.parsers import parse_a3m, read_templates
+from lib.tool.rosettafold2.network.RoseTTAFoldModel  import RoseTTAFoldModule
+from lib.tool.rosettafold2.network import util
+from lib.tool.rosettafold2.network.ffindex import *
+from lib.tool.rosettafold2.network.featurizing import MSAFeaturize
+from lib.tool.rosettafold2.network.kinematics import xyz_to_t2d
+from lib.tool.rosettafold2.network.chemical import INIT_CRDS
+from lib.tool.rosettafold2.network.util_module import XYZConverter
+from lib.tool.rosettafold2.network.symmetry import symm_subunit_matrix, find_symm_subs
+from lib.tool.rosettafold2.network.data_loader import merge_a3m_hetero
+
 
 # suppress dgl warning w/ newest pytorch
 import warnings

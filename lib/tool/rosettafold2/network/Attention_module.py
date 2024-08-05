@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 from torch import einsum
-from util_module import init_lecun_normal
+from lib.tool.rosettafold2.network.util_module import init_lecun_normal
 
 class FeedForwardLayer(nn.Module):
     def __init__(self, d_model, r_ff, p_drop=0.1):
