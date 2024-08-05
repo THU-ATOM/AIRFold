@@ -1,3 +1,5 @@
+import argparse
+import os
 import torch
 import esm
 import numpy as np
@@ -75,3 +77,17 @@ def prediction(sequence, esm_pdb_path, random_seed):
     # plddt_json = {"plddt": plddt}
     # esm_json_path = os.path.join(esm_path, "plddt.json")
     # dtool.write_json(esm_json_path, data=plddt_json)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--fasta_path", type=str, required=True)
+    parser.add_argument("--pdb_root", type=str, required=True)
+    parser.add_argument("--model_names", type=str, required=True, nargs='*')
+    parser.add_argument("--rf2_pt", type=str, required=True)
+    
+    args = parser.parse_args()
+    
+    for idx, model_name in enumerate(args.model_names):
+        pdb_path = str(os.path.join(args.pdb_root, model_name)) + "_relaxed.pdb"
+        prediction(args.fasta_path, pdb_path, idx)

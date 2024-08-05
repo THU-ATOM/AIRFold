@@ -1,3 +1,4 @@
+import argparse
 import os
 import shutil
 import numpy as np
@@ -37,11 +38,11 @@ def get_seq_embedding(fasta_file, device):
             toks = toks.to(device=device, non_blocking=True)
             out = model(toks, repr_layers=repr_layers, return_contacts=return_contacts)
             representations = {
-                layer: t.to(device="cpu") for layer, t in out["representations"].items()
+                layer: t.to(device=device) for layer, t in out["representations"].items()
             }
 
             if return_contacts:
-                contacts = out["contacts"].to(device="cpu")
+                contacts = out["contacts"].to(device=device)
 
             for i, _ in enumerate(labels):
                 
@@ -121,55 +122,72 @@ def get_str_embedding(decoy_path, device):
     return rep
 
 
-def evaluation(fasta_file, decoy_file, tmp_dir):
+def evaluation(fasta_file, input_pdbs, tmp_dir, rank_out): 
+    device_ids = get_available_gpus(1)
+    device = torch.device(f"cuda:{device_ids[0]}") if torch.cuda.is_available() else 'cpu'
     
-    # device_ids = get_available_gpus(1)
-    # device = torch.device(f"cuda:{device_ids[0]}") if torch.cuda.is_available() else 'cpu'
-    device = 'cpu'
+    predicted_result = []
+    for decoy_file in input_pdbs:
     
-    if not os.path.isdir(tmp_dir):
-        os.mkdir(tmp_dir)
-    
-    model_path = "/data/protein/datasets_2024/GraphCPLMQA/QA_Model/GCPL.pkl"
-    checkpoint = torch.load(model_path, map_location=device)
-    model = qa_file.QA(num_channel=128)
-    model.load_state_dict(checkpoint["model_state_dict"])
-    model.to(device)
-    model.eval()
-    
-    score = 0.0
-    with torch.no_grad():
+        if not os.path.isdir(tmp_dir):
+            os.mkdir(tmp_dir)
         
-        # get pdb pyroseta feature
-        logger.info("step1 --- get pdb pyroseta feature...")
-        feature_file = os.path.join(tmp_dir, "features.npz")
-        featurize.process(decoy_file, feature_file)
+        model_path = "/data/protein/datasets_2024/GraphCPLMQA/QA_Model/GCPL.pkl"
+        checkpoint = torch.load(model_path, map_location=device)
+        model = qa_file.QA(num_channel=128)
+        model.load_state_dict(checkpoint["model_state_dict"])
+        model.to(device)
+        model.eval()
         
-        model_coords, _ = process_model(decoy_file)
-        (idx, val), (f1d, bert), f2d, _ = qa_file.getData(feature_file, model_coords, bertpath="")
+        score = 0.0
+        with torch.no_grad():
+            
+            # get pdb pyroseta feature
+            logger.info("step1 --- get pdb pyroseta feature...")
+            feature_file = os.path.join(tmp_dir, "features.npz")
+            featurize.process(decoy_file, feature_file)
+            
+            model_coords, _ = process_model(decoy_file)
+            (idx, val), (f1d, bert), f2d, _ = qa_file.getData(feature_file, model_coords, bertpath="")
+            
+            # get sequence embedding
+            logger.info("step2 --- get sequence embedding...")
+            msa_emb = get_seq_embedding(fasta_file, device)
+            node_emb = np.expand_dims(msa_emb["only_last"],0)
+            
+            # get structure embedding
+            logger.info("step3 --- get structure embedding...")
+            stru_emb = get_str_embedding(decoy_file, device)
+            f1d = np.concatenate([f1d, stru_emb], axis=-1)
+
+            f1d = torch.Tensor(f1d).to(device)
+            f2d = torch.Tensor(np.expand_dims(f2d.transpose(2, 0, 1), 0)).to(device)
+            idx = torch.Tensor(idx.astype(np.int32)).long().to(device)
+            val = torch.Tensor(val).to(device)
+            node_emb = torch.Tensor(node_emb).to(device)
+
+            logger.info("step4 --- decoy evaluation...")
+            output, _, _ = model(idx, val, f1d, f2d, node_emb, model_coords.to(device))
+
+
+            lddt = output.p_lddt_pred
+            score = np.mean(lddt.cpu().detach().numpy())
         
-        # get sequence embedding
-        logger.info("step2 --- get sequence embedding...")
-        msa_emb = get_seq_embedding(fasta_file, device)
-        node_emb = np.expand_dims(msa_emb["only_last"],0)
-        
-        # get structure embedding
-        logger.info("step3 --- get structure embedding...")
-        stru_emb = get_str_embedding(decoy_file, device)
-        f1d = np.concatenate([f1d, stru_emb], axis=-1)
+        shutil.rmtree(tmp_dir)
 
-        f1d = torch.Tensor(f1d).to(device)
-        f2d = torch.Tensor(np.expand_dims(f2d.transpose(2, 0, 1), 0)).to(device)
-        idx = torch.Tensor(idx.astype(np.int32)).long().to(device)
-        val = torch.Tensor(val).to(device)
-        node_emb = torch.Tensor(node_emb).to(device)
-
-        logger.info("step4 --- decoy evaluation...")
-        output, _, _ = model(idx, val, f1d, f2d, node_emb, model_coords.to(device))
-
-
-        lddt = output.p_lddt_pred
-        score = np.mean(lddt.cpu().detach().numpy())
+        predicted_result.append({"predicted_pdb": str(decoy_file), "score": score})
     
-    shutil.rmtree(tmp_dir)
-    return score
+    import pickle
+    with open(rank_out, 'wb') as f:
+        pickle.dump(predicted_result, f)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input_fasta", required=True, type=str)
+    parser.add_argument("--input_pdbs", required=True, type=str, nargs='*')
+    parser.add_argument("--tmp_dir", required=True, type=str)
+    parser.add_argument("--rank_out", required=True, type=str)
+    
+    args = parser.parse_args()
+    evaluation(args.input_fasta, args.input_pdbs, args.tmp_dir, args.rank_out)

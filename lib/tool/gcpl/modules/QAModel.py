@@ -11,6 +11,9 @@ from pytorch3d.transforms import quaternion_to_matrix, matrix_to_quaternion
 from lib.tool.gcpl.modules.QA_utils.general import exists
 from lib.tool.gcpl.modules.QA_utils.interface import ModelOutput
 
+from lib.utils.systool import get_available_gpus
+
+
 # Network architecture
 class QA(torch.nn.Module):
 
@@ -50,8 +53,9 @@ class QA(torch.nn.Module):
 
         #
 
-        # self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.device = "cpu"
+        device_ids = get_available_gpus(1)
+        self.device = torch.device(f"cuda:{device_ids[0]}") if torch.cuda.is_available() else 'cpu'
+        # self.device = "cpu"
         # protein Three dimensional information Emb
 
         self.model_feature=Protein_feature(num_embeddings=16)

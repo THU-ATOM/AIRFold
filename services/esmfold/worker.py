@@ -3,17 +3,18 @@ from celery import Celery
 import os
 from typing import Any, Dict, List
 
-from lib.base import BaseRunner
+from lib.base import BaseCommandRunner
 from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.monitor import info_report
 from pathlib import Path
-# from lib.utils import misc
+from lib.utils import pathtool
 # from lib.utils.execute import rlaunch_exists, rlaunch_wrapper
 from lib.tool import esmfold
 
 
 SEQUENCE = "sequence"
+RF2_APR23 = "/data/protein/datasets_2024/rosettafold2/RF2_apr23.pt"
 
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "rpc://")
 CELERY_BROKER_URL = (
@@ -34,7 +35,7 @@ celery.conf.task_routes = {
 def singlefoldTask(requests: List[Dict[str, Any]]):
     ESMFoldRunner(requests=requests)()
 
-class ESMFoldRunner(BaseRunner):
+class ESMFoldRunner(BaseCommandRunner):
     def __init__(
         self, requests: List[Dict[str, Any]]
     ):
@@ -56,10 +57,23 @@ class ESMFoldRunner(BaseRunner):
         # args = misc.safe_get(request, ["run_config", "structure_prediction", "esmfold"])
         models = esm_config["model_name"].split(",")
         self.output_paths = []
-        for idx, model_name in enumerate(models):
-            pdb_path = str(os.path.join(str(ptree.alphafold.root), model_name)) + "_relaxed.pdb"
-            esmfold.prediction(sequence=ptree.seq.fasta, esm_pdb_path=pdb_path, random_seed=idx)
+        for model_name in models:
+            pdb_path = str(os.path.join(str(ptree.esmfold.root), model_name)) + "_relaxed.pdb"
             self.output_paths.append(pdb_path)
+        
+        model_names = " ".join(models)
+        command = "".join(
+            [
+                f"python {pathtool.get_module_path(esmfold)} ",
+                f"--fasta_path {ptree.seq.fasta} ",
+                f"--pdb_root {ptree.esmfold.root} ",
+                f"--model_names {model_names} ",
+                f"--rf2_pt {RF2_APR23} ",
+            ]
+        )
+
+        return command
+            
 
     def on_run_end(self):
         if self.info_reportor is not None:

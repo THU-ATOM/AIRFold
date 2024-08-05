@@ -6,9 +6,10 @@ from typing import Any, Dict, List
 
 # from lib.state import State
 from lib.pathtree import get_pathtree
-from lib.utils import misc
+from lib.utils import misc, pathtool
 # from lib.monitor import info_report
-import lib.utils.datatool as dtool
+# import lib.utils.datatool as dtool
+from lib.utils.execute import execute
 from lib.tool.enqa import enqa_msa
 from lib.tool.gcpl import gcpl_qa
 
@@ -47,6 +48,10 @@ class MQERunner():
     # @property
     # def start_stage(self) -> int:
     #     return self.start_code
+    def _decorate_command(self, command):
+        # Add PYTHONPATH to execute scripts
+        command = f"export PYTHONPATH={os.getcwd()}:$PYTHONPATH && {command}"
+        return command
     
     def run(self):
         ptree_base = get_pathtree(self.requests[0])
@@ -63,12 +68,13 @@ class MQERunner():
             mqe_tmp_dir = ptree_base.mqe.gcpl_temp
             mqe_rank_file = ptree_base.mqe.gcpl_rankfile
             
-        predicted_result = []
         for request in self.requests:
             ptree = get_pathtree(request)
             struc_args = misc.safe_get(request, ["run_config", "structure_prediction"])
             logger.info(f"STRUC ARGS: {struc_args}")
             # ms_config = ptree.final_msa_fasta.parent.name
+            
+            predicted_pdbs = []
             if "alphafold" in struc_args.keys():
                 target_dir = str(ptree.alphafold.root)
                 
@@ -82,20 +88,32 @@ class MQERunner():
                     for key, val in plddt_dict.items():
                         
                         predicted_pdb = os.path.join(target_dir, key + "_relaxed.pdb")
-                        logger.info(f"Evaluating decoy: {predicted_pdb}")
-                        
-                        if self.mqe_method == "enqa":
-                            score = enqa_msa.evaluation(input_pdb=predicted_pdb, tmp_dir=mqe_tmp_dir)
-                        else:
-                            score = gcpl_qa.evaluation(fasta_file=ptree.seq.fasta, decoy_file=predicted_pdb, tmp_dir=mqe_tmp_dir)
-                        
-                        logger.info(f"Evaluation score: {score}")
-                        predicted_result.append({"predicted_pdb": str(predicted_pdb), "plddt": val, "score": score})
-        
-        
-        # dtool.write_json(mqe_rank_file, data=predicted_result)
-        import pickle
-        with open(mqe_rank_file, 'wb') as f:
-            pickle.dump(predicted_result, f)
+                        # logger.info(f"Evaluating decoy: {predicted_pdb}")
+                        predicted_pdbs.append(str(predicted_pdb))
             
-                    
+            input_pdbs = " ".join(predicted_pdbs)           
+            if self.mqe_method == "enqa":
+                command = "".join(
+                                [
+                                    f"python {pathtool.get_module_path(enqa_msa)} ",
+                                    f"--input_pdbs {input_pdbs} ",
+                                    f"--tmp_dir {mqe_tmp_dir} ",
+                                    f"--rank_out {mqe_rank_file} ",
+                                ]
+                            )
+                
+            else:
+                command = "".join(
+                                [
+                                    f"python {pathtool.get_module_path(gcpl_qa)} ",
+                                    f"--input_fasta {ptree.seq.fasta} ",
+                                    f"--input_pdbs {input_pdbs} ",
+                                    f"--tmp_dir {mqe_tmp_dir} ",
+                                    f"--rank_out {mqe_rank_file} ",
+                                ]
+                            )
+                            
+            command = self._decorate_command(command)
+            logger.info(f"MQE CMD: {command}")
+            execute(command)
+           

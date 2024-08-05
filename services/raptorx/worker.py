@@ -53,7 +53,7 @@ class RaptorXRunner(BaseCommandRunner):
         ptree = get_pathtree(request=request)
         
         # get args of rose
-        args = misc.safe_get(request, ["run_config", "structure_prediction", "esmfold"])
+        args = misc.safe_get(request, ["run_config", "structure_prediction", "raptorx"])
                   
         command = ""      
         if rlaunch_exists():
@@ -66,7 +66,7 @@ class RaptorXRunner(BaseCommandRunner):
         num_models = misc.safe_get(args, 'num_models')
         # out_prefix=f"{out_base}/rf2_seed{seed}"
         for seed in range(random_seed):
-            self.output_path = os.path.join(str(ptree.rosettafold2.root), f"/rf2_seed{seed}_00.pdb")
+            self.output_path = os.path.join(str(ptree.raptorx.root), f"/rf2_seed{seed}_00.pdb")
         return command
         
 

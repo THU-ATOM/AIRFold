@@ -4,6 +4,8 @@ from torch.nn import functional as F
 import torch.nn as nn
 from torch import broadcast_tensors
 
+from lib.utils.systool import get_available_gpus
+
 
 class EGNN(nn.Module):
     def __init__(
@@ -257,8 +259,9 @@ class Voxel(torch.nn.Module):
 
 
 def scatter_nd(indices, updates, shape):
-    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    device = "cpu"
+    device_ids = get_available_gpus(1)
+    device = torch.device(f"cuda:{device_ids[0]}") if torch.cuda.is_available() else 'cpu'
+    # device = "cpu"
     size = np.prod(shape)
     out = torch.zeros(size).to(device)
 

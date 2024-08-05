@@ -55,8 +55,8 @@ def main():
                  "./tmp/temp_6000_64_1_plmsim_mmseqs.json"]
     # json_files = ["./tmp/temp_6000_64_1_seqentropy_mmseqs.json"]
 
-    dir_names = os.listdir(cameo_dir)
-    # dir_names = ['8HZV_A']
+    # dir_names = os.listdir(cameo_dir)
+    dir_names = ['8HZV_A']
     for dir_name in  dir_names:
         request_dicts = []
         for json_file in json_files:
