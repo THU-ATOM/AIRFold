@@ -12,3 +12,8 @@ gpustat
 tqdm
 absl-py
 hydra-core
+scipy
+pandas
+pydantic
+e3nn==0.3.3
+numpy==1.23.5

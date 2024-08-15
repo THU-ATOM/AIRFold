@@ -67,7 +67,6 @@ class ESMFoldRunner(BaseCommandRunner):
                 f"--fasta_path {ptree.seq.fasta} ",
                 f"--pdb_root {ptree.esmfold.root} ",
                 f"--model_names {model_names} ",
-                f"--rf2_pt {RF2_APR23} ",
             ]
         )
 

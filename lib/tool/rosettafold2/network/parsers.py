@@ -1,10 +1,10 @@
 import numpy as np
 import string
 import re
-import util
 import gzip
 import torch
 
+from lib.tool.rosettafold2.network import util
 from lib.tool.rosettafold2.network.ffindex import *
 from lib.tool.rosettafold2.network.chemical import INIT_CRDS
 
@@ -18,13 +18,12 @@ to1letter = {
 # integers in the 0..20 range,
 # also keep track of insertions
 def parse_a3m(filename, max_seq=5000):
+    print("Parsing a3m file: ", filename)
 
     msa = []
     ins = []
 
     table = str.maketrans(dict.fromkeys(string.ascii_lowercase))
-
-    #print(filename)
     
     if filename.split('.')[-1] == 'gz':
         fp = gzip.open(filename, 'rt')

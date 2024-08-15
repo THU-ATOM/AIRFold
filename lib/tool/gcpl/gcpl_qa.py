@@ -65,12 +65,12 @@ def get_seq_embedding(fasta_file, device):
                             mean_layer_32 = all_layer_sum / 33
                         if layer ==33:
                             last_all = 0.5 * mean_layer_32 + 0.5 * t[i, 1 : len(strs[i]) + 1].clone()
-                            result["last_all_rep"] = last_all.numpy()
-                            result["only_last"] = t[i, 1 : len(strs[i]) + 1].clone().numpy()
+                            result["last_all_rep"] = last_all.cpu().numpy()
+                            result["only_last"] = t[i, 1 : len(strs[i]) + 1].clone().cpu().numpy()
 
                     all_mean=all_layer_sum / 34
 
-                    result["all_mean_rep"] = all_mean.numpy()
+                    result["all_mean_rep"] = all_mean.cpu().numpy()
 
                 if "bos" in include_args:
                     result["bos_representations"] = {
@@ -134,7 +134,7 @@ def evaluation(fasta_file, input_pdbs, tmp_dir, rank_out):
         
         model_path = "/data/protein/datasets_2024/GraphCPLMQA/QA_Model/GCPL.pkl"
         checkpoint = torch.load(model_path, map_location=device)
-        model = qa_file.QA(num_channel=128)
+        model = qa_file.QA(num_channel=128, device=device)
         model.load_state_dict(checkpoint["model_state_dict"])
         model.to(device)
         model.eval()
@@ -158,7 +158,7 @@ def evaluation(fasta_file, input_pdbs, tmp_dir, rank_out):
             # get structure embedding
             logger.info("step3 --- get structure embedding...")
             stru_emb = get_str_embedding(decoy_file, device)
-            f1d = np.concatenate([f1d, stru_emb], axis=-1)
+            f1d = np.concatenate([f1d, stru_emb.cpu().numpy()], axis=-1)
 
             f1d = torch.Tensor(f1d).to(device)
             f2d = torch.Tensor(np.expand_dims(f2d.transpose(2, 0, 1), 0)).to(device)

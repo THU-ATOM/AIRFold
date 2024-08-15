@@ -5,8 +5,8 @@ import torch.nn as nn
 #from equivariant_attention.fibers import Fiber
 
 from lib.tool.rosettafold2.network.util_module import init_lecun_normal_param
-from se3_transformer.model import SE3Transformer
-from se3_transformer.model.fiber import Fiber
+from lib.tool.rosettafold2.network.se3_transformer.model.transformer  import SE3Transformer
+from lib.tool.rosettafold2.network.se3_transformer.model.fiber import Fiber
 
 class SE3TransformerWrapper(nn.Module):
     """SE(3) equivariant GCN with attention"""

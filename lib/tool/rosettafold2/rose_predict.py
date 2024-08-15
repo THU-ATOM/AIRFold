@@ -82,7 +82,7 @@ def run_tf(fasta_path, a3m_file, out_base, model_params, run_config, seed):
     out_prefix = out_base
     # npz = f"{jobname}/rf2_seed{seed}_00.npz
     # npz = f"{out_prefix}_00.npz"
-    pred.predict(inputs=a3m_file,
+    pred.predict(inputs=[a3m_file],
                 out_prefix=out_prefix,
                 symm=symm,
                 ffdb=None,
@@ -100,9 +100,7 @@ def run_tf(fasta_path, a3m_file, out_base, model_params, run_config, seed):
 
 
 def main(args):
-    rose_config = {"random_seed": args.random_seed,
-                   "num_models": args.num_models,
-                   "msa_concat_mode": args.msa_concat_mode,
+    rose_config = {"msa_concat_mode": args.msa_concat_mode,
                    "num_recycles": args.num_recycles, 
                    "max_msa": args.max_msa,
                    "collapse_identical": False if args.collapse_identical == 0 else True,
@@ -110,7 +108,7 @@ def main(args):
                     "use_dropout": False if args.use_dropout == 0 else True
                 }
     
-    run_tf(args.fasta_path, args.a3m_path, args.rose_dir, args.rf2_pt, run_config=rose_config)
+    run_tf(args.fasta_path, args.a3m_path, args.rose_dir, args.rf2_pt, run_config=rose_config, seed=args.random_seed)
 
 
 if __name__ == "__main__":
@@ -121,14 +119,10 @@ if __name__ == "__main__":
     parser.add_argument("--rf2_pt", type=str, required=True)
     
     parser.add_argument("--random_seed", type=int, default=0)
-    parser.add_argument("--num_models", type=int, default=1)
-    
     
     parser.add_argument("--msa_concat_mode", type=str, default="diag", choices=["diag", "repeat", "default"])
-    
     parser.add_argument("--num_recycles", type=int, default=6)
     parser.add_argument("--max_msa", type=int, default=256)
-    
     parser.add_argument("--collapse_identical", type=int, default=0, choices=[0, 1])
     parser.add_argument("--use_mlm", type=int, default=0, choices=[0, 1])
     parser.add_argument("--use_dropout", type=int, default=0, choices=[0, 1])

@@ -61,11 +61,14 @@ class MSASelectRunner(BaseCommandRunner):
 
     @staticmethod
     def mk_cmd(least_seqs, input_path, output_path, input_fasta_path, executed_file, method_):
-        params = [f"--least_seqs {least_seqs} "]
+        params = []
         params.append(f"--input_a3m_path {input_path} ")
         params.append(f"--output_a3m_path {output_path} ")
-
+        
+        if method_ == "seq_entropy":
+            params.append(f"--least_seqs {least_seqs} ")
         if method_ == "plm_similarity":
+            params.append(f"--least_seqs {least_seqs} ")
             params.append(f"--input_fasta_path {input_fasta_path} ")
             
         command = f"python {executed_file} " + "".join(params)

@@ -84,7 +84,6 @@ if __name__ == "__main__":
     parser.add_argument("--fasta_path", type=str, required=True)
     parser.add_argument("--pdb_root", type=str, required=True)
     parser.add_argument("--model_names", type=str, required=True, nargs='*')
-    parser.add_argument("--rf2_pt", type=str, required=True)
     
     args = parser.parse_args()
     

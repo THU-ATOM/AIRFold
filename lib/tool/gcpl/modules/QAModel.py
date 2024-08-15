@@ -28,6 +28,7 @@ class QA(torch.nn.Module):
                  num_restype  = 20,
                  name = None,
                  block_cycle =3,
+                 device="cpu",
                  verbose=False):
         super().__init__()
 
@@ -53,15 +54,15 @@ class QA(torch.nn.Module):
 
         #
 
-        device_ids = get_available_gpus(1)
-        self.device = torch.device(f"cuda:{device_ids[0]}") if torch.cuda.is_available() else 'cpu'
-        # self.device = "cpu"
+        # device_ids = get_available_gpus(1)
+        # self.device = torch.device(f"cuda:{device_ids[0]}") if torch.cuda.is_available() else 'cpu'
+        self.device = device
         # protein Three dimensional information Emb
 
         self.model_feature=Protein_feature(num_embeddings=16)
 
         # 3D Convolutions.
-        self.voxel_emb = Voxel(self.num_restype, 20)
+        self.voxel_emb = Voxel(self.num_restype, 20, device=device)
 
 
         # Embedding

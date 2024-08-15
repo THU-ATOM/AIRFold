@@ -212,7 +212,11 @@ async def pipeline_task(requests: List[Dict[str, Any]] = Body(..., embed=True)):
     msaSelctTask = signature("selectmsa", args=[requests], queue="queue_selectmsa", immutable=True)
 
     # structureTask
-    alphafoldTask = signature("alphafold", args=[requests], queue="queue_alphafold", immutable=True)
+    struc_args = misc.safe_get(request, ["run_config", "structure_prediction"])
+    if "alphafold" in struc_args.keys():
+        strucTask = signature("alphafold", args=[requests], queue="queue_alphafold", immutable=True)
+    if "rosettafold2" in struc_args.keys():
+        strucTask = signature("rosettafold", args=[requests], queue="queue_rosettafold", immutable=True)
 
     # analysisTask
     analysisTask = signature("analysis", args=[requests], queue="queue_analysis", immutable=True)
@@ -223,7 +227,7 @@ async def pipeline_task(requests: List[Dict[str, Any]] = Body(..., embed=True)):
 
     # pipelineTask
     pipelineTask = (preprocessTask | msaSearchTasks | msaMergeTask | msaSelctTask | 
-                    alphafoldTask | analysisTask | submitTask)()
+                    strucTask | analysisTask | submitTask)()
 
     # pipelineTask.save()
     task_id = pipelineTask.id

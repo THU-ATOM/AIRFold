@@ -196,10 +196,12 @@ class Predictor():
         ###
         # pass 1, combined MSA
         Ls_blocked, Ls, msas, inss = [], [], [], []
+        
+        print("A3m files: ", inputs)
         for i,seq_i in enumerate(inputs):
-            fseq_i =  seq_i.split(':')
-            a3m_i = fseq_i[0]
-            msa_i, ins_i, Ls_i = parse_a3m(a3m_i)
+            # fseq_i =  seq_i.split(':')
+            # a3m_i = fseq_i[0]
+            msa_i, ins_i, Ls_i = parse_a3m(seq_i)
             msa_i = torch.tensor(msa_i).long()
             ins_i = torch.tensor(ins_i).long()
             if (msa_i.shape[0] > nseqs_full):

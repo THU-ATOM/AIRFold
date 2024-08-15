@@ -234,10 +234,11 @@ class LayerNorm(nn.Module):
 
 
 class Voxel(torch.nn.Module):
-    def __init__(self, num_restype, dim):
+    def __init__(self, num_restype, dim, device):
         super(Voxel, self).__init__()
         self.num_restype = num_restype
         self.dim = dim
+        self.device = device
         self.add_module("retype", torch.nn.Conv3d(self.num_restype, self.dim, 1, padding=0,
                                                   bias=False))  # in_channels, out_channels, kernel_size,
         self.add_module("conv3d_1", torch.nn.Conv3d(20, 20, 3, padding=0, bias=True))
@@ -247,7 +248,7 @@ class Voxel(torch.nn.Module):
 
     def forward(self, idx, val, nres):
         # print(idx.shape, val.shape, nres)
-        x = scatter_nd(idx, val, (nres, 24, 24, 24, self.num_restype))
+        x = scatter_nd(idx, val, (nres, 24, 24, 24, self.num_restype), device=self.device)
         x = x.permute(0, 4, 1, 2, 3)
         out_retype = self._modules["retype"](x)
         out_conv3d_1 = F.elu(self._modules["conv3d_1"](out_retype))
@@ -258,9 +259,9 @@ class Voxel(torch.nn.Module):
         return voxel_emb
 
 
-def scatter_nd(indices, updates, shape):
-    device_ids = get_available_gpus(1)
-    device = torch.device(f"cuda:{device_ids[0]}") if torch.cuda.is_available() else 'cpu'
+def scatter_nd(indices, updates, shape, device):
+    # device_ids = get_available_gpus(1)
+    # device = torch.device(f"cuda:{device_ids[0]}") if torch.cuda.is_available() else 'cpu'
     # device = "cpu"
     size = np.prod(shape)
     out = torch.zeros(size).to(device)
