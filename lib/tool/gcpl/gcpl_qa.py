@@ -91,7 +91,7 @@ def get_str_embedding(decoy_path, device):
     # model setting
     esm_if1 = "/data/protein/datasets_2024/GraphCPLMQA/esm_if1_gvp4_t16_142M_UR50.pt"
     model, alphabet = pretrained.load_model_and_alphabet(esm_if1)
-    # model, alphabet = pretrained.esm_if1_gvp4_t16_142M_UR50()
+    model, alphabet = pretrained.esm_if1_gvp4_t16_142M_UR50()
     model.to(device)
     model = model.eval()
 

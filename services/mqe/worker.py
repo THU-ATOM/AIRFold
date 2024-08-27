@@ -53,6 +53,33 @@ class MQERunner():
         command = f"export PYTHONPATH={os.getcwd()}:$PYTHONPATH && {command}"
         return command
     
+    def execute_cmd(self, input_pdbs, mqe_tmp_dir, mqe_rank_file, fasta_file):
+        if self.mqe_method == "enqa":
+            command = "".join(
+                            [
+                                f"python {pathtool.get_module_path(enqa_msa)} ",
+                                f"--input_pdbs {input_pdbs} ",
+                                f"--tmp_dir {mqe_tmp_dir} ",
+                                f"--rank_out {mqe_rank_file} ",
+                            ]
+                        )
+            
+        else:
+            command = "".join(
+                            [
+                                f"python {pathtool.get_module_path(gcpl_qa)} ",
+                                # f"--input_fasta {ptree.seq.fasta} ",
+                                f"--input_fasta {fasta_file} ",
+                                f"--input_pdbs {input_pdbs} ",
+                                f"--tmp_dir {mqe_tmp_dir} ",
+                                f"--rank_out {mqe_rank_file} ",
+                            ]
+                        )
+                        
+        command = self._decorate_command(command)
+        logger.info(f"MQE CMD: {command}")
+        execute(command)
+    
     def run(self):
         ptree_base = get_pathtree(self.requests[0])
         
@@ -61,23 +88,30 @@ class MQERunner():
             # EnQA
             ptree_base.mqe.enqa_temp.parent.mkdir(exist_ok=True, parents=True)
             mqe_tmp_dir = ptree_base.mqe.enqa_temp
-            mqe_rank_file = ptree_base.mqe.enqa_rankfile
+            mqe_rank_dir = ptree_base.mqe.enqa
         else:
             # GraphCPLMQA
             ptree_base.mqe.gcpl_temp.parent.mkdir(exist_ok=True, parents=True)
             mqe_tmp_dir = ptree_base.mqe.gcpl_temp
-            mqe_rank_file = ptree_base.mqe.gcpl_rankfile
-            
+            mqe_rank_dir = ptree_base.mqe.gcpl
+        
+        predicted_pdbs = []
+        mqe_rank_file = ""
         for request in self.requests:
             ptree = get_pathtree(request)
             struc_args = misc.safe_get(request, ["run_config", "structure_prediction"])
             logger.info(f"STRUC ARGS: {struc_args}")
             # ms_config = ptree.final_msa_fasta.parent.name
             
-            predicted_pdbs = []
+            target_dir = ""
             if "alphafold" in struc_args.keys():
+                if self.mqe_method == "enqa":
+                    ptree.mqe.enqa_alpha.mkdir(exist_ok=True, parents=True)
+                else:
+                    ptree.mqe.gcpl_alpha.mkdir(exist_ok=True, parents=True)
+                    
+                mqe_rank_file = str(mqe_rank_dir) + "/alpha/" + "rank.pkl"
                 target_dir = str(ptree.alphafold.root)
-                
                 plddt_file = os.path.join(target_dir, "plddt_results.json")
                 logger.info(f"pLDDT File: {plddt_file}")
                 
@@ -85,35 +119,21 @@ class MQERunner():
                     with open(plddt_file, "r") as pf:
                         plddt_dict = json.load(pf)
                     
-                    for key, val in plddt_dict.items():
+                    for key, _ in plddt_dict.items():
                         
                         predicted_pdb = os.path.join(target_dir, key + "_relaxed.pdb")
                         # logger.info(f"Evaluating decoy: {predicted_pdb}")
                         predicted_pdbs.append(str(predicted_pdb))
+            if "rosettafold2" in struc_args.keys():
+                mqe_rank_file = str(mqe_rank_dir) + "/rose/" + "rank.pkl"
+                target_dir = str(ptree.rosettafold2.root)
+                all_files = os.listdir(target_dir)
+                for file in all_files:
+                    if file.endswith(".pdb"):
+                        predicted_pdb = os.path.join(target_dir, file) 
+                        predicted_pdbs.append(str(predicted_pdb))
             
-            input_pdbs = " ".join(predicted_pdbs)           
-            if self.mqe_method == "enqa":
-                command = "".join(
-                                [
-                                    f"python {pathtool.get_module_path(enqa_msa)} ",
-                                    f"--input_pdbs {input_pdbs} ",
-                                    f"--tmp_dir {mqe_tmp_dir} ",
-                                    f"--rank_out {mqe_rank_file} ",
-                                ]
-                            )
-                
-            else:
-                command = "".join(
-                                [
-                                    f"python {pathtool.get_module_path(gcpl_qa)} ",
-                                    f"--input_fasta {ptree.seq.fasta} ",
-                                    f"--input_pdbs {input_pdbs} ",
-                                    f"--tmp_dir {mqe_tmp_dir} ",
-                                    f"--rank_out {mqe_rank_file} ",
-                                ]
-                            )
-                            
-            command = self._decorate_command(command)
-            logger.info(f"MQE CMD: {command}")
-            execute(command)
+        input_pdbs = " ".join(predicted_pdbs)
+        self.execute_cmd(input_pdbs, mqe_tmp_dir, mqe_rank_file, ptree.seq.fasta)
+            
            

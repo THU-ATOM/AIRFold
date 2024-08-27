@@ -184,7 +184,7 @@ async def pipeline_task(requests: List[Dict[str, Any]] = Body(..., embed=True)):
             signature("blast", args=[requests], queue="queue_blast", immutable=True), 
             signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
             signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
-            signature("deepmsa", args=[requests], queue="queue_deepmsa", immutable=True),
+            # signature("deepmsa", args=[requests], queue="queue_deepmsa", immutable=True),
             signature("mmseqs", args=[requests], queue="queue_mmseqs", immutable=True),
         )
     elif "deepmsa" in search_args.keys() and "mmseqs" not in search_args.keys():

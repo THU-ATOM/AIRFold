@@ -59,7 +59,7 @@ class QA(torch.nn.Module):
         self.device = device
         # protein Three dimensional information Emb
 
-        self.model_feature=Protein_feature(num_embeddings=16)
+        self.model_feature=Protein_feature(num_embeddings=16, device=device)
 
         # 3D Convolutions.
         self.voxel_emb = Voxel(self.num_restype, 20, device=device)
@@ -166,7 +166,7 @@ class QA(torch.nn.Module):
         )
 
         # egnn
-        self.egnn_feature = Protein_feature()
+        self.egnn_feature = Protein_feature(device=device)
 
         self.e_node_emb = nn.Sequential(
             nn.Linear(131, self.num_channel // 2),

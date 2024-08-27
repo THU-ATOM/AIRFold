@@ -584,8 +584,8 @@ class MQEPathTree(BasePathTree):
         return self.root / "enqa" / "temp"
     
     @property
-    def enqa_rankfile(self)-> Path:
-        return self.root / "enqa" / "rank.pkl"
+    def enqa_alpha(self)-> Path:
+        return self.root / "enqa" / "alpha"
     
     @property
     def gcpl(self)-> Path:
@@ -596,8 +596,8 @@ class MQEPathTree(BasePathTree):
         return self.root / "gcpl" / "temp"
     
     @property
-    def gcpl_rankfile(self)-> Path:
-        return self.root / "gcpl" / "rank.pkl"
+    def gcpl_alpha(self)-> Path:
+        return self.root / "gcpl" / "alpha"
 
 
 

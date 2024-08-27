@@ -559,10 +559,11 @@ class Block(nn.Module):
 
 class PositionalEncodings(torch.nn.Module):
 
-    def __init__(self, num_embeddings, period_range=[2, 1000]):
+    def __init__(self, num_embeddings, device="cpu", period_range=[2, 1000]):
         super(PositionalEncodings, self).__init__()
         self.num_embeddings = num_embeddings
         self.period_range = period_range
+        self.device = device
 
     def forward(self, E_idx):
         # i-j
@@ -573,7 +574,7 @@ class PositionalEncodings(torch.nn.Module):
         # N_nodes = E_idx.size(0)
         # N_neighbors = E_idx.size(1)
         # ii = torch.arange(N_nodes, dtype=torch.float32).view((1, -1, 1)).cuda()
-        ii = torch.arange(N_nodes, dtype=torch.float32).view((1, -1, 1))
+        ii = torch.arange(N_nodes, dtype=torch.float32).view((1, -1, 1)).to(self.device)
         d = (E_idx.float() - ii).unsqueeze(-1)
 
         # Original Transformer frequencies
@@ -585,7 +586,7 @@ class PositionalEncodings(torch.nn.Module):
         frequency = torch.exp(
             torch.arange(0, self.num_embeddings, 2, dtype=torch.float32)
             * -(np.log(10000.0) / self.num_embeddings)
-        )
+        ).to(self.device)
 
         angles = d * frequency.view((1, 1, 1, -1))
         E = torch.cat((torch.cos(angles), torch.sin(angles)), -1)
@@ -594,7 +595,7 @@ class PositionalEncodings(torch.nn.Module):
 
 class Protein_feature(torch.nn.Module):
 
-    def __init__(self, dmin=0, dmax=15, step=0.4, var=None, num_embeddings=16):
+    def __init__(self, dmin=0, dmax=15, step=0.4, var=None, num_embeddings=16, device="cpu"):
         super(Protein_feature, self).__init__()
         assert dmin < dmax
         assert dmax - dmin > step
@@ -602,7 +603,7 @@ class Protein_feature(torch.nn.Module):
         if var is None:
             var = step
         self.var = var
-        self.pos = PositionalEncodings(num_embeddings)
+        self.pos = PositionalEncodings(num_embeddings, device)
 
     def gather_nodes(self, nodes, neighbor_idx):
         # Features [B,N,C] at Neighbor indices [B,N,K] => [B,N,K,C]
@@ -709,12 +710,12 @@ class Protein_feature(torch.nn.Module):
         edge_features = torch.gather(edges, 2, neighbors)
         return edge_features
 
-    def gs_dist(self, D):
+    def gs_dist(self, D, device):
         # Distance radial basis function
 
         D_min, D_max, D_count = 0., 20., 15
         # D_mu = torch.linspace(D_min, D_max, D_count).cuda()
-        D_mu = torch.linspace(D_min, D_max, D_count)
+        D_mu = torch.linspace(D_min, D_max, D_count).to(device)
         D_mu = D_mu.view([1, 1, 1, -1])
         D_sigma = (D_max - D_min) / D_count
         D_expand = torch.unsqueeze(D, -1)
@@ -723,13 +724,15 @@ class Protein_feature(torch.nn.Module):
 
     def forward(self, coords, num_k=30):
         # gs_d = self._gs_distance(D_neighbors)
+        device = coords.device
+        # print("device of coords: ", device)
         D, D_neighbors, E_idx = self._dist(coords, top_k=num_k)
-        gs_d = self.gs_dist(D_neighbors)
+        gs_d = self.gs_dist(D_neighbors, device)
         pos_emb = self.pos(E_idx)  # 1,L,L,16 爆红什么原因
 
         AD_features, O_features = self._orientations_coarse(coords, E_idx)
 
         # return pos_emb.cuda(), AD_features.squeeze(0).type(torch.FloatTensor).cuda(), \
         #        O_features.cuda(), gs_d.cuda(), D_neighbors, E_idx
-        return pos_emb, AD_features.squeeze(0).type(torch.FloatTensor), \
-               O_features, gs_d, D_neighbors, E_idx
+        return pos_emb.to(device), AD_features.squeeze(0).type(torch.FloatTensor).to(device), \
+               O_features.to(device), gs_d.to(device), D_neighbors, E_idx

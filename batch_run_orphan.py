@@ -123,7 +123,7 @@ def main():
     
     # with open("./tmp/temp_6000_64_1_plmsim_mmseqs.json", 'r') as jf:
     # with open("./tmp/temp_6000_64_1_seqentropy.json", 'r') as jf:
-    with open("./tmp/temp_6000_64_1_seqentropy_mmseqs.json", 'r') as jf:
+    with open("./tmp/temp_6000_64_1_seqentropy_mmseqs_rf2.json", 'r') as jf:
         request_dict = json.load(jf)
     
     # weeks = ['2024.02.17', '2024.02.24', '2024.03.02', '2024.03.09', 
@@ -144,7 +144,7 @@ def main():
     for raw_file in  files:
         if raw_file.endswith(".fasta"):
             print(raw_file)
-            exit()
+            # exit()
             
             seq_file = cameo_dir + raw_file
             seq_id = raw_file.split(".")[0]
