@@ -31,7 +31,7 @@ celery.conf.task_routes = {
 
 @celery.task(name="mqe")
 def mqeTask(requests: List[Dict[str, Any]]):
-    MQERunner(requests=requests, method="gcpl").run()
+    MQERunner(requests=requests, method="enqa").run()
 
 
 class MQERunner():

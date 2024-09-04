@@ -1,15 +1,22 @@
-import smtplib, os
+import smtplib
 from email.message import EmailMessage
 
-smtp_ssl_host = "smtp.office365.com"  # smtp.mail.yahoo.com
+# smtp_ssl_host = "smtp.office365.com"  # smtp.mail.yahoo.com
+# smtp_ssl_port = 587
+# username = "air_psp@outlook.com"
+# password = "xyvgec-6riDdu-tunfaw"
+# sender = "air_psp@outlook.com"
+
+smtp_ssl_host = "smtp.office365.com"
 smtp_ssl_port = 587
-username = "air_psp@outlook.com"
-password = "xyvgec-6riDdu-tunfaw"
-sender = "air_psp@outlook.com"
+username = "airfold_add_2023@outlook.com"
+# password = "airfold_add@2023"
+password="93R2E-5G3DZ-85ELY-WN7K3-EDE3M"
+sender = "airfold_add_2023@outlook.com"
 
 casp_ack_email = "casp-meta@predictioncenter.org"
-debug_ack_email = "jingjing.gong@qq.com"
-MY_SERVER = "http://1.15.181.183:8808/casp"
+debug_ack_email = "3517109690@qq.com"
+MY_SERVER = "http://airfold.yanyanlan.com/casp"
 
 
 def casp15_submit_ack(target: str):

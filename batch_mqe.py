@@ -42,7 +42,7 @@ def MQEWorker(request_dicts):
 
 def main():
     # new weeks: 2024.05.04  2024.05.11  2024.05.18  2024.05.25
-    cameo_dir = "/data/protein/datasets_2024/experiment/modeling/2024.05.18/"
+    cameo_dir = "/data/protein/datasets_2024/experiment/modeling/2024.05.25/"
     data_suffix = "2024-06-05"
     # case_suffix = "base_deepmsa_mmseqs"
     case_suffix = "bdm"

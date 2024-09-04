@@ -67,7 +67,7 @@ def evaluation(input_pdbs, tmp_dir, rank_out):
         token_representations = token_representations[:, 1: len(seq) + 1, 1: len(seq) + 1]
 
         model = resEGNN_with_ne(dim2d=dim2d, dim1d=dim1d)
-        # model.to(device)
+        model.to(device)
         model.load_state_dict(torch.load(ENQA_MSA_PTH, map_location=device))
         model.eval()
 

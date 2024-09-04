@@ -52,11 +52,20 @@ class CAMEOSubmitRunner(BaseRunner):
         loop_forever=True,
     ) -> None:
         super().__init__(requests)
+        
         self.smtp_ssl_host = "smtp.office365.com"
+        # self.smtp_ssl_host = "smtp-mail.outlook.com"
+        
         self.smtp_ssl_port = 587
-        self.username = "airfold_add_2023@outlook.com"
-        self.password = "airfold_add@2023"
-        self.sender = "airfold_add_2023@outlook.com"
+        
+        # self.username = "airfold_add_2023@outlook.com"
+        # self.password = "airfold_add@2023"
+        # self.sender = "airfold_add_2023@outlook.com"
+        
+        self.username = "AIRFold_2024@outlook.com"
+        self.password = "AIRFold@2024"
+        self.sender = "AIRFold_2024@outlook.com"
+        
         self.loop_forever = loop_forever
 
     @property

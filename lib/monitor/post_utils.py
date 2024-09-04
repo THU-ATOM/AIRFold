@@ -10,7 +10,8 @@ PULL_BY_HASH_PATH = f'/query/hash_id'
 UPDATE_PATH = '/update'
 UPDATE_BY_HASH_PATH = f'/update/hash_id'
 VISIBILITY_SCRIPT = 'update_record.py'
-URL_ROOT = 'http://1.15.181.183:8808'
+# URL_ROOT = 'http://1.15.181.183:8808'
+URL_ROOT = "http://airfold.yanyanlan.com"
 
 
 def send_requests(key2val: dict, path: str) -> dict:
