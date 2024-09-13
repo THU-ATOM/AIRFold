@@ -9,7 +9,7 @@ from lib.pathtree import get_pathtree
 from lib.monitor import info_report
 from pathlib import Path
 from lib.utils import pathtool
-from lib.tool import esmfold
+from lib.tool import run_esmfold
 
 
 SEQUENCE = "sequence"
@@ -47,14 +47,14 @@ class ESMFoldRunner(BaseCommandRunner):
     def start_stage(self) -> int:
         return self.start_code
     
-    def run(self):
-        request=self.request[0]
+    def build_command(self, request: Dict[str, Any]) -> str:
         ptree = get_pathtree(request)
         esm_config = request["run_config"]["structure_prediction"]["esmfold"]
         
         # # get args of esm
         # args = misc.safe_get(request, ["run_config", "structure_prediction", "esmfold"])
         models = esm_config["model_name"].split(",")
+        random_seed = esm_config["random_seed"]
         self.output_paths = []
         for model_name in models:
             pdb_path = str(os.path.join(str(ptree.esmfold.root), model_name)) + "_relaxed.pdb"
@@ -63,9 +63,10 @@ class ESMFoldRunner(BaseCommandRunner):
         model_names = " ".join(models)
         command = "".join(
             [
-                f"python {pathtool.get_module_path(esmfold)} ",
-                f"--fasta_path {ptree.seq.fasta} ",
+                f"python {pathtool.get_module_path(run_esmfold)} ",
+                f"--fasta_file {ptree.seq.fasta} ",
                 f"--pdb_root {ptree.esmfold.root} ",
+                f"--random_seed {random_seed} ",
                 f"--model_names {model_names} ",
             ]
         )

@@ -63,8 +63,10 @@ COLABFOLD_PYTHON_PATH = Path("/usr/local/envs/colabfold/bin/python")
 HHFILTER_PATH = Path("/usr/local/bin/hhfilter")
 HHSEARCH_PATH = Path("/usr/local/bin/hhsearch")
 LDDT_EXECUTE = Path(__file__).parent.resolve() / "tool" / "lddt-linux" / "lddt"
-TMALIGN_EXECUTE = Path("/usr/local/bin/TMalign")
-KALIGN_EXECUTE = Path("/usr/local/bin/kalign")
+# TMALIGN_EXECUTE = Path("/usr/local/bin/TMalign")
+# KALIGN_EXECUTE = Path("/usr/local/bin/kalign")
+TMALIGN_EXECUTE = Path("TMalign")
+KALIGN_EXECUTE = Path("kalign")
 PROBCONS_EXECUTE = Path("/usr/local/bin/probcons")
 CLUSTALO_EXECUTE = Path("/usr/local/bin/clustalo")
 

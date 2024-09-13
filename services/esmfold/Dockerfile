@@ -1,5 +1,6 @@
-ARG CUDA=11.1.1
-FROM nvidia/cuda:${CUDA}-cudnn8-runtime-ubuntu18.04 AS base_af2_env
+ARG CUDA=11.3.1
+FROM nvidia/cuda:${CUDA}-cudnn8-devel-ubuntu20.04
+# FROM nvidia/cuda:${CUDA}-cudnn8-runtime-ubuntu18.04 AS base_af2_env
 ARG CUDA
 
 # Use bash to support string substitution.
@@ -48,16 +49,33 @@ RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 RUN pip install -U setuptools pip
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
+# RUN pip install -q omegaconf pytorch_lightning biopython ml_collections einops py3Dmol modelcif
 # Install PyTorch
-ENV PYTORCH_VERSION=1.8.1+cu111
-ENV TORCHVISION_VERSION=0.9.1+cu111
+# RUN pip install torch==1.10.0+rocm4.2 torchvision==0.11.0+rocm4.2 torchaudio==0.10.0 -f https://download.pytorch.org/whl/torch_stable.html
+
+# Install PyTorch
+ENV PYTORCH_VERSION=1.10.0+cu111
+ENV TORCHVISION_VERSION=0.11.0+cu111
 RUN pip install --no-cache-dir \
     torch==${PYTORCH_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
     -f https://mirror.sjtu.edu.cn/pytorch-wheels/torch_stable.html
 
 # Install ESM
-RUN pip install git+https://github.com/facebookresearch/esm.git
+# RUN pip install git+https://github.com/facebookresearch/esm.git
+RUN pip install "fair-esm[esmfold]"
+# OpenFold and its remaining dependency
+# RUN pip install 'dllogger @ git+https://github.com/NVIDIA/dllogger.git'
+RUN pip install -q git+https://github.com/NVIDIA/dllogger.git
+RUN pip install 'openfold @ git+https://github.com/aqlaboratory/openfold.git@4b41059694619831a7db195b7e0988fc4ff3a307'
+# RUN pip install -q git+https://github.com/sokrypton/openfold.git
+
+
+COPY requirements.txt /tmp/requirements.txt
+
+RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+RUN pip install -U setuptools pip
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 # add user
 RUN if [ $USER_NAME != "root" ] ; \

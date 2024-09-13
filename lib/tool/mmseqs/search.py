@@ -254,7 +254,7 @@ def mmseqs_search_monomer(
     max_accept: int = 1000000,
     s: float = 8,
     db_load_mode: int = 2,
-    threads: int = 32,
+    threads: int = 127,
 ):
     """Run mmseqs with a local colabfold database set
 
@@ -299,11 +299,12 @@ def mmseqs_search_monomer(
 
     # fmt: off
     # @formatter:off
-    search_param = ["--num-iterations", "3", "--db-load-mode", str(db_load_mode), "-a", "-e", "0.1", "--max-seqs", "10000"]
-    if s is not None:
-        search_param += ["-s", "{:.1f}".format(s)]
-    else:
-        search_param += ["--k-score", "'seq:96,prof:80'"]
+    # search_param = ["--num-iterations", "3", "--db-load-mode", str(db_load_mode), "-a", "-e", "0.1", "--max-seqs", "10000"]
+    # if s is not None:
+    #     search_param += ["-s", "{:.1f}".format(s)]
+    # else:
+    #     search_param += ["--k-score", "'seq:96,prof:80'"]
+    search_param = ["--num-iterations", "3", "--db-load-mode", str(db_load_mode), "-a", "-s", str(s), "-e", "0.1", "--max-seqs", "10000",]
     filter_param = ["--filter-msa", str(filter), "--filter-min-enable", "1000", "--diff", str(diff), "--qid", "0.0,0.2,0.4,0.6,0.8,1.0", "--qsc", "0", "--max-seq-id", "0.95",]
     expand_param = ["--expansion-mode", "0", "-e", str(expand_eval), "--expand-filter-clusters", str(filter), "--max-seq-id", "0.95",]
 
@@ -543,11 +544,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--db-load-mode",
         type=int,
-        default=0,
+        default=2,
         help="Database preload mode 0: auto, 1: fread, 2: mmap, 3: mmap+touch",
     )
     parser.add_argument(
-        "--threads", type=int, default=16, help="Number of threads to use."
+        "--threads", type=int, default=128, help="Number of threads to use."
     )
     argv = parser.parse_args()
     

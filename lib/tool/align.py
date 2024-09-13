@@ -84,9 +84,7 @@ def align_one_to_one(pdb_i, pdb_j, cut_head=0, cut_tail=0):
     try:
         tmp_out_fd, tmp_out_path = tempfile.mkstemp(dir=TMP_ROOT, suffix=".txt")
         path_out = Path(tmp_out_path)
-        tmp_rotation_fd, tmp_rotation_path = tempfile.mkstemp(
-            dir=TMP_ROOT, suffix=".txt"
-        )
+        tmp_rotation_fd, tmp_rotation_path = tempfile.mkstemp(dir=TMP_ROOT, suffix=".txt")
         path_rotation = Path(tmp_rotation_path)
         if cut_head > 0 or cut_tail > 0:
             tmp_pdb_i_fd, tmp_pdb_i_path = tempfile.mkstemp(

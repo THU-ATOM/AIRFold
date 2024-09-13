@@ -178,65 +178,74 @@ async def pipeline_task(requests: List[Dict[str, Any]] = Body(..., embed=True)):
     preprocessTask = signature("preprocess", args=[requests], queue="queue_preprocess", immutable=True)
     # msaTasks
     request = requests[0]
-    search_args = misc.safe_get(request, ["run_config", "msa_search"])
-    if "deepmsa" in search_args.keys() and "mmseqs" in search_args.keys():
-        msaSearchTasks = group(
-            signature("blast", args=[requests], queue="queue_blast", immutable=True), 
-            signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
-            signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
-            # signature("deepmsa", args=[requests], queue="queue_deepmsa", immutable=True),
-            signature("mmseqs", args=[requests], queue="queue_mmseqs", immutable=True),
-        )
-    elif "deepmsa" in search_args.keys() and "mmseqs" not in search_args.keys():
-        msaSearchTasks = group(
-            signature("blast", args=[requests], queue="queue_blast", immutable=True), 
-            signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
-            signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
-            signature("deepmsa", args=[requests], queue="queue_deepmsa", immutable=True),
-        )
-    elif "deepmsa" not in search_args.keys() and "mmseqs" in search_args.keys():
-        msaSearchTasks = group(
-            signature("blast", args=[requests], queue="queue_blast", immutable=True), 
-            signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
-            signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
-            signature("mmseqs", args=[requests], queue="queue_mmseqs", immutable=True),
-        )
-    else:
-        msaSearchTasks = group(
-            signature("blast", args=[requests], queue="queue_blast", immutable=True), 
-            signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
-            signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
-        )
-        
-    msaMergeTask = signature("mergemsa", args=[requests], queue="queue_mergemsa", immutable=True)
-    msaSelctTask = signature("selectmsa", args=[requests], queue="queue_selectmsa", immutable=True)
-
-    # structureTask
     struc_args = misc.safe_get(request, ["run_config", "structure_prediction"])
-    if "alphafold" in struc_args.keys():
-        strucTask = signature("alphafold", args=[requests], queue="queue_alphafold", immutable=True)
-    if "rosettafold2" in struc_args.keys():
-        strucTask = signature("rosettafold", args=[requests], queue="queue_rosettafold", immutable=True)
+    if "esmfold" in struc_args.keys():
+        task = celery_client.send_task("esmfold", args=[requests], queue="queue_esmfold")
+        task_id = task.id
+        info_report.update_reserved(
+                hash_id=requests[0]["hash_id"], update_dict={"task_id": task_id}
+        )
+        return {"esmfoldTask_id": task_id}
+    else:
+        
+        search_args = misc.safe_get(request, ["run_config", "msa_search"])
+        if "deepmsa" in search_args.keys() and "mmseqs" in search_args.keys():
+            msaSearchTasks = group(
+                signature("blast", args=[requests], queue="queue_blast", immutable=True), 
+                signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
+                signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
+                signature("deepmsa", args=[requests], queue="queue_deepmsa", immutable=True),
+                signature("mmseqs", args=[requests], queue="queue_mmseqs", immutable=True),
+            )
+        elif "deepmsa" in search_args.keys() and "mmseqs" not in search_args.keys():
+            msaSearchTasks = group(
+                signature("blast", args=[requests], queue="queue_blast", immutable=True), 
+                signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
+                signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
+                signature("deepmsa", args=[requests], queue="queue_deepmsa", immutable=True),
+            )
+        elif "deepmsa" not in search_args.keys() and "mmseqs" in search_args.keys():
+            msaSearchTasks = group(
+                signature("blast", args=[requests], queue="queue_blast", immutable=True), 
+                signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
+                signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
+                signature("mmseqs", args=[requests], queue="queue_mmseqs", immutable=True),
+            )
+        else:
+            msaSearchTasks = group(
+                signature("blast", args=[requests], queue="queue_blast", immutable=True), 
+                signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
+                signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
+            )
+            
+        msaMergeTask = signature("mergemsa", args=[requests], queue="queue_mergemsa", immutable=True)
+        msaSelctTask = signature("selectmsa", args=[requests], queue="queue_selectmsa", immutable=True)
 
-    # analysisTask
-    analysisTask = signature("analysis", args=[requests], queue="queue_analysis", immutable=True)
+        # structureTask
+        if "alphafold" in struc_args.keys():
+            strucTask = signature("alphafold", args=[requests], queue="queue_alphafold", immutable=True)
+        if "rosettafold2" in struc_args.keys():
+            strucTask = signature("rosettafold", args=[requests], queue="queue_rosettafold", immutable=True)
 
-    # submitTask
-    submitTask = signature("submit", args=[requests], queue="queue_submit", immutable=True)
+        # analysisTask
+        analysisTask = signature("analysis", args=[requests], queue="queue_analysis", immutable=True)
+
+        # submitTask
+        submitTask = signature("submit", args=[requests], queue="queue_submit", immutable=True)
 
 
-    # pipelineTask
-    pipelineTask = (preprocessTask | msaSearchTasks | msaMergeTask | msaSelctTask | 
-                    strucTask | analysisTask | submitTask)()
+        # pipelineTask
+        pipelineTask = (preprocessTask | msaSearchTasks | msaMergeTask | msaSelctTask | 
+                        strucTask | analysisTask | submitTask)()
 
-    # pipelineTask.save()
-    task_id = pipelineTask.id
-    info_report.update_reserved(
-            hash_id=requests[0]["hash_id"], update_dict={"task_id": task_id}
-    )
-    logger.info(f"------- the task id is {task_id}")
+        # pipelineTask.save()
+        task_id = pipelineTask.id
+        info_report.update_reserved(
+                hash_id=requests[0]["hash_id"], update_dict={"task_id": task_id}
+        )
+        logger.info(f"------- the task id is {task_id}")
 
-    return {"pipelineTask_id": task_id}
+        return {"pipelineTask_id": task_id}
 
 
 # ----------------------------
@@ -333,7 +342,7 @@ async def pull_with_condition(request: Request):
     _params = {k: _params[k].replace(".*", "%") for k in _params}
     
     # to do:
-    limit_num = 250
+    limit_num = 200
     records = info_retriever.pull_with_limit(limit_num, _params)
     # records = [r._asdict() for r in records]
     logger.info(prefix_ip("sending all records.", request))

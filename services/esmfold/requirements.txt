@@ -12,3 +12,5 @@ gpustat
 tqdm
 absl-py
 hydra-core
+einops
+pytorch-lightning==1.8.4

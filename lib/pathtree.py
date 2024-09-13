@@ -2,10 +2,14 @@ from typing import Any, Dict, Union
 
 from lib.base import BasePathTree
 from lib.constant import *
+from lib.utils import misc
 
 
 def get_pathtree(request: Dict[str, Any]):
     if request["sender"].startswith("cameo"):
+        struc_args = misc.safe_get(request, ["run_config", "structure_prediction"])
+        if "esmfold" in struc_args.keys():
+            return CAMEOSinglePathTree(CAMEO_DATA_ROOT, request)
         return CAMEOPathTree(CAMEO_DATA_ROOT, request)
     elif request["sender"].startswith("casp15"):
         return CASP15PathTree(CASP15_DATA_ROOT, request)
@@ -650,13 +654,6 @@ class CAMEOPathTree(BasePathTree):
         )
     
     @property
-    def esmfold(self):
-        return ESMFoldPathTree(
-            self.root / "structure" / self.final_msa_fasta.parent.name,
-            self.request,
-        )
-    
-    @property
     def mqe(self):
         return MQEPathTree(
             self.root / "mqe",
@@ -682,6 +679,29 @@ class CAMEOPathTree(BasePathTree):
     @property
     def afmgnify(self) -> AF_Mgnify:
         return AF_Mgnify(request=self.request)
+
+class CAMEOSinglePathTree(BasePathTree):
+    def __init__(
+        self,
+        root: Union[str, Path] = CAMEO_DATA_ROOT,
+        request: Dict[str, Any] = None,
+    ) -> None:
+        root = Path(root) / request["name"].split("_")[0]
+        super().__init__(root, request)
+
+    @property
+    def seq(self) -> SeqPathTree:
+        return SeqPathTree(self.root / "seq", self.request)
+    @property
+    def struc_root(self):
+        return self.root / "structure"
+    
+    @property
+    def esmfold(self):
+        return ESMFoldPathTree(
+            self.root / "structure" / "single",
+            self.request,
+        )
 
 
 class CASP15PathTree(CAMEOPathTree):
