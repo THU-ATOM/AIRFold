@@ -180,11 +180,17 @@ async def pipeline_task(requests: List[Dict[str, Any]] = Body(..., embed=True)):
     request = requests[0]
     struc_args = misc.safe_get(request, ["run_config", "structure_prediction"])
     if "esmfold" in struc_args.keys():
-        task = celery_client.send_task("esmfold", args=[requests], queue="queue_esmfold")
-        task_id = task.id
+        esmTask = signature("esmfold", args=[requests], queue="queue_esmfold", immutable=True)
+
+        pipelineTask = (preprocessTask | esmTask)()
+
+        # pipelineTask.save()
+        task_id = pipelineTask.id
         info_report.update_reserved(
                 hash_id=requests[0]["hash_id"], update_dict={"task_id": task_id}
         )
+        logger.info(f"------- the task id is {task_id}")
+        
         return {"esmfoldTask_id": task_id}
     else:
         
@@ -211,9 +217,14 @@ async def pipeline_task(requests: List[Dict[str, Any]] = Body(..., embed=True)):
                 signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
                 signature("mmseqs", args=[requests], queue="queue_mmseqs", immutable=True),
             )
-        else:
+        elif "deepmsa" not in search_args.keys() and "mmseqs" not in search_args.keys() and "blast" in search_args.keys():
             msaSearchTasks = group(
                 signature("blast", args=[requests], queue="queue_blast", immutable=True), 
+                signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
+                signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
+            )
+        else:
+            msaSearchTasks = group(
                 signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
                 signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
             )

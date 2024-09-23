@@ -34,13 +34,32 @@ RUN wget -O cmake-3.22.5-linux-x86_64.tar.gz https://github.com/Kitware/CMake/re
     && rm -rf /tmp/cmake-3.22.5-linux-x86_64 \
     && rm -rf /tmp/cmake-3.22.5-linux-x86_64.tar.gz
 
+# Install vmtouch
+RUN git clone https://github.com/hoytech/vmtouch.git /tmp/vmtouch \
+    && cd /tmp/vmtouch \
+    && make \
+    && make install \
+    && rm -rf /tmp/vmtouch
+
+RUN vmtouch -l -d -t /data/protein/datasets_2024/database/uniref30_2302_db.idx.0
+RUN vmtouch -l -d -t /data/protein/datasets_2024/database/uniref30_2302_db.idx.1
+RUN vmtouch -l -d -t /data/protein/datasets_2024/database/uniref30_2302_db.idx.2
+RUN vmtouch -l -d -t /data/protein/datasets_2024/database/uniref30_2302_db.idx.3
+RUN vmtouch -l -d -t  /data/protein/datasets_2024/database/colabfold_envdb_202108_db.idx.0
+RUN vmtouch -l -d -t  /data/protein/datasets_2024/database/colabfold_envdb_202108_db.idx.1
+RUN vmtouch -l -d -t  /data/protein/datasets_2024/database/colabfold_envdb_202108_db.idx.2
+RUN vmtouch -l -d -t  /data/protein/datasets_2024/database/colabfold_envdb_202108_db.idx.3
+RUN vmtouch -l -d -t  /data/protein/datasets_2024/database/colabfold_envdb_202108_db.idx.4
+RUN vmtouch -l -d -t  /data/protein/datasets_2024/database/colabfold_envdb_202108_db.idx.5
+RUN vmtouch -l -d -t  /data/protein/datasets_2024/database/colabfold_envdb_202108_db.idx.6
+
 # Install mmseqs2
 RUN git clone --recursive https://github.com/soedinglab/MMseqs2.git /tmp/mmseqs2 \
     && mkdir /tmp/mmseqs2/build \
     && cd /tmp/mmseqs2/build \
     && cmake -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_INSTALL_PREFIX=/usr/local .. \
     && make \
-    && make install\
+    && make install \
     && rm -rf /tmp/mmseqs2
 
 # RUN git clone https://github.com/soedinglab/MMseqs2.git \
