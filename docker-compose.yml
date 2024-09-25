@@ -162,7 +162,7 @@ services:
       - ./services/mmseqs:/worker
       - /data:/data
       - ./lib:/worker/lib
-    command: celery -A worker worker --loglevel=info -Q queue_mmseqs --concurrency=12
+    command: celery -A worker worker --loglevel=info -Q queue_mmseqs --concurrency=16
 
   worker_deepmsa:
     build:

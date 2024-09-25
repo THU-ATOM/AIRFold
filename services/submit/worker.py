@@ -52,19 +52,12 @@ class CAMEOSubmitRunner(BaseRunner):
         loop_forever=True,
     ) -> None:
         super().__init__(requests)
-        
-        self.smtp_ssl_host = "smtp.office365.com"
-        # self.smtp_ssl_host = "smtp-mail.outlook.com"
-        
-        self.smtp_ssl_port = 587
-        
-        # self.username = "airfold_add_2023@outlook.com"
-        # self.password = "airfold_add@2023"
-        # self.sender = "airfold_add_2023@outlook.com"
-        
-        self.username = "AIRFold_2024@outlook.com"
-        self.password = "AIRFold@2024"
-        self.sender = "AIRFold_2024@outlook.com"
+
+        self.smtp_ssl_host = "smtp.aliyun.com"
+        self.smtp_ssl_port = 465
+        self.username = "airfold_2024@aliyun.com"
+        self.sender = "airfold_2024@aliyun.com"
+        self.password="xnkFdpJyh_3E4Ns"
         
         self.loop_forever = loop_forever
 
@@ -81,16 +74,18 @@ class CAMEOSubmitRunner(BaseRunner):
 
     def run(self, dry=False):
         for _request in self.requests:
-            # if not _request.get("submit", True):
-            #     if self.info_reportor is not None:
-            #         self.info_reportor.update_state(
-            #             hash_id=_request[info_report.HASH_ID],
-            #             state=State.SUBMIT_SKIP,
-            #         )
-            #     continue
-            with smtplib.SMTP(self.smtp_ssl_host, self.smtp_ssl_port) as server:
+            if not _request.get("submit", True):
+                if self.info_reportor is not None:
+                    self.info_reportor.update_state(
+                        hash_id=_request[info_report.HASH_ID],
+                        state=State.SUBMIT_SKIP,
+                    )
+                continue
+
+            with smtplib.SMTP_SSL(self.smtp_ssl_host, self.smtp_ssl_port) as server:
                 server.ehlo()
-                server.starttls()
+                # for SMTP_SSL
+                # server.starttls()
                 server.login(self.username, self.password)
 
                 pred_target_paths = get_pathtree(request=_request).alphafold.submit_pdbs
