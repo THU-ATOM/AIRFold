@@ -88,6 +88,10 @@ class State(Enum):
     trRosettaX_SUCCESS = 315
     trRosettaX_ERROR = 955
 
+    CHAI_START = 306
+    CHAI_SUCCESS = 316
+    CHAI_ERROR = 956
+
     RELAX_START = 330
     RELAX_SUCCESS = 331
     RELAX_ERROR = 960

@@ -31,7 +31,7 @@
             class="max-h-screen overflow-y-auto"
           >
             <!-- <div :id="'msa-viewer-' + t.hash_id"></div> -->
-            <MSAViewer :msa_path="t.path_tree.alphafold.input_a3m" />
+            <MSAViewer v-if="t.path_tree" :msa_path="t.path_tree.alphafold.input_a3m" />
           </a-tab-pane>
         </a-tabs>
       </div>

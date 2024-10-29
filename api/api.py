@@ -9,6 +9,7 @@ from hashlib import sha256
 
 # import asyncio
 import requests
+from copy import deepcopy
 import json, pymongo
 from io import StringIO
 from pathlib import Path
@@ -237,6 +238,8 @@ async def pipeline_task(requests: List[Dict[str, Any]] = Body(..., embed=True)):
             strucTask = signature("alphafold", args=[requests], queue="queue_alphafold", immutable=True)
         if "rosettafold2" in struc_args.keys():
             strucTask = signature("rosettafold", args=[requests], queue="queue_rosettafold", immutable=True)
+        if "chai" in struc_args.keys():
+            strucTask = signature("chai", args=[requests], queue="queue_chai", immutable=True)
 
         # analysisTask
         analysisTask = signature("analysis", args=[requests], queue="queue_analysis", immutable=True)
@@ -258,6 +261,104 @@ async def pipeline_task(requests: List[Dict[str, Any]] = Body(..., embed=True)):
 
         return {"pipelineTask_id": task_id}
 
+def split_chain_requests(requests: List[Dict[str, Any]]):
+    requests_list = []
+    request = requests[0]
+    sequence = misc.safe_get(request, ["sequence"])
+    # use "|" split multi chains
+    seq_list = sequence.split("|")
+    for chain_id, seq in enumerate(seq_list):
+        chain_str = "chain_" + str(chain_id)
+        logger.info(f"Seq of {chain_str}: {seq}")
+        chain_request = deepcopy(request)
+        chain_request["sequence"] = seq
+        chain_request["multimer"] = False
+        chain_request["name"] = chain_request["name"] + "_" + chain_str
+        chain_request["target"] = chain_request["target"] + "_" + chain_str
+        requests_list.append([chain_request])
+    return requests_list
+
+@app.post("/complex_pipeline/")
+async def complex_pipeline_task(requests: List[Dict[str, Any]] = Body(..., embed=True)):
+
+    request = requests[0]
+    # preprocess for multimer, generate fasta_path
+    celery_client.send_task("preprocess", args=[requests], queue="queue_preprocess")
+
+    msaTasks = []
+    chain_requests_list = split_chain_requests(requests)
+    for chain_requests in chain_requests_list:
+        # preprocessTask
+        preprocessTask = signature("preprocess", args=[chain_requests], queue="queue_preprocess", immutable=True)
+        # msaTasks
+        search_args = misc.safe_get(request, ["run_config", "msa_search"])
+        if "deepmsa" in search_args.keys() and "mmseqs" in search_args.keys():
+            msaSearchTasks = group(
+                signature("blast", args=[chain_requests], queue="queue_blast", immutable=True), 
+                signature("jackhmmer", args=[chain_requests], queue="queue_jackhmmer", immutable=True),
+                signature("hhblits", args=[chain_requests], queue="queue_hhblits", immutable=True),
+                signature("deepmsa", args=[chain_requests], queue="queue_deepmsa", immutable=True),
+                signature("mmseqs", args=[chain_requests], queue="queue_mmseqs", immutable=True),
+            )
+        elif "deepmsa" in search_args.keys() and "mmseqs" not in search_args.keys():
+            msaSearchTasks = group(
+                signature("blast", args=[chain_requests], queue="queue_blast", immutable=True), 
+                signature("jackhmmer", args=[chain_requests], queue="queue_jackhmmer", immutable=True),
+                signature("hhblits", args=[chain_requests], queue="queue_hhblits", immutable=True),
+                signature("deepmsa", args=[chain_requests], queue="queue_deepmsa", immutable=True),
+            )
+        elif "deepmsa" not in search_args.keys() and "mmseqs" in search_args.keys():
+            msaSearchTasks = group(
+                signature("blast", args=[chain_requests], queue="queue_blast", immutable=True), 
+                signature("jackhmmer", args=[chain_requests], queue="queue_jackhmmer", immutable=True),
+                signature("hhblits", args=[chain_requests], queue="queue_hhblits", immutable=True),
+                signature("mmseqs", args=[chain_requests], queue="queue_mmseqs", immutable=True),
+            )
+        elif "deepmsa" not in search_args.keys() and "mmseqs" not in search_args.keys() and "blast" in search_args.keys():
+            msaSearchTasks = group(
+                signature("blast", args=[chain_requests], queue="queue_blast", immutable=True), 
+                signature("jackhmmer", args=[chain_requests], queue="queue_jackhmmer", immutable=True),
+                signature("hhblits", args=[chain_requests], queue="queue_hhblits", immutable=True),
+            )
+        else:
+            msaSearchTasks = group(
+                signature("jackhmmer", args=[chain_requests], queue="queue_jackhmmer", immutable=True),
+                signature("hhblits", args=[chain_requests], queue="queue_hhblits", immutable=True),
+            )
+        
+        msaMergeTask = signature("mergemsa", args=[chain_requests], queue="queue_mergemsa", immutable=True)
+        msaSelctTask = signature("selectmsa", args=[chain_requests], queue="queue_selectmsa", immutable=True)
+
+        # msaTask
+        msaTask = preprocessTask | msaSearchTasks | msaMergeTask | msaSelctTask
+        msaTasks.append(msaTask)
+
+    # structureTask
+    msaGroupTask = group(*msaTasks)
+    
+    struc_args = misc.safe_get(request, ["run_config", "structure_prediction"])
+    if "alphafold" in struc_args.keys():
+        strucTask = signature("alphafold", args=[requests], queue="queue_alphafold", immutable=True)
+    if "chai" in struc_args.keys():
+        strucTask = signature("chai", args=[requests], queue="queue_chai", immutable=True)
+
+    # analysisTask
+    analysisTask = signature("analysis", args=[requests], queue="queue_analysis", immutable=True)
+
+    # submitTask
+    submitTask = signature("submit", args=[requests], queue="queue_submit", immutable=True)
+
+    pipelineTask = (msaGroupTask | strucTask | analysisTask | submitTask)()
+
+    # pipelineTask.save()
+    task_id = pipelineTask.id
+    info_report.update_reserved(
+            hash_id=requests[0]["hash_id"], update_dict={"task_id": task_id}
+    )
+    logger.info(f"------- the task id is {task_id}")
+
+    return {"complexPipelineTask_id": task_id}
+    
 
 # ----------------------------
 # API BACKEND

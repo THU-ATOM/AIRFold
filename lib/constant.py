@@ -46,6 +46,7 @@ else:
     UNICLUST_ROOT = Path("/data/protein/datasets_2022/uniclust30")
     AF_UNIREF90_ROOT = Path("/data/protein/datasets_2022/uniref90")
     AF_MGNIFY_ROOT = Path("/data/protein/datasets_2022/mgnify")
+    AF_UNIPROT_ROOT = Path("/data/protein/datasets_2022/uniprot")
 
     # Runtime
     TMP_ROOT = Path("/data/protein/CAMEO/tmp/")

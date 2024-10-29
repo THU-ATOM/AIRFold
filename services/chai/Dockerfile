@@ -21,7 +21,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Miniconda & use Python 3.8
-ARG python=3.8
+ARG python=3.10
 ENV PYTHON_VERSION=${python}
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/install-conda.sh \
     && chmod +x /tmp/install-conda.sh \
@@ -45,33 +45,13 @@ ARG USER_NAME=docker
 
 COPY requirements.txt /tmp/requirements.txt
 
-# RUN pip install -q omegaconf pytorch_lightning biopython ml_collections einops py3Dmol modelcif
-# Install PyTorch
-# RUN pip install torch==1.10.0+rocm4.2 torchvision==0.11.0+rocm4.2 torchaudio==0.10.0 -f https://download.pytorch.org/whl/torch_stable.html
-
-# Install PyTorch
-ENV PYTORCH_VERSION=1.10.0+cu111
-ENV TORCHVISION_VERSION=0.11.0+cu111
-RUN pip install --no-cache-dir \
-    torch==${PYTORCH_VERSION} \
-    torchvision==${TORCHVISION_VERSION} \
-    -f https://mirror.sjtu.edu.cn/pytorch-wheels/torch_stable.html
-
-# Install ESM
-# RUN pip install git+https://github.com/facebookresearch/esm.git
-RUN pip install "fair-esm[esmfold]"
-# OpenFold and its remaining dependency
-# RUN pip install 'dllogger @ git+https://github.com/NVIDIA/dllogger.git'
-RUN pip install -q git+https://github.com/NVIDIA/dllogger.git
-RUN pip install 'openfold @ git+https://github.com/aqlaboratory/openfold.git@4b41059694619831a7db195b7e0988fc4ff3a307'
-# RUN pip install -q git+https://github.com/sokrypton/openfold.git
-
-
-COPY requirements.txt /tmp/requirements.txt
-
 RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 RUN pip install -U setuptools pip
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+# Install Chai
+RUN pip install git+https://github.com/chaidiscovery/chai-lab.git
+# RUN pip install chai_lab==0.2.0
 
 # add user
 RUN if [ $USER_NAME != "root" ] ; \
@@ -86,4 +66,4 @@ USER ${USER_NAME}
 WORKDIR /worker
 
 # Specify the command to run on container start
-CMD ["celery", "-A", "esmfold", "worker", "--loglevel=info", "-Q", "queue_esmfold"]
+CMD ["celery", "-A", "chai", "worker", "--loglevel=info", "-Q", "queue_chai"]

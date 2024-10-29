@@ -12,9 +12,6 @@ from lib.utils import pathtool
 from lib.tool import run_esmfold
 
 
-SEQUENCE = "sequence"
-RF2_APR23 = "/data/protein/datasets_2024/rosettafold2/RF2_apr23.pt"
-
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "rpc://")
 CELERY_BROKER_URL = (
     os.environ.get("CELERY_BROKER_URL", "pyamqp://guest:guest@localhost:5672/"),

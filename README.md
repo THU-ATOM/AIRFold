@@ -133,7 +133,7 @@ In addition to the web interface and API, AIRFold also provides convenient scrip
 - **Output**: Multiple sequence alignment results in a3m format.
 
     ```bash
-    python run_mode.py --input_path example.fasta --mode msa
+    python ./scripts/run_mode.py --input_path example.fasta --mode msa
     ```
 
 ### Pretrained embedding generation
@@ -142,7 +142,7 @@ In addition to the web interface and API, AIRFold also provides convenient scrip
 - **Output:** Generated sequence embeddings in pickle format.
 
     ```bash
-    python run_mode.py --input_path example.fasta --mode feature
+    python ./scripts/run_mode.py --input_path example.fasta --mode feature
     ```
 
 ### Protein contact map prediction
@@ -151,7 +151,7 @@ In addition to the web interface and API, AIRFold also provides convenient scrip
 - **Output:** Generated contact map in pickle format.
 
     ```bash
-    python run_mode.py --input_path example.fasta --mode disgram
+    python ./scripts/run_mode.py --input_path example.fasta --mode disgram
     ```
 
 ### Protein structure prediction
@@ -160,7 +160,7 @@ In addition to the web interface and API, AIRFold also provides convenient scrip
 - **Output:** Protein structure in pdb format.
 
     ```bash
-    python run_mode.py --input_path example.fasta --mode pipline
+    python ./scripts/run_mode.py --input_path example.fasta --mode pipline
     ```
 
 

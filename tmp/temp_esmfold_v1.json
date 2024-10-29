@@ -1,0 +1,17 @@
+{
+    "email": "3517109690@qq.com",
+    "sender": "cameo",
+    "sequence": "XXX",
+    "name": "2024-06-05_XXX",
+    "target": "2024-06-05_XXX",
+    "run_config": {
+      "name": "cameo",
+      "structure_prediction": {
+        "esmfold": {
+          "model_name": "model_1,model_2,model_3,model_4,model_5",
+          "random_seed": 0
+        }
+      }
+    },
+    "submit": false
+  }

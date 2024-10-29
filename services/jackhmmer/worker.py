@@ -145,7 +145,32 @@ class JackhmmerRunner(BaseGroupCommandRunner):
                 charged_group="wangshuo_8gpu",
             )
 
-        return command_uniref + "&& " + command_mgnify
+        multimer = misc.safe_get(requests[0], ["multimer"])
+        if multimer:
+            command_uniprot = (
+            f"python {get_module_path(jackhmmer)} "
+            f"-d {ptree.afuniprot.data} "
+            f"-l {path_requests} "
+            f"-i {tmp_seq_dir} "
+            f"--in_seq_only "
+            f"-o {ptree.search.root} "
+            # f"--thread {self.thread} "
+            # f"--cpu {self.cpu_per_thread} "
+            f"-z 219740215 "  # 'z_value': 219_174_961 + 565_254
+            ) + " ".join(args_command)
+
+            if rlaunch_exists():
+                command_uniprot = rlaunch_wrapper(
+                    command_uniprot,
+                    cpu=self.thread * self.cpu_per_thread,
+                    gpu=0,
+                    memory=50000,
+                    charged_group="wangshuo_8gpu",
+                )
+
+            return command_uniref + "&& " + command_mgnify + "&& " + command_uniprot
+        else:
+            return command_uniref + "&& " + command_mgnify
 
     def on_run_end(self):
         if self.info_reportor is not None:

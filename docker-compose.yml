@@ -40,7 +40,6 @@ services:
     ports:
       - "8081:8081"
     depends_on:
-      - rabbitmq
       - redis
     volumes:
       - ./api:/app
@@ -48,7 +47,7 @@ services:
       - ./lib:/app/lib
     environment:
       - TZ=Asia/Shanghai
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_BROKER_URL=redis://redis
       - CELERY_RESULT_BACKEND=redis://redis
       - HOST=0.0.0.0
       - PORT=8081
@@ -65,10 +64,10 @@ services:
         - GROUP_ID=${GID}
         - USER_NAME=${USER_NAME}
     depends_on:
-      - rabbitmq
+      - redis
     environment:
       - TZ=Asia/Shanghai
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_BROKER_URL=redis://redis
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
       - ./services/preprocess:/worker
@@ -87,10 +86,10 @@ services:
         - GROUP_ID=${GID}
         - USER_NAME=${USER_NAME}
     depends_on:
-      - rabbitmq
+      - redis
     environment:
       - TZ=Asia/Shanghai
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_BROKER_URL=redis://redis
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
       - ./services/blast:/worker
@@ -109,10 +108,10 @@ services:
         - GROUP_ID=${GID}
         - USER_NAME=${USER_NAME}
     depends_on:
-      - rabbitmq
+      - redis
     environment:
       - TZ=Asia/Shanghai
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_BROKER_URL=redis://redis
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
       - ./services/jackhmmer:/worker
@@ -131,10 +130,10 @@ services:
         - GROUP_ID=${GID}
         - USER_NAME=${USER_NAME}
     depends_on:
-      - rabbitmq
+      - redis
     environment:
       - TZ=Asia/Shanghai
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_BROKER_URL=redis://redis
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
       - ./services/hhblits:/worker
@@ -153,10 +152,10 @@ services:
         - GROUP_ID=${GID}
         - USER_NAME=${USER_NAME}
     depends_on:
-      - rabbitmq
+      - redis
     environment:
       - TZ=Asia/Shanghai
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_BROKER_URL=redis://redis
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
       - ./services/mmseqs:/worker
@@ -175,10 +174,10 @@ services:
         - GROUP_ID=${GID}
         - USER_NAME=${USER_NAME}
     depends_on:
-      - rabbitmq
+      - redis
     environment:
       - TZ=Asia/Shanghai
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_BROKER_URL=redis://redis
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
       - ./services/deepmsa:/worker
@@ -198,10 +197,10 @@ services:
         - GROUP_ID=${GID}
         - USER_NAME=${USER_NAME}
     depends_on:
-      - rabbitmq
+      - redis
     environment:
       - TZ=Asia/Shanghai
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_BROKER_URL=redis://redis
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
       - ./services/mergemsa:/worker
@@ -220,10 +219,10 @@ services:
         - GROUP_ID=${GID}
         - USER_NAME=${USER_NAME}
     depends_on:
-      - rabbitmq
+      - redis
     environment:
       - TZ=Asia/Shanghai
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_BROKER_URL=redis://redis
       - CELERY_RESULT_BACKEND=redis://redis
       - NVIDIA_VISIBLE_DEVICES=all
     deploy:
@@ -250,10 +249,10 @@ services:
         - GROUP_ID=${GID}
         - USER_NAME=${USER_NAME}
     depends_on:
-      - rabbitmq
+      - redis
     environment:
       - TZ=Asia/Shanghai
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_BROKER_URL=redis://redis
       - CELERY_RESULT_BACKEND=redis://redis
       - DOCKER_CLIENT_TIMEOUT=${DOCKER_CLIENT_TIMEOUT}
       - COMPOSE_HTTP_TIMEOUT=${COMPOSE_HTTP_TIMEOUT}
@@ -285,10 +284,10 @@ services:
         - GROUP_ID=${GID}
         - USER_NAME=${USER_NAME}
     depends_on:
-      - rabbitmq
+      - redis
     environment:
       - TZ=Asia/Shanghai
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_BROKER_URL=redis://redis
       - CELERY_RESULT_BACKEND=redis://redis
       - DOCKER_CLIENT_TIMEOUT=${DOCKER_CLIENT_TIMEOUT}
       - COMPOSE_HTTP_TIMEOUT=${COMPOSE_HTTP_TIMEOUT}
@@ -309,6 +308,41 @@ services:
       - ./lib:/worker/lib
     command: celery -A worker worker --loglevel=info -Q queue_rosettafold --concurrency=8
 
+  worker_chai:
+    build:
+      context: ./services/chai
+      dockerfile: Dockerfile
+      args:
+        - http_proxy=${http_proxy}
+        - https_proxy=${https_proxy}
+        - USER_ID=${UID}
+        - GROUP_ID=${GID}
+        - USER_NAME=${USER_NAME}
+    depends_on:
+      - redis
+    environment:
+      - TZ=Asia/Shanghai
+      - CELERY_BROKER_URL=redis://redis
+      - CELERY_RESULT_BACKEND=redis://redis
+      - DOCKER_CLIENT_TIMEOUT=${DOCKER_CLIENT_TIMEOUT}
+      - COMPOSE_HTTP_TIMEOUT=${COMPOSE_HTTP_TIMEOUT}
+      - TF_FORCE_UNIFIED_MEMORY=${TF_FORCE_UNIFIED_MEMORY}
+      - XLA_PYTHON_CLIENT_MEM_FRACTION=${XLA_PYTHON_CLIENT_MEM_FRACTION}
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: "nvidia"
+            count: "all"
+            capabilities: ["gpu"]
+    volumes:
+      - ./services/chai:/worker
+      - /data:/data
+      - /tmp:/tmp
+      - ./lib:/worker/lib
+    command: celery -A worker worker --loglevel=info -Q queue_chai --concurrency=8
+
   worker_esmfold:
     build:
       context: ./services/esmfold
@@ -320,10 +354,10 @@ services:
         - GROUP_ID=${GID}
         - USER_NAME=${USER_NAME}
     depends_on:
-      - rabbitmq
+      - redis
     environment:
       - TZ=Asia/Shanghai
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_BROKER_URL=redis://redis
       - CELERY_RESULT_BACKEND=redis://redis
       - DOCKER_CLIENT_TIMEOUT=${DOCKER_CLIENT_TIMEOUT}
       - COMPOSE_HTTP_TIMEOUT=${COMPOSE_HTTP_TIMEOUT}
@@ -355,10 +389,10 @@ services:
         - GROUP_ID=${GID}
         - USER_NAME=${USER_NAME}
     depends_on:
-      - rabbitmq
+      - redis
     environment:
       - TZ=Asia/Shanghai
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_BROKER_URL=redis://redis
       - CELERY_RESULT_BACKEND=redis://redis
       - DOCKER_CLIENT_TIMEOUT=${DOCKER_CLIENT_TIMEOUT}
       - COMPOSE_HTTP_TIMEOUT=${COMPOSE_HTTP_TIMEOUT}
@@ -390,10 +424,10 @@ services:
         - GROUP_ID=${GID}
         - USER_NAME=${USER_NAME}
     depends_on:
-      - rabbitmq
+      - redis
     environment:
       - TZ=Asia/Shanghai
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_BROKER_URL=redis://redis
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
       - ./services/analysis:/worker
@@ -412,10 +446,10 @@ services:
         - GROUP_ID=${GID}
         - USER_NAME=${USER_NAME}
     depends_on:
-      - rabbitmq
+      - redis
     environment:
       - TZ=Asia/Shanghai
-      - CELERY_BROKER_URL=amqp://rabbitmq:5672
+      - CELERY_BROKER_URL=redis://redis
       - CELERY_RESULT_BACKEND=redis://redis
     volumes:
       - ./services/submit:/worker
@@ -423,15 +457,16 @@ services:
       - ./lib:/worker/lib
     command: celery -A worker worker --loglevel=info -Q queue_submit --concurrency=16
 
-  rabbitmq:
-    image: "rabbitmq:3-management"
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+  # rabbitmq:
+  #   image: "rabbitmq:3-management"
+  #   ports:
+  #     - "5672:5672"
+  #     - "15672:15672"
       
   redis:
     image: redis:latest
 
+  # app.conf.broker_url = 'redis://localhost:6379/0'
   # # Optionally, you can also include Flower for monitoring the Celery tasks
   # flower:
   #   image: mher/flower

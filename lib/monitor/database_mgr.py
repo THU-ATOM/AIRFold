@@ -101,7 +101,9 @@ class DBManager:
         return resulsts
     
     def query_latest(self, query_dict: dict):
-        resulsts = self.collection.find(query_dict, sort=[( '_id', DESCENDING)])
+        # print("query_dict: ", query_dict)
+        # resulsts = self.collection.find(query_dict, sort=[( '_id', DESCENDING)])
+        resulsts = self.collection.find({"$and":[query_dict, {"path_tree":{"$ne": ""}}]}, sort=[( '_id', DESCENDING)])
         return resulsts
     
     def delete(self, query_dict: dict):

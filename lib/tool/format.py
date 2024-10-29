@@ -88,6 +88,18 @@ def format(
     format_run(args)
 
 
+def seqs2fasta(sample):
+    seq_name = sample['name']
+    seq_str = sample['sequence']
+    sequences = seq_str.split('|')
+
+    lines = []
+    for i, seq in enumerate(sequences):
+        lines.append(f">protein|{seq_name}_chain_{i}")
+        lines.append(f"{seq}")
+    return lines
+
+
 def format_run(args):
 
     if args.list is None:
@@ -105,27 +117,26 @@ def format_run(args):
         """
         add segment situation
         """
-        # if sample["segment"] is not None:
-        #     start = sample["segment"]["start"]
-        #     end = sample["segment"]["end"]
-        #     name = f"{name}_s_{start}_e_{end}"
              
         output_path = Path(args.output_dir) / get_filename(name, target_format)
-
-        if source_format == "list":
-            line_func = get_lines_funcs(source_format, target_format)[0]
-            lines = line_func(sample)
-            dtool.write_lines(output_path, lines)
-        else:
-            input_path = Path(args.input_dir) / get_filename(
-                name, source_format
-            )
-            if input_path.exists():
-                dtool.process_file(
-                    input_path,
-                    output_path,
-                    lines_funcs=get_lines_funcs(source_format, target_format),
+        if args.multimer == 0:
+            if source_format == "list":
+                line_func = get_lines_funcs(source_format, target_format)[0]
+                lines = line_func(sample)
+                dtool.write_lines(output_path, lines)
+            else:
+                input_path = Path(args.input_dir) / get_filename(
+                    name, source_format
                 )
+                if input_path.exists():
+                    dtool.process_file(
+                        input_path,
+                        output_path,
+                        lines_funcs=get_lines_funcs(source_format, target_format),
+                    )
+        else:
+            lines = seqs2fasta(sample)
+            dtool.write_lines(output_path, lines)
 
 
 if __name__ == "__main__":
@@ -134,6 +145,7 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--input_dir", type=str)
     parser.add_argument("-o", "--output_dir", required=True, type=str)
     parser.add_argument("-f", "--format", required=True, type=str)
+    parser.add_argument("-m", "--multimer", type=int, choices=[0, 1], default=0)
 
     args = parser.parse_args()
     format_run(args)

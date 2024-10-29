@@ -181,7 +181,8 @@ def predict_structure(
         model_config.data.common.reduce_msa_clusters_by_max_templates = False
     if "max_extra_msa" in kwargs:
         model_config.data.common.max_extra_msa = kwargs["max_extra_msa"]
-    run_multimer_system = kwargs.get("run_multimer_system", False)
+    # run_multimer_system = kwargs.get("run_multimer_system", False)
+    run_multimer_system = kwargs["run_multimer_system"]
 
     if run_multimer_system:
         model_config.model.num_ensemble_eval = model_config.data.eval.num_ensemble

@@ -1,7 +1,7 @@
 import os
 from loguru import logger
-from copy import deepcopy
 from celery import Celery
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -15,16 +15,13 @@ import lib.utils.datatool as dtool
 from lib.monitor import info_report
 from lib.utils.execute import rlaunch_exists, rlaunch_wrapper
 from lib.tool import plot
-from lib.utils import misc
-from lib.constant import AF_PARAMS_ROOT, PDB70_ROOT, PDBMMCIF_ROOT
-from lib.utils.systool import get_available_gpus
+from lib.utils import misc, pathtool
+from lib.constant import PDB70_ROOT, PDBMMCIF_ROOT
 from lib.tool.run_af2_stage import (
     search_template, 
-    make_template_feature, 
-    monomer_msa2feature, 
-    predict_structure,
-    run_relaxation,
+    make_template_feature
 )
+from lib.tool import run_af2_monomer, run_af2_multimer
 
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "rpc://")
 CELERY_BROKER_URL = (
@@ -46,11 +43,50 @@ TARGET = "target"
 
 @celery_client.task(name="alphafold")
 def alphafoldTask(requests: List[Dict[str, Any]]):
-    TemplateSearchRunner(requests=requests)()
-    TemplateFeaturizationRunner(requests=requests)()
-    TPLTSelectRunner(requests=requests)()
-    AlphaStrucRunner(requests=requests)()
-    AmberRelaxationRunner(requests=requests)()
+    request = requests[0]
+    multimer = misc.safe_get(requests[0], ["multimer"]) if misc.safe_get(requests[0], "multimer") else False
+    if not multimer:
+        TemplateSearchRunner(requests=requests)()
+        TemplateFeaturizationRunner(requests=requests)()
+        TPLTSelectRunner(requests=requests)()
+        AlphaMonomerStrucRunner(requests=requests)()
+        # AmberRelaxationRunner(requests=requests)()
+    else:
+        chain_requests_list = split_chain_requests(requests)
+        for chain_requests in chain_requests_list:
+            TemplateSearchRunner(requests=chain_requests)()
+            TemplateFeaturizationRunner(requests=chain_requests)()
+            TPLTSelectRunner(requests=chain_requests)()
+        AlphaMultimerStrucRunner(requests=requests)()
+
+
+def split_chain_requests(requests: List[Dict[str, Any]]):
+    requests_list = []
+    request = requests[0]
+    sequence = misc.safe_get(request, ["sequence"])
+    seq_list = sequence.split("\n")
+    for chain_id, seq in enumerate(seq_list):
+        chain_request = deepcopy(request)
+        chain_request["sequence"] = seq
+        chain_request["multimer"] = False
+        chain_request["name"] = chain_request["name"] + "_chain_" + str(chain_id)
+        chain_request["target"] = chain_request["target"] + "_chain_" + str(chain_id)
+        requests_list.append([chain_request])
+    return requests_list
+
+
+def split_chain_request(request: Dict[str, Any]):
+    request_list = []
+    sequence = misc.safe_get(request, ["sequence"])
+    seq_list = sequence.split("\n")
+    for chain_id, seq in enumerate(seq_list):
+        chain_request = deepcopy(request)
+        chain_request["sequence"] = seq
+        chain_request["multimer"] = False
+        chain_request["name"] = chain_request["name"] + "_chain_" + str(chain_id)
+        chain_request["target"] = chain_request["target"] + "_chain_" + str(chain_id)
+        request_list.append(chain_request)
+    return request_list
 
 
 class TemplateSearchRunner(BaseRunner):
@@ -83,10 +119,8 @@ class TemplateSearchRunner(BaseRunner):
             }
             
             try:
-                alphafold_func(run_stage="search_template", 
-                            output_path=self.output_path, 
-                            argument_dict=argument_dict
-                            )
+                pdb_template_hits = search_template(**argument_dict)
+                dtool.save_object_as_pickle(pdb_template_hits, self.output_path)
                 return True
             except TimeoutError as exc:
                 logger.exception(exc)
@@ -223,11 +257,8 @@ class TemplateFeaturizationRunner(BaseRunner):
             }
             
             try:
-                alphafold_func(run_stage="make_template_feature", 
-                            output_path=self.output_path, 
-                            argument_dict=argument_dict
-                            )
-
+                template_feature = make_template_feature(**argument_dict)
+                dtool.save_object_as_pickle(template_feature, self.output_path)
                 return True
             except TimeoutError as exc:
                 logger.exception(exc)
@@ -243,7 +274,7 @@ class TemplateFeaturizationRunner(BaseRunner):
                         state=self.success_code,
                     )
 
-class AlphaStrucRunner(BaseRunner):
+class AlphaMonomerStrucRunner(BaseCommandRunner):
     def __init__(
         self,
         requests: List[Dict[str, Any]]
@@ -276,10 +307,10 @@ class AlphaStrucRunner(BaseRunner):
         plot.plot_msas([msa_collection])
         plt.savefig(save_path, bbox_inches="tight", dpi=200)
 
-    def run(self):
-        ptree = get_pathtree(request=self.requests[0])
+    def build_command(self, request: Dict[str, Any]) -> str:
+        ptree = get_pathtree(request)
         # get msa_path
-        str_dict = misc.safe_get(self.requests[0], ["run_config", "msa_select"])
+        str_dict = misc.safe_get(request, ["run_config", "msa_select"])
         key_list = list(str_dict.keys())
         msa_paths = []
         for idx in range(len(key_list)):
@@ -294,60 +325,49 @@ class AlphaStrucRunner(BaseRunner):
             msa_paths=msa_paths,
             save_path=msa_image,
         )
-        # get selected_template_feat
-        selected_template_feat_path = str(ptree.search.selected_template_feat)
         
-        af2_config = self.requests[0]["run_config"]["structure_prediction"]["alphafold"]
+        af2_config = request["run_config"]["structure_prediction"]["alphafold"]
         models = af2_config["model_name"].split(",")
         random_seed = af2_config.get("random_seed", 0)
         
         self.output_paths = []
+        commands = []
         for model_name in models:
-            out_preffix = str(os.path.join(str(ptree.alphafold.root), model_name))
-            out_path = str(os.path.join(str(ptree.alphafold.root), model_name)) + "_unrelaxed.pdb"
-            if not os.path.exists(out_path):
-                fea_output_path = str(ptree.alphafold.processed_feat) + f"_{model_name}.pkl"
-                template_feat = dtool.read_pickle(selected_template_feat_path)
-                argument_dict1 = {
-                    "sequence": self.sequence,
-                    "target_name": self.target_name,
-                    "msa_paths": msa_paths,
-                    "template_feature": template_feat,
-                    "model_name": model_name,
-                    "random_seed": random_seed,
-                }
-                argument_dict1 = deepcopy(argument_dict1)
-                for k, v in af2_config.items():
-                    if k not in argument_dict1:
-                        argument_dict1[k] = v
-                
-                processed_feature = alphafold_func(run_stage="monomer_msa2feature", 
-                                                output_path=fea_output_path, 
-                                                argument_dict=argument_dict1
-                                                )
-                
-                argument_dict2 = {
-                    "target_name": self.target_name,
-                    "processed_feature": processed_feature,
-                    "model_name": model_name,
-                    "data_dir": str(AF_PARAMS_ROOT),
-                    "random_seed": random_seed,
-                    "return_representations": True,
-                }
-                argument_dict2 = deepcopy(argument_dict2)
-                for k, v in af2_config.items():
-                    if k not in argument_dict2:
-                        argument_dict2[k] = v
-                try:
-                    pdb_output = alphafold_func(run_stage="predict_structure", 
-                                                output_path=out_preffix, 
-                                                argument_dict=argument_dict2
-                                                )
-                    self.output_paths.append(pdb_output)
-                except TimeoutError as exc:
-                    logger.exception(exc)
-                    return False
-        
+            pdb_output = str(os.path.join(ptree.alphafold.root, model_name)) + "_relaxed.pdb"
+            self.output_paths.append(pdb_output)
+            command = "".join(
+                [
+                    f"python {pathtool.get_module_path(run_af2_monomer)} ",
+                    f"--sequence {self.sequence} ",
+                    f"--target_name {self.target_name} ",
+                    f"--model_name {model_name} ",
+                    f"--root_path {str(ptree.alphafold.root)} ",
+                    f"--a3m_path {str(ptree.alphafold.input_a3m)} ",
+                    f"--template_feat {str(ptree.search.selected_template_feat)} ",
+                    f"--random_seed {random_seed} ",
+                    # AF2 Params
+                    f"--seqcov {misc.safe_get(af2_config, 'seqcov')} "
+                    if misc.safe_get(af2_config, "seqcov")
+                    else "",
+                    f"--seqqid {misc.safe_get(af2_config, 'seqqid')} "
+                    if misc.safe_get(af2_config, "seqqid")
+                    else "",
+                    f"--max_recycles {misc.safe_get(af2_config, 'max_recycles')} "
+                    if misc.safe_get(af2_config, "max_recycles")
+                    else "",
+                    f"--max_msa_clusters {misc.safe_get(af2_config, 'max_msa_clusters')} "
+                    if misc.safe_get(af2_config, "max_msa_clusters")
+                    else "",
+                    f"--max_extra_msa {misc.safe_get(af2_config, 'max_extra_msa')} "
+                    if misc.safe_get(af2_config, "max_extra_msa")
+                    else "",
+                    f"--num_ensemble {misc.safe_get(af2_config, 'num_ensemble')} "
+                    if misc.safe_get(af2_config, "num_ensemble")
+                    else "",
+                ]
+            )
+            commands.append(command)
+        return "&& ".join(commands)
 
     def on_run_end(self):
         if self.info_reportor is not None:
@@ -363,41 +383,123 @@ class AlphaStrucRunner(BaseRunner):
                         state=self.error_code,
                     )
 
-class AmberRelaxationRunner(BaseRunner):
+
+class AlphaMultimerStrucRunner(BaseCommandRunner):
     def __init__(
         self,
         requests: List[Dict[str, Any]]
     ) -> None:
         super().__init__(requests)
-        self.error_code = State.RELAX_ERROR
-        self.success_code = State.RELAX_SUCCESS
-        self.start_code = State.RELAX_START
+        self.error_code = State.AlphaFold_ERROR
+        self.success_code = State.AlphaFold_SUCCESS
+        self.start_code = State.AlphaFold_START
+        self.sequence = self.requests[0][SEQUENCE]
+        self.target_name = self.requests[0][TARGET]
 
     @property
     def start_stage(self) -> State:
         return self.start_code
+    
+    @staticmethod
+    def save_msa_fig_from_a3m_files(msa_paths, save_path):
 
-    def run(self):
-        ptree = get_pathtree(request=self.requests[0])
-        af2_config = self.requests[0]["run_config"]["structure_prediction"]["alphafold"]
+        delete_lowercase = lambda line: "".join(
+            [t for t in list(line) if not t.islower()]
+        )
+        msa_collection = []
+        for p in msa_paths:
+            with open(p) as fd:
+                _lines = fd.read().strip().split("\n")
+            _lines = [
+                delete_lowercase(l) for l in _lines if not l.startswith(">") and l
+            ]
+            msa_collection.extend(_lines)
+        plot.plot_msas([msa_collection])
+        plt.savefig(save_path, bbox_inches="tight", dpi=200)
+
+    def build_command(self, request: Dict[str, Any]) -> str:
+        request_list = split_chain_request(request)
+        sequences = []
+        targets = []
+        input_msa_list = []
+        input_uniprot_msa_list = []
+        input_template_fea_list = []
+        for chain_request in request_list:
+            sequences.append(chain_request[SEQUENCE])
+            targets.append(chain_request[TARGET])
+
+            ptree = get_pathtree(chain_request)
+            # get msa_path
+            str_dict = misc.safe_get(chain_request, ["run_config", "msa_select"])
+            key_list = list(str_dict.keys())
+            chain_msa_paths = []
+            for idx in range(len(key_list)):
+                selected_msa_path = str(ptree.strategy.strategy_list[idx]) + "_dp.a3m"
+                chain_msa_paths.append(str(selected_msa_path))
+            
+            msa_image = ptree.alphafold.msa_coverage_image
+            Path(msa_image).parent.mkdir(exist_ok=True, parents=True)
+
+            # merge selected msa
+            dtool.deduplicate_msa_a3m(chain_msa_paths, str(ptree.alphafold.input_a3m))
+            input_msa_list.append(str(ptree.alphafold.input_a3m))
+
+            # get uniprot msa
+            dtool.deduplicate_msa_a3m([str(ptree.search.jackhammer_uniprot_a3m)], str(ptree.alphafold.input_uniprot_a3m))
+            input_uniprot_msa_list.append(str(ptree.alphafold.input_uniprot_a3m))
+
+            # get selected template feature
+            input_template_fea_list.append(str(ptree.search.selected_template_feat))
+
+            self.save_msa_fig_from_a3m_files(
+                msa_paths=chain_msa_paths,
+                save_path=msa_image,
+            )
+        
+        af2_config = request["run_config"]["structure_prediction"]["alphafold"]
         models = af2_config["model_name"].split(",")
+        random_seed = af2_config.get("random_seed", 0)
+        
         self.output_paths = []
+        commands = []
         for model_name in models:
-            input_path = str(os.path.join(str(ptree.alphafold.root), model_name)) + "_unrelaxed.pdb"
-            unrelaxed_pdb_str = dtool.read_text_file(input_path)
-            output_path = str(os.path.join(str(ptree.alphafold.root), model_name)) + "_relaxed.pdb"
-            argument_dict = {"unrelaxed_pdb_str": unrelaxed_pdb_str}
-            if not os.path.exists(output_path):
-                try:
-                    relaxed_pdb_path = alphafold_func(run_stage="run_relaxation", 
-                                                output_path=output_path, 
-                                                argument_dict=argument_dict
-                                                )
-                    self.output_paths.append(relaxed_pdb_path)
-                except TimeoutError as exc:
-                    logger.exception(exc)
-                    return False
-
+            pdb_output = str(os.path.join(ptree.alphafold.root, model_name)) + "_relaxed.pdb"
+            self.output_paths.append(pdb_output)
+            command = "".join(
+                [
+                    f"python {pathtool.get_module_path(run_af2_multimer)} ",
+                    f"--target_name {self.target_name} ",
+                    f"--chain_sequences {' '.join(sequences)} ",
+                    f"--chain_targets {' '.join(targets)} ",
+                    f"--model_name {model_name} ",
+                    f"--root_path {str(ptree.alphafold.root)} ",
+                    f"--a3m_paths {' '.join(input_msa_list)} ",
+                    f"--uniprot_a3m_paths {' '.join(input_uniprot_msa_list)} ",
+                    f"--template_feats {' '.join(input_template_fea_list)} ",
+                    f"--random_seed {random_seed} ",
+                    # AF2 Params
+                    f"--seqcov {misc.safe_get(af2_config, 'seqcov')} "
+                    if misc.safe_get(af2_config, "seqcov")
+                    else "",
+                    f"--seqqid {misc.safe_get(af2_config, 'seqqid')} "
+                    if misc.safe_get(af2_config, "seqqid")
+                    else "",
+                    f"--max_recycles {misc.safe_get(af2_config, 'max_recycles')} "
+                    if misc.safe_get(af2_config, "max_recycles")
+                    else "",
+                    f"--max_msa_clusters {misc.safe_get(af2_config, 'max_msa_clusters')} "
+                    if misc.safe_get(af2_config, "max_msa_clusters")
+                    else "",
+                    f"--max_extra_msa {misc.safe_get(af2_config, 'max_extra_msa')} "
+                    if misc.safe_get(af2_config, "max_extra_msa")
+                    else "",
+                    f"--num_ensemble {misc.safe_get(af2_config, 'num_ensemble')} "
+                    if misc.safe_get(af2_config, "num_ensemble")
+                    else "",
+                ]
+            )
+            commands.append(command)
+        return "&& ".join(commands)
 
     def on_run_end(self):
         if self.info_reportor is not None:
@@ -412,42 +514,3 @@ class AmberRelaxationRunner(BaseRunner):
                         hash_id=request[info_report.HASH_ID],
                         state=self.error_code,
                     )
-
-
-
-def alphafold_func(run_stage: str, output_path: str, argument_dict: Dict[str, Any]):
-    
-    print("------- running stage: %s" % run_stage)
-    # set visible gpu device
-    gpu_devices = "".join([f"{i}" for i in get_available_gpus(1)])
-    logger.info(f"The gpu device used for {run_stage}: {gpu_devices}")
-    os.environ['CUDA_VISIBLE_DEVICES'] = gpu_devices
-    # ref: https://github.com/google-deepmind/alphafold/issues/140
-    # for CUDA_ERROR_ILLEGAL_ADDRESS error
-    # os.system("unset TF_FORCE_UNIFIED_MEMORY")
-    
-    if run_stage == "search_template":
-        pdb_template_hits = search_template(**argument_dict)
-        dtool.save_object_as_pickle(pdb_template_hits, output_path)
-        return  output_path
-    elif run_stage == "make_template_feature":
-        template_feature = make_template_feature(**argument_dict)
-        dtool.save_object_as_pickle(template_feature, output_path)
-        return output_path
-    elif run_stage == "monomer_msa2feature":
-        processed_feature, _ = monomer_msa2feature(**argument_dict)
-        # dtool.save_object_as_pickle(processed_feature, output_path)
-        return processed_feature
-    elif run_stage == "predict_structure":
-        pkl_output = output_path + "_output_raw.pkl"
-        pdb_output = output_path + "_unrelaxed.pdb"
-        prediction_results, unrelaxed_pdb_str, _ = predict_structure(**argument_dict)
-        dtool.save_object_as_pickle(prediction_results, pkl_output)
-        dtool.write_text_file(plaintext=unrelaxed_pdb_str, path=pdb_output)
-        return pdb_output
-    elif run_stage == "run_relaxation":
-        relaxed_pdb_str, _ = run_relaxation(**argument_dict)
-        dtool.write_text_file(relaxed_pdb_str, output_path)
-        return output_path
-    else:
-        return None

@@ -10,6 +10,7 @@ from lib.state import State
 from lib.pathtree import get_pathtree
 from lib.monitor import info_report
 from lib.tool import format
+from lib.utils import misc
 
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "rpc://")
 CELERY_BROKER_URL = (
@@ -48,16 +49,28 @@ class PreprocessRunner(BaseGroupCommandRunner):
     def build_command(self, requests: List[Dict[str, Any]]) -> str:
         path_requests = self.requests2file(requests)
         ptree = get_pathtree(request=requests[0])
-        command = (
-            f"python {Path(format.__file__).resolve()}"
-            f" --list {path_requests}"
-            f" --output_dir {ptree.seq.root}"
-            f" --format 'list -> aln'"
-            f" && python {Path(format.__file__).resolve()}"
-            f" --list {path_requests}"
-            f" --output_dir {ptree.seq.root}"
-            f" --format 'list -> fasta'"
-        )
+
+        multimer = misc.safe_get(requests[0], ["multimer"]) if misc.safe_get(requests[0], "multimer") else False
+
+        if not multimer:
+            command = (
+                f"python {Path(format.__file__).resolve()}"
+                f" --list {path_requests}"
+                f" --output_dir {ptree.seq.root}"
+                f" --format 'list -> aln'"
+                f" && python {Path(format.__file__).resolve()}"
+                f" --list {path_requests}"
+                f" --output_dir {ptree.seq.root}"
+                f" --format 'list -> fasta'"
+            )
+        else:
+            command = (
+                f"python {Path(format.__file__).resolve()}"
+                f" --list {path_requests}"
+                f" --output_dir {ptree.seq.root}"
+                f" --multimer 1"
+                f" --format 'list -> fasta'"
+            )
         return command
 
     def on_run_end(self):

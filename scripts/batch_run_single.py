@@ -99,8 +99,8 @@ def load_fasta(file_path, dir_name, data_suffix):
             if line.startswith(">"):
                 seq_name = data_suffix + "_" + dir_name
             else:
-                sequence += line.strip()
-    print("Seq_len: ", len(sequence))    
+                sequence = line.strip()
+                
     return seq_name, sequence
                 
 
@@ -123,28 +123,33 @@ def main():
     
     # with open("./tmp/temp_6000_64_1_plmsim_mmseqs.json", 'r') as jf:
     # with open("./tmp/temp_6000_64_1_seqentropy.json", 'r') as jf:
-    with open("./tmp/temp_6000_64_1_seqentropy_mmseqs.json", 'r') as jf:
+    with open("./tmp/temp_esmfold_v1.json", 'r') as jf:
         request_dict = json.load(jf)
     
     # weeks = ['2024.02.17', '2024.02.24', '2024.03.02', '2024.03.09', 
     #          '2024.03.16', '2024.03.23', '2024.03.30', '2024.04.06']
     
     # new weeks: 2024.05.04  2024.05.11  2024.05.18  2024.05.25
-    # cameo_dir = "/data/protein/datasets_2024/experiment/modeling/2024.05.18/"
-    seq_file = "/home/casp15/code/AIRFold/tmp/Q96D09.fasta"
-    data_suffix = "2024-07-24"
+    cameo_dir = "/data/protein/datasets_2024/experiment/modeling/2024.05.25/"
+    # cameo_dir = "/data/protein/datasets_2024/experiment/modeling/modeling_one_week/modeling/2024.07.06/"
+    data_suffix = "2024-06-05"
     # case_suffix = "base_deepmsa_mmseqs"
     case_suffix = "bdm"
     
-
-    seq_name, sequence = load_fasta(seq_file, dir_name="Q96D09", data_suffix=data_suffix)
-    # exit()
-    request_dict["sequence"] = sequence
-    request_dict["name"] = seq_name + "_" + case_suffix
-    request_dict["target"] = seq_name
-    logger.info(f"------- Received request: {request_dict}")
-    insert_request(r=request_dict, info_report=info_report)
-    call_pipeline(info_report=info_report)
+    # for run dir or run bad case
+    # run dir
+    # dir_names = os.listdir(cameo_dir)
+    # run bad case
+    dir_names = os.listdir(cameo_dir)[:1]
+    for dir_name in  dir_names:
+        seq_file = cameo_dir + dir_name + "/" + "target.fasta"
+        seq_name, sequence = load_fasta(seq_file, dir_name, data_suffix)
+        request_dict["sequence"] = sequence
+        request_dict["name"] = seq_name + "_" + case_suffix
+        request_dict["target"] = seq_name
+        logger.info(f"------- Received request: {request_dict}")
+        insert_request(r=request_dict, info_report=info_report)
+        call_pipeline(info_report=info_report)
 
 if __name__ == "__main__":
     # parser = argparse.ArgumentParser()

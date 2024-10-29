@@ -109,10 +109,10 @@ def pipelineWorker(request_dicts):
     with tool_utils.tmpdir_manager(base_dir="/tmp") as tmpdir:
         os.path.join(tmpdir, "requests.pkl")
         # pip_request= {"requests" : request_dicts}
-        pipeline_url = f"http://10.0.0.12:8081/pipeline"
+        pipeline_url = f"http://10.0.0.12:8081/complex_pipeline"
 
         try:
-            logger.info(f"------- Requests of pipeline task: {request_dicts}")
+            logger.info(f"------- Requests of complex_pipeline task: {request_dicts}")
             requests.post(pipeline_url , json={'requests': request_dicts})
         except Exception as e:
             logger.error(str(e))
@@ -121,40 +121,14 @@ def main():
 
     info_report = InfoReport()
     
-    # with open("./tmp/temp_6000_64_1_plmsim_mmseqs.json", 'r') as jf:
-    # with open("./tmp/temp_6000_64_1_seqentropy.json", 'r') as jf:
-    with open("./tmp/temp_7000_64_1_seqentropy_mmseqs_af2.json", 'r') as jf:
+    with open("./tmp/temp_af2_multimer.json", 'r') as jf:
         request_dict = json.load(jf)
     
-    # weeks = ['2024.02.17', '2024.02.24', '2024.03.02', '2024.03.09', 
-    #          '2024.03.16', '2024.03.23', '2024.03.30', '2024.04.06']
-    
-    # new weeks: 2024.05.04  2024.05.11  2024.05.18  2024.05.25
-    cameo_dir = "/data/protein/datasets_2024/experiment/modeling/2024.05.25/"
-    # cameo_dir = "/data/protein/datasets_2024/experiment/modeling/modeling_one_week/modeling/2024.07.06/"
-    data_suffix = "2024-06-05"
-    # case_suffix = "base_deepmsa_mmseqs"
-    case_suffix = "bdm"
-    
-    # for run dir or run bad case
-    # run dir
-    dir_names = os.listdir(cameo_dir)
-    # run bad case
-    # dir_names = ['8HZV_A']
-    for dir_name in  dir_names:
-        seq_file = cameo_dir + dir_name + "/" + "target.fasta"
-        seq_name, sequence = load_fasta(seq_file, dir_name, data_suffix)
-        request_dict["sequence"] = sequence
-        request_dict["name"] = seq_name + "_" + case_suffix
-        request_dict["target"] = seq_name
-        logger.info(f"------- Received request: {request_dict}")
-        insert_request(r=request_dict, info_report=info_report)
-        call_pipeline(info_report=info_report)
+    logger.info(f"------- Received request: {request_dict}")
+    insert_request(r=request_dict, info_report=info_report)
+    call_pipeline(info_report=info_report)
 
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument("-i", "--input_path", type=str, required=True)
-    # args = parser.parse_args()
     
     logger.configure(**MONITOR_LOGGING_CONFIG)
     logger.info("------- Start to monitor -------")

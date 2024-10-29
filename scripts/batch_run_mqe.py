@@ -47,10 +47,10 @@ def main():
     # case_suffix = "base_deepmsa_mmseqs"
     case_suffix = "bdm"
     
-    json_files = ["./tmp/temp_6000_64_1_seqentropy_nodq.json",
-                 "./tmp/temp_6000_64_1_seqentropy.json",
-                 "./tmp/temp_6000_64_1_seqentropy_mmseqs.json",
-                 "./tmp/temp_6000_64_1_plmsim_mmseqs.json"]
+    json_files = ["./tmp/temp_7000_64_1_seqentropy_nodq.json",
+                 "./tmp/temp_7000_64_1_seqentropy.json",
+                 "./tmp/temp_7000_64_1_seqentropy_mmseqs.json",
+                 "./tmp/temp_7000_64_1_plmsim_mmseqs.json"]
                 #  "./tmp/temp_6000_64_1_seqentropy_mmseqs_rf2.json"]
     # json_files = ["./tmp/temp_6000_64_1_seqentropy_mmseqs.json",
     #              "./tmp/temp_6000_64_1_plmsim_mmseqs.json"]

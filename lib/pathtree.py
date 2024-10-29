@@ -72,7 +72,18 @@ class AF_Mgnify(BasePathTree):
     def data(self):
         return self.root / "mgy_clusters.fa"
 
+class AF_Uniprot(BasePathTree):
+    def __init__(
+        self,
+        root: Union[str, Path] = AF_UNIPROT_ROOT,
+        request: Dict[str, Any] = None,
+    ) -> None:
+        super().__init__(root, request)
 
+    @property
+    def data(self):
+        return self.root / "uniprot.fasta"
+    
 class AF_Uniref90(BasePathTree):
     def __init__(
         self,
@@ -297,6 +308,18 @@ class SearchPathTree(BasePathTree):
     @property
     def jackhammer_mgnify_sto(self):
         return self.root / "jackhmmer_mgnify_sto" / f"{self.id}.sto"
+    
+    @property
+    def jackhammer_uniprot_a3m(self):
+        return self.root / "jackhmmer_uniprot_a3m" / f"{self.id}.a3m"
+
+    @property
+    def jackhammer_uniprot_fa(self):
+        return self.root / "jackhmmer_uniprot_fa" / f"{self.id}.fasta"
+
+    @property
+    def jackhammer_uniprot_sto(self):
+        return self.root / "jackhmmer_uniprot_sto" / f"{self.id}.sto"
 
     @property
     def in_fasta(self):
@@ -397,6 +420,10 @@ class AlphaFoldPathTree(BasePathTree):
     @property
     def input_a3m(self):
         return self.root / "input_msa.a3m"
+    
+    @property
+    def input_uniprot_a3m(self):
+        return self.root / "input_uniprot_msa.a3m"
 
     @property
     def msa_filtered_pickle(self):
@@ -572,7 +599,81 @@ class ESMFoldPathTree(BasePathTree):
         if len(files) > 1:
             files = sorted(files, key=lambda x: x["relaxed_pdb"])
         return files
+
+
+class ChaiPathTree(BasePathTree):
+    def __init__(self, root: Union[str, Path], request: Dict[str, Any]) -> None:
+        super().__init__(root, request)
+        self.root = self.root / self.id / "chai"
+
+    @property
+    def time_cost(self):
+        return self.root / "time_cost.txt"
+
+    @property
+    def relaxed_pdbs(self):
+        return list(sorted(self.root.glob("rank_*_relaxed.pdb")))
+
+    @property
+    def submit_pdbs(self):
+        return list(sorted(self.root.glob("model_*_relaxed.pdb")))
+
+    @property
+    def unrelaxed_pdbs(self):
+        return list(sorted(self.root.glob("*_unrelaxed.pdb")))
+
+    @property
+    def result(self):
+        return self.root / "result.json"
+
+    @property
+    def lddt(self):
+        return self.root / "lddt" / "lddt.json"
+
+    @property
+    def msa_pickle(self):
+        return self.root / "msa.pickle"
+
+    @property
+    def input_a3m(self):
+        return self.root / "input_msa.a3m"
     
+    @property
+    def msa_dir(self):
+        return self.root / "msa_dir"
+
+    @property
+    def msa_filtered_pickle(self):
+        return self.root / "msa_filtered.pickle"
+
+    @property
+    def log(self):
+        return self.root / "log.txt"
+
+    @property
+    def plddt_image(self):
+        return self.root / "predicted_LDDT.png"
+
+    @property
+    def msa_coverage_image(self):
+        return self.root / "msa_coverage.png"
+
+    @property
+    def model_files(self):
+        files = []
+        for item in self.relaxed_pdbs:
+            key = "_".join(item.name.split("_")[:-1])
+            itemfiles = {}
+            model_key = "_".join(item.name.split("_")[2:4])
+            itemfiles["relaxed_pdb"] = item
+            itemfiles["unrelaxed_pdb"] = self.root / f"{key}_unrelaxed.pdb"
+            itemfiles["plddt"] = self.root / model_key / "result.json"
+            itemfiles["image"] = self.root / f"{key}.png"
+            itemfiles["conformation"] = self.root / f"{item.stem}_conformation.png"
+            files.append(itemfiles)
+        if len(files) > 1:
+            files = sorted(files, key=lambda x: x["relaxed_pdb"])
+        return files
 
 class MQEPathTree(BasePathTree):
     def __init__(self, root: Union[str, Path], request: Dict[str, Any]) -> None:
@@ -654,6 +755,13 @@ class CAMEOPathTree(BasePathTree):
         )
     
     @property
+    def chai(self):
+        return ChaiPathTree(
+            self.root / "structure" / self.final_msa_fasta.parent.name,
+            self.request,
+        )
+    
+    @property
     def mqe(self):
         return MQEPathTree(
             self.root / "mqe",
@@ -679,6 +787,10 @@ class CAMEOPathTree(BasePathTree):
     @property
     def afmgnify(self) -> AF_Mgnify:
         return AF_Mgnify(request=self.request)
+    
+    @property
+    def afuniprot(self) -> AF_Uniprot:
+        return AF_Uniprot(request=self.request)
 
 class CAMEOSinglePathTree(BasePathTree):
     def __init__(
@@ -699,6 +811,13 @@ class CAMEOSinglePathTree(BasePathTree):
     @property
     def esmfold(self):
         return ESMFoldPathTree(
+            self.root / "structure" / "single",
+            self.request,
+        )
+    
+    @property
+    def chai_single(self):
+        return ChaiPathTree(
             self.root / "structure" / "single",
             self.request,
         )

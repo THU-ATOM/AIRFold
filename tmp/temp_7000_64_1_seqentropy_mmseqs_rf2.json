@@ -1,0 +1,83 @@
+{
+    "email": "3517109690@qq.com",
+    "sender": "cameo",
+    "sequence": "XXX",
+    "name": "2024-06-05_XXX",
+    "target": "2024-06-05_XXX",
+    "run_config": {
+      "name": "cameo",
+      "msa_search": {
+        "segment": null,
+        "copy_int_msa_from": null,
+        "hhblits": {
+          "iteration": 3,
+          "e_value": 0.001,
+          "realign_max": 100000,
+          "maxfilt": 100000,
+          "min_prefilter_hits": 1000,
+          "maxseq": 100000,
+          "dataset": [
+            "uniclust30",
+            "bfd"
+          ],
+          "diff_default": "inf",
+          "diff_fast": 1000,
+          "timeout": 7200,
+          "thread": 8,
+          "cpu": 8
+        },
+        "jackhmmer": {
+          "n_iter": 1,
+          "e_value": 0.0001,
+          "filter_f1": 0.0005,
+          "filter_f2": 0.00005,
+          "filter_f3": 0.000005,
+          "thread": 8,
+          "cpu": 8
+        },
+        "blast": {
+          "blasttype": "psiblast",
+          "evalue": 0.001,
+          "num_iterations": 3
+        },
+        "deepmsa": {
+          "runtype": "qdm"
+        },
+        "mmseqs": {
+          "sensitivity": 8,
+          "align_eval": 10,
+          "diff": 3000,
+          "qsc": -20.0
+        }
+      },
+      "template": {
+        "copy_template_hits_from": null,
+        "cutomized_template_pdbs": null,
+        "template_select_strategy": "top"
+      },
+      "msa_select": {
+        "seq_entropy": {
+          "least_seqs": {
+            "hj": 3000,
+            "bl": 1000,
+            "dq": 1000,
+            "dm": 1000,
+            "mm": 1000
+          }
+        }
+      },
+      "structure_prediction": {
+        "rosettafold2": {
+          "collapse_identical": 0,
+          "msa_concat_mode": "diag",
+          "num_recycles": 12,
+          "use_mlm": 0,
+          "use_dropout": 0,
+          "max_msa": 512,
+          "model_name": "model_1,model_2,model_3,model_4,model_5",
+          "random_seed": 0
+        }
+      }
+    },
+    "submit": false
+  }
