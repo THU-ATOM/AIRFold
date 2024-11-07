@@ -86,6 +86,9 @@ def convert_monomer_features(
         "seq_length",
     }
     for feature_name, feature in monomer_features.items():
+        logger.info(f"feature_name: {feature_name}")
+        logger.info(f"feature: {feature}")
+        logger.info(f"shape of feature: {feature.shape}")
         if feature_name in unnecessary_leading_dim_feats:
             # asarray ensures it's a np.ndarray.
             feature = np.asarray(feature[0], dtype=feature.dtype)
@@ -94,7 +97,9 @@ def convert_monomer_features(
             feature = np.argmax(feature, axis=-1).astype(np.int32)
         elif feature_name == "template_aatype":
             feature = np.argmax(feature, axis=-1).astype(np.int32)
+            logger.info(f"argmax feature: {feature}")
             new_order_list = residue_constants.MAP_HHBLITS_AATYPE_TO_OUR_AATYPE
+            logger.info(f"new_order_list: {new_order_list}")
             feature = np.take(new_order_list, feature.astype(np.int32), axis=0)
         elif feature_name == "template_all_atom_masks":
             feature_name = "template_all_atom_mask"
@@ -223,7 +228,7 @@ def main(args):
     pkl_output = out_preffix + "_output_raw.pkl"
 
     chain_sequences = args.chain_sequences
-    chain_targets = args.targets
+    chain_targets = args.chain_targets
     a3m_paths = args.a3m_paths
     uniprot_a3m_paths = args.uniprot_a3m_paths
     template_feats = args.template_feats
@@ -231,23 +236,28 @@ def main(args):
     chain_id_map = _make_chain_id_map(
         sequences=chain_sequences, descriptions=chain_targets
     )
+    logger.info(f"chain_id_map: {chain_id_map}")
 
-    chain_ids = list(chain_id_map.kyes())
+    chain_ids = list(chain_id_map.keys())
     all_chain_features = {}
 
     is_homomer_or_monomer = len(set(chain_sequences)) == 1
 
     if not os.path.exists(out_relaxed_pdb):
-        for i in len(chain_sequences):
+        for i in range(len(chain_sequences)):
 
             template_feat = template_feats[i]
+            logger.info(f"--- Model Name: {args.model_name}")
+            logger.info(f"msa path: {a3m_paths[i]}")
+            logger.info(f"template_feat path: {template_feat}")
             template_feat = dtool.read_pickle(template_feat)
             argument_dict1 = {
                 "sequence": chain_sequences[i],
                 "target_name": chain_targets[i],
                 "msa_paths": [a3m_paths[i]],
                 "template_feature": template_feat,
-                "model_name": multimer_model_pj[args.model_name],
+                # "model_name": multimer_model_pj[args.model_name],
+                "model_name": args.model_name,
                 "random_seed": args.random_seed,
                 "seqcov": args.seqcov,
                 "seqqid": args.seqqid,
@@ -260,7 +270,7 @@ def main(args):
             chain_features, _ = monomer_msa2feature(**argument_dict1)
 
             if not is_homomer_or_monomer:
-                uniprot_msa_features = gen_msa_feature(uniprot_a3m_paths[i], format="a3m")
+                uniprot_msa_features = gen_msa_feature([uniprot_a3m_paths[i]], format="a3m")
                 # for briefly, the msa and deletion_matrix_int will be updated (by uniprot val)
                 chain_features.update(uniprot_msa_features)
             chain_features = convert_monomer_features(chain_features, chain_id=chain_ids[i])
@@ -268,26 +278,22 @@ def main(args):
         
         # get all features
         all_chain_features = add_assembly_features(all_chain_features)
-        np_example = feature_processing.pair_and_merge(
+        all_chain_features_np = feature_processing.pair_and_merge(
             all_chain_features=all_chain_features
         )
 
         # Pad MSA to avoid zero-sized extra_msa.
-        np_example = pad_msa(np_example, 512)
+        all_chain_features_np = pad_msa(all_chain_features_np, 512)
         # return np_example
         
         argument_dict2 = {
             "target_name": chain_targets[i],
-            "processed_feature": np_example,
+            "processed_feature": all_chain_features_np,
             "model_name": multimer_model_pj[args.model_name],
             "data_dir": str(AF_PARAMS_ROOT),
             "random_seed": args.random_seed,
             "return_representations": True,
-            "seqcov": args.seqcov,
-            "seqqid": args.seqqid,
             "max_recycles": args.max_recycles,
-            "max_msa_clusters": args.max_msa_clusters,
-            "max_extra_msa": args.max_extra_msa,
             "num_ensemble": args.num_ensemble,
             "run_multimer_system": True   # different from monomer
         }
@@ -309,15 +315,12 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--chain_sequences", type=str, nargs='*', required=True)
-    parser.add_argument("--targets", type=str, nargs='*', required=True)
+    parser.add_argument("--chain_targets", type=str, nargs='*', required=True)
+    parser.add_argument("--model_name", type=str, required=True)
+    parser.add_argument("--root_path", type=str, required=True)
     parser.add_argument("--a3m_paths", type=str, nargs='*', required=True)
     parser.add_argument("--uniprot_a3m_paths", type=str, nargs='*', required=True)
     parser.add_argument("--template_feats", type=str, nargs='*', required=True)
-
-    parser.add_argument("--model_name", type=str, required=True)
-    parser.add_argument("--root_path", type=str, required=True)
-    parser.add_argument("--a3m_path", type=str, required=True)
-    parser.add_argument("--template_feat", type=str, required=True)
 
     parser.add_argument("--random_seed", type=int, default=0)
 

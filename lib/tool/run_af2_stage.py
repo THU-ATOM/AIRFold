@@ -14,7 +14,7 @@ from lib.tool.alphafold.data.from_msa_to_feature import (
     load_msa_from_path,
 )
 from lib.tool.alphafold.data import templates
-from lib.tool.alphafold.data.tools import hhsearch
+from lib.tool.alphafold.data.tools import hhsearch, hmmsearch
 from lib.tool.alphafold.data import parsers
 from lib.tool.alphafold.model import features
 from lib.tool.alphafold.model import config
@@ -85,6 +85,32 @@ def search_template(
     return [dataclasses.asdict(h) for h in pdb_template_hits]
 
 
+def search_template_multimer(
+    input_sequence: str,
+    template_searching_msa_path: str,
+    pdb_seqres_database_path: str = "/data/protein/alphafold/pdb_seqres/pdb_seqres.txt",
+    hmmsearch_binary_path="hmmsearch",
+    hmmbuild_binary_path="hmmbuild"
+) -> Sequence[Dict]:
+    template_searcher = hmmsearch.Hmmsearch(
+        binary_path=hmmsearch_binary_path,
+        hmmbuild_binary_path=hmmbuild_binary_path,
+        database_path=pdb_seqres_database_path
+    )
+    # template_searcher = hhsearch.HHSearch(
+    #     binary_path=hhsearch_binary_path, databases=[pdb70_database_path]
+    # )
+    msa_for_templates = load_msa_from_path(
+        template_searching_msa_path, "a3m", max_depth=None
+    )
+    pdb_templates_result = template_searcher.query(a3m=msa_for_templates["a3m"])
+    pdb_template_hits = template_searcher.get_template_hits(
+        output_string=pdb_templates_result, input_sequence=input_sequence
+    )
+
+    return [dataclasses.asdict(h) for h in pdb_template_hits]
+
+
 def make_template_feature(
     input_sequence: str,
     pdb_template_hits: Sequence[Dict],
@@ -96,6 +122,37 @@ def make_template_feature(
 ) -> Dict:
 
     template_featurizer = templates.HhsearchHitFeaturizer(
+        mmcif_dir=template_mmcif_dir,
+        max_template_date=max_template_date,
+        max_hits=max_template_hits,
+        kalign_binary_path=kalign_binary_path,
+        release_dates_path=None,
+        obsolete_pdbs_path=obsolete_pdbs_path,
+    )
+    pdb_template_hits = [parsers.TemplateHit(**h) for h in pdb_template_hits]
+    templates_result = template_featurizer.get_templates(
+        query_sequence=input_sequence, hits=pdb_template_hits
+    )
+
+    logging.info(
+        f"Total number of templates (NB: this can include bad "
+        f'templates and is later filtered to top 4): {templates_result.features["template_domain_names"].shape[0]}.'
+    )
+
+    return {**templates_result.features}
+
+
+def make_template_feature_multimer(
+    input_sequence: str,
+    pdb_template_hits: Sequence[Dict],
+    max_template_hits: int = 20,
+    template_mmcif_dir: str = "/data/protein/alphafold/pdb_mmcif/mmcif_files",
+    max_template_date: str = "2022-05-05",
+    obsolete_pdbs_path: str = "/data/protein/alphafold/pdb_mmcif/obsolete.dat",
+    kalign_binary_path: str = "kalign",
+) -> Dict:
+
+    template_featurizer = templates.HmmsearchHitFeaturizer(
         mmcif_dir=template_mmcif_dir,
         max_template_date=max_template_date,
         max_hits=max_template_hits,
@@ -186,6 +243,75 @@ def predict_structure(
 
     if run_multimer_system:
         model_config.model.num_ensemble_eval = model_config.data.eval.num_ensemble
+
+    model_params = data.get_model_haiku_params(model_name=model_name, data_dir=data_dir)
+    model_runner = model.RunModel(
+        model_config,
+        model_params,
+        return_representations=return_representations,
+    )
+
+    logging.info("Predicting %s", target_name)
+    timings = {}
+
+    logging.info("Running model %s on %s", model_name, target_name)
+
+    t_0 = time.time()
+    prediction_result = model_runner.predict(processed_feature, random_seed=random_seed)
+    t_diff = time.time() - t_0
+    timings[f"predict_and_compile_{model_name}"] = t_diff
+    logging.info(
+        "Total JAX model %s on %s predict time (includes compilation time, see --benchmark): %.1fs",
+        model_name,
+        target_name,
+        t_diff,
+    )
+    plddt = prediction_result["plddt"]
+
+    plddt_b_factors = np.repeat(
+        plddt[:, None], residue_constants.atom_type_num, axis=-1
+    )
+    unrelaxed_protein = protein.from_prediction(
+        features=processed_feature,
+        result=prediction_result,
+        b_factors=plddt_b_factors,
+        remove_leading_feature_dimension=not model_runner.multimer_mode,
+    )
+    unrelaxed_pdb_str = protein.to_pdb(unrelaxed_protein)
+
+    # available keys in representations, we only need structure_module
+    save_keys = [
+        # "msa",
+        # "msa_first_row",
+        # "pair",
+        # "single",
+        "structure_module",
+    ]
+    if "representations" in prediction_result:
+        prediction_result["representations"] = {
+            key: np.asarray(val)
+            for key, val in prediction_result["representations"].items()
+            if key in save_keys
+        }
+    return prediction_result, unrelaxed_pdb_str, timings
+
+
+
+def predict_structure_multimer(
+    target_name: str,
+    processed_feature: FeatureDict,
+    model_name: str = "model_1",
+    data_dir: str = "/data/protein/alphafold",
+    random_seed: int = 0,
+    return_representations: bool = True,
+    **kwargs,
+) -> Tuple[Dict, str, dict]:
+    """Predicts structure using AlphaFold for the given sequence."""
+
+    model_config = config.model_config(model_name)
+    model_config.model.num_recycle = kwargs["max_recycles"]
+
+    model_config.model.num_ensemble_eval = kwargs["num_ensemble"]
 
     model_params = data.get_model_haiku_params(model_name=model_name, data_dir=data_dir)
     model_runner = model.RunModel(

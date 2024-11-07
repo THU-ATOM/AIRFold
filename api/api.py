@@ -1,4 +1,4 @@
-from celery import group, signature, chord
+from celery import group, signature
 from celery.result import AsyncResult, GroupResult
 from worker import celery_client
 
@@ -135,19 +135,36 @@ async def get_task_result(task_id: str):
 # ----------------------------
 
 @app.post("/msaGen/")
-async def msaGen_task(requests: List[Dict[str, Any]]):
+async def msaGen_task(requests: List[Dict[str, Any]] = Body(..., embed=True)):
     # msaTasks
-    msaSearchTasks = group(
-        signature("blast", args=[requests], queue="queue_blast"),
-        signature("jackhmmer", args=[requests], queue="queue_jackhmmer"),
-        signature("hhblits", args=[requests], queue="queue_hhblits"),
-        signature("mmseqs", args=[requests], queue="queue_mmseqs"),
-        signature("deepmsa", args=[requests], queue="queue_deepmsa"),
+        # preprocessTask
+    preprocessTask = signature("preprocess", args=[requests], queue="queue_preprocess", immutable=True)
+    # msaTasks
+    request = requests[0]
+
+        
+    search_args = misc.safe_get(request, ["run_config", "msa_search"])
+
+    logger.info(f"search_args.keys: {search_args.keys()}")
+    msaTasks = []
+    if "hhblits" in search_args.keys():
+        msaTasks.append(signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True))
+    if "jackhmmer" in search_args.keys():
+        msaTasks.append(signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True))
+    if "deepmsa" in search_args.keys():
+        msaTasks.append(signature("deepmsa", args=[requests], queue="queue_deepmsa", immutable=True))
+    if "mmseqs" in search_args.keys():
+        msaTasks.append(signature("mmseqs", args=[requests], queue="queue_mmseqs", immutable=True))
+
+    msaGroupTask = group(*msaTasks)
+    msaGenTask = (preprocessTask | msaGroupTask)()
+    task_id = msaGenTask.id
+    info_report.update_reserved(
+            hash_id=requests[0]["hash_id"], update_dict={"task_id": task_id}
     )
-    msaMergeTask = signature("mergemsa", args=[requests], queue="queue_mergemsa", immutable=True)
-    msaGenTask = chord(msaSearchTasks)(msaMergeTask)()
-    msaGenTask.save()
-    return {"msaGenTask_id": msaGenTask.id}
+    logger.info(f"------- the task id is {task_id}")
+
+    return {"msaGenTask_id": task_id}
 
 
 @app.get("/check_group/{group_task_id}")
@@ -196,39 +213,17 @@ async def pipeline_task(requests: List[Dict[str, Any]] = Body(..., embed=True)):
     else:
         
         search_args = misc.safe_get(request, ["run_config", "msa_search"])
-        if "deepmsa" in search_args.keys() and "mmseqs" in search_args.keys():
-            msaSearchTasks = group(
-                signature("blast", args=[requests], queue="queue_blast", immutable=True), 
-                signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
-                signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
-                signature("deepmsa", args=[requests], queue="queue_deepmsa", immutable=True),
-                signature("mmseqs", args=[requests], queue="queue_mmseqs", immutable=True),
-            )
-        elif "deepmsa" in search_args.keys() and "mmseqs" not in search_args.keys():
-            msaSearchTasks = group(
-                signature("blast", args=[requests], queue="queue_blast", immutable=True), 
-                signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
-                signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
-                signature("deepmsa", args=[requests], queue="queue_deepmsa", immutable=True),
-            )
-        elif "deepmsa" not in search_args.keys() and "mmseqs" in search_args.keys():
-            msaSearchTasks = group(
-                signature("blast", args=[requests], queue="queue_blast", immutable=True), 
-                signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
-                signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
-                signature("mmseqs", args=[requests], queue="queue_mmseqs", immutable=True),
-            )
-        elif "deepmsa" not in search_args.keys() and "mmseqs" not in search_args.keys() and "blast" in search_args.keys():
-            msaSearchTasks = group(
-                signature("blast", args=[requests], queue="queue_blast", immutable=True), 
-                signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
-                signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
-            )
-        else:
-            msaSearchTasks = group(
-                signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True),
-                signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True),
-            )
+        msaTasks = []
+        if "hhblits" in search_args.keys():
+            msaTasks.append(signature("hhblits", args=[requests], queue="queue_hhblits", immutable=True))
+        if "jackhmmer" in search_args.keys():
+            msaTasks.append(signature("jackhmmer", args=[requests], queue="queue_jackhmmer", immutable=True))
+        if "deepmsa" in search_args.keys():
+            msaTasks.append(signature("deepmsa", args=[requests], queue="queue_deepmsa", immutable=True))
+        if "mmseqs" in search_args.keys():
+            msaTasks.append(signature("mmseqs", args=[requests], queue="queue_mmseqs", immutable=True))
+
+        msaSearchTasks = group(*msaTasks)
             
         msaMergeTask = signature("mergemsa", args=[requests], queue="queue_mergemsa", immutable=True)
         msaSelctTask = signature("selectmsa", args=[requests], queue="queue_selectmsa", immutable=True)
@@ -272,7 +267,6 @@ def split_chain_requests(requests: List[Dict[str, Any]]):
         logger.info(f"Seq of {chain_str}: {seq}")
         chain_request = deepcopy(request)
         chain_request["sequence"] = seq
-        chain_request["multimer"] = False
         chain_request["name"] = chain_request["name"] + "_" + chain_str
         chain_request["target"] = chain_request["target"] + "_" + chain_str
         requests_list.append([chain_request])

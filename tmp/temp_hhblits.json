@@ -1,0 +1,56 @@
+{
+    "email": "3517109690@qq.com",
+    "sender": "cameo",
+    "sequence": "XXX",
+    "name": "2024-10-31_XXX",
+    "target": "2024-10-31_XXX",
+    "run_config": {
+      "name": "cameo",
+      "msa_search": {
+        "segment": null,
+        "copy_int_msa_from": null,
+        "hhblits": {
+          "iteration": 3,
+          "e_value": 0.001,
+          "realign_max": 100000,
+          "maxfilt": 100000,
+          "min_prefilter_hits": 1000,
+          "maxseq": 100000,
+          "dataset": [
+            "uniclust30",
+            "bfd"
+          ],
+          "diff_default": "inf",
+          "diff_fast": 1000,
+          "timeout": 7200,
+          "thread": 8,
+          "cpu": 8
+        }
+      },
+      "template": {
+        "copy_template_hits_from": null,
+        "cutomized_template_pdbs": null,
+        "template_select_strategy": "top"
+      },
+      "msa_select": {
+        "seq_entropy": {
+          "least_seqs": {
+            "hj": 5000
+          }
+        }
+      },
+      "structure_prediction": {
+        "alphafold": {
+          "seqcov": 0,
+          "seqqid": 0,
+          "max_recycles": 64,
+          "max_msa_clusters": 508,
+          "max_extra_msa": 5120,
+          "num_ensemble": 1,
+          "model_name": "model_1,model_2,model_3,model_4,model_5",
+          "random_seed": 0
+        }
+      }
+    },
+    "submit": false
+  }

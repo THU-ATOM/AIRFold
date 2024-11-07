@@ -74,7 +74,7 @@ class Hmmsearch(object):
 
   def query(self, a3m: str) -> str:
     """Queries the database using hmmsearch using a given stockholm msa."""
-    hmm = self.hmmbuild_runner.build_profile_from_a3m(msa_a3m)
+    hmm = self.hmmbuild_runner.build_profile_from_a3m(a3m)
 
     return self.query_with_hmm(hmm)
 

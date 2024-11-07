@@ -19,7 +19,9 @@ from lib.utils import misc, pathtool
 from lib.constant import PDB70_ROOT, PDBMMCIF_ROOT
 from lib.tool.run_af2_stage import (
     search_template, 
-    make_template_feature
+    search_template_multimer,
+    make_template_feature,
+    make_template_feature_multimer
 )
 from lib.tool import run_af2_monomer, run_af2_multimer
 
@@ -43,7 +45,6 @@ TARGET = "target"
 
 @celery_client.task(name="alphafold")
 def alphafoldTask(requests: List[Dict[str, Any]]):
-    request = requests[0]
     multimer = misc.safe_get(requests[0], ["multimer"]) if misc.safe_get(requests[0], "multimer") else False
     if not multimer:
         TemplateSearchRunner(requests=requests)()
@@ -64,13 +65,15 @@ def split_chain_requests(requests: List[Dict[str, Any]]):
     requests_list = []
     request = requests[0]
     sequence = misc.safe_get(request, ["sequence"])
-    seq_list = sequence.split("\n")
+    # use "|" split multi chains
+    seq_list = sequence.split("|")
     for chain_id, seq in enumerate(seq_list):
+        chain_str = "chain_" + str(chain_id)
+        logger.info(f"Seq of {chain_str}: {seq}")
         chain_request = deepcopy(request)
         chain_request["sequence"] = seq
-        chain_request["multimer"] = False
-        chain_request["name"] = chain_request["name"] + "_chain_" + str(chain_id)
-        chain_request["target"] = chain_request["target"] + "_chain_" + str(chain_id)
+        chain_request["name"] = chain_request["name"] + "_" + chain_str
+        chain_request["target"] = chain_request["target"] + "_" + chain_str
         requests_list.append([chain_request])
     return requests_list
 
@@ -78,11 +81,10 @@ def split_chain_requests(requests: List[Dict[str, Any]]):
 def split_chain_request(request: Dict[str, Any]):
     request_list = []
     sequence = misc.safe_get(request, ["sequence"])
-    seq_list = sequence.split("\n")
+    seq_list = sequence.split("|")
     for chain_id, seq in enumerate(seq_list):
         chain_request = deepcopy(request)
         chain_request["sequence"] = seq
-        chain_request["multimer"] = False
         chain_request["name"] = chain_request["name"] + "_chain_" + str(chain_id)
         chain_request["target"] = chain_request["target"] + "_chain_" + str(chain_id)
         request_list.append(chain_request)
@@ -110,16 +112,28 @@ class TemplateSearchRunner(BaseRunner):
         self.output_path = str(ptree.search.template_hits)
         if not Path(self.output_path).exists():
             Path(self.output_path).parent.mkdir(exist_ok=True, parents=True)
-
-            argument_dict = {
-                "input_sequence": self.sequence,
-                "template_searching_msa_path": template_searching_msa_path,
-                "pdb70_database_path": str(PDB70_ROOT / "pdb70"),
-                "hhsearch_binary_path": "hhsearch",
-            }
             
             try:
-                pdb_template_hits = search_template(**argument_dict)
+                multimer = misc.safe_get(self.requests[0], ["multimer"]) if misc.safe_get(self.requests[0], "multimer") else False
+                if not multimer:
+                    logger.info("Running monomer template search")
+                    argument_dict = {
+                        "input_sequence": self.sequence,
+                        "template_searching_msa_path": template_searching_msa_path,
+                        "pdb70_database_path": str(PDB70_ROOT / "pdb70"),
+                        "hhsearch_binary_path": "hhsearch",
+                    }
+                    pdb_template_hits = search_template(**argument_dict)
+                else:
+                    logger.info("Running multimer template search")
+                    argument_dict = {
+                        "input_sequence": self.sequence,
+                        "template_searching_msa_path": template_searching_msa_path,
+                        "pdb_seqres_database_path": "/data/protein/alphafold/pdb_seqres/pdb_seqres.txt",
+                        "hmmsearch_binary_path": "hmmsearch",
+                        "hmmbuild_binary_path": "hmmbuild"
+                    }
+                    pdb_template_hits = search_template_multimer(**argument_dict)
                 dtool.save_object_as_pickle(pdb_template_hits, self.output_path)
                 return True
             except TimeoutError as exc:
@@ -257,12 +271,17 @@ class TemplateFeaturizationRunner(BaseRunner):
             }
             
             try:
-                template_feature = make_template_feature(**argument_dict)
+                multimer = misc.safe_get(self.requests[0], ["multimer"]) if misc.safe_get(self.requests[0], "multimer") else False
+                if not multimer:
+                    logger.info("Running monomer template featurization")
+                    template_feature = make_template_feature(**argument_dict)
+                else:
+                    logger.info("Running multimer template featurization")
+                    template_feature = make_template_feature_multimer(**argument_dict) 
                 dtool.save_object_as_pickle(template_feature, self.output_path)
-                return True
+
             except TimeoutError as exc:
                 logger.exception(exc)
-                return False
 
 
     def on_run_end(self):
@@ -468,7 +487,6 @@ class AlphaMultimerStrucRunner(BaseCommandRunner):
             command = "".join(
                 [
                     f"python {pathtool.get_module_path(run_af2_multimer)} ",
-                    f"--target_name {self.target_name} ",
                     f"--chain_sequences {' '.join(sequences)} ",
                     f"--chain_targets {' '.join(targets)} ",
                     f"--model_name {model_name} ",

@@ -81,7 +81,8 @@ class PreprocessRunner(BaseGroupCommandRunner):
                     hash_id=request[info_report.HASH_ID],
                     path_tree=get_pathtree(request=request).tree,
                 )
-                if tree.seq.fasta.exists() and tree.seq.aln.exists():
+                # if tree.seq.fasta.exists() and tree.seq.aln.exists():
+                if tree.seq.fasta.exists():
                     self.info_reportor.update_state(
                         hash_id=request[info_report.HASH_ID],
                         state=State.PREPROCESS_SUCCESS,

@@ -145,7 +145,7 @@ class JackhmmerRunner(BaseGroupCommandRunner):
                 charged_group="wangshuo_8gpu",
             )
 
-        multimer = misc.safe_get(requests[0], ["multimer"])
+        multimer = misc.safe_get(requests[0], ["multimer"]) if misc.safe_get(requests[0], "multimer") else False
         if multimer:
             command_uniprot = (
             f"python {get_module_path(jackhmmer)} "

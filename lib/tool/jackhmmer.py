@@ -310,6 +310,8 @@ def is_completed(sample, args):
         return ptree.jackhammer_uniref90_a3m.exists()
     elif "mgnify" in args.database_path:
         return ptree.jackhammer_mgnify_a3m.exists()
+    elif "uniprot" in args.database_path:
+        return ptree.jackhammer_uniprot_a3m.exists()
     else:
         logger.info("Unknown database")
         return None
@@ -362,6 +364,15 @@ def execute_one_job(sample, args):
                     parents=True, exist_ok=True
                 )
                 tmp_path = ptree.jackhammer_mgnify_a3m
+            elif "uniprot" in args.database_path:
+                sto_path = ptree.jackhammer_uniprot_sto
+                ptree.jackhammer_uniprot_a3m.parent.mkdir(
+                    parents=True, exist_ok=True
+                )
+                ptree.jackhammer_uniprot_fa.parent.mkdir(
+                    parents=True, exist_ok=True
+                )
+                tmp_path = ptree.jackhammer_uniprot_a3m
             else:
                 logger.info(f"no such database {args.database_path}")
                 return None
@@ -397,6 +408,9 @@ def execute_one_job(sample, args):
             if "mgnify" in args.database_path:
                 lines = parse_a3m(sto_path, ptree.jackhammer_mgnify_a3m)
                 parse_fasta(sto_path, ptree.jackhammer_mgnify_fa)
+            if "uniprot" in args.database_path:
+                lines = parse_a3m(sto_path, ptree.jackhammer_uniprot_a3m)
+                parse_fasta(sto_path, ptree.jackhammer_uniprot_fa)
 
             logger.info(
                 f"searching {name} completed. {tmp_path.exists()}. "
