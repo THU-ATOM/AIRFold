@@ -36,7 +36,7 @@ from lib.tool.alphafold.data import pipeline
 import lib.utils.datatool as dtool
 from lib.utils.systool import get_available_gpus
 from lib.constant import AF_PARAMS_ROOT
-from lib.tool.run_af2_stage import monomer_msa2feature, predict_structure, run_relaxation
+from lib.tool.run_af2_stage import monomer_msa2rawfeature, predict_structure_multimer, run_relaxation
 
 logging.set_verbosity(logging.INFO)
 
@@ -97,9 +97,9 @@ def convert_monomer_features(
             feature = np.argmax(feature, axis=-1).astype(np.int32)
         elif feature_name == "template_aatype":
             feature = np.argmax(feature, axis=-1).astype(np.int32)
-            logger.info(f"argmax feature: {feature}")
+            # logger.info(f"argmax feature: {feature}")
             new_order_list = residue_constants.MAP_HHBLITS_AATYPE_TO_OUR_AATYPE
-            logger.info(f"new_order_list: {new_order_list}")
+            # logger.info(f"new_order_list: {new_order_list}")
             feature = np.take(new_order_list, feature.astype(np.int32), axis=0)
         elif feature_name == "template_all_atom_masks":
             feature_name = "template_all_atom_mask"
@@ -215,11 +215,11 @@ def main(args):
     os.environ['CUDA_VISIBLE_DEVICES'] = gpu_devices
 
     multimer_model_pj =  {
-            "model_1":"model_1_multimer_v2",
-            "model_2":"model_2_multimer_v2",
-            "model_3":"model_3_multimer_v2",
-            "model_4":"model_4_multimer_v2",
-            "model_5":"model_5_multimer_v2"
+            "model_1":"model_1_multimer_v3",
+            "model_2":"model_2_multimer_v3",
+            "model_3":"model_3_multimer_v3",
+            "model_4":"model_4_multimer_v3",
+            "model_5":"model_5_multimer_v3"
         }
 
     out_preffix = str(os.path.join(args.root_path, args.model_name))
@@ -267,7 +267,7 @@ def main(args):
                 "num_ensemble": args.num_ensemble
             }
             argument_dict1 = deepcopy(argument_dict1)
-            chain_features, _ = monomer_msa2feature(**argument_dict1)
+            chain_features = monomer_msa2rawfeature(**argument_dict1)
 
             if not is_homomer_or_monomer:
                 uniprot_msa_features = gen_msa_feature([uniprot_a3m_paths[i]], format="a3m")
@@ -299,7 +299,7 @@ def main(args):
         }
         argument_dict2 = deepcopy(argument_dict2)
         try:
-            prediction_results, unrelaxed_pdb_str, _ = predict_structure(**argument_dict2)
+            prediction_results, unrelaxed_pdb_str, _ = predict_structure_multimer(**argument_dict2)
             dtool.save_object_as_pickle(prediction_results, pkl_output)
             dtool.write_text_file(plaintext=unrelaxed_pdb_str, path=out_unrelaxed_pdb)
 

@@ -215,6 +215,38 @@ def monomer_msa2feature(
     return feat, timings
 
 
+def monomer_msa2rawfeature(
+    sequence: str,
+    target_name: str,
+    msa_paths: List[str],
+    template_feature: dict,
+    model_name: str = "model_1",
+    random_seed: int = 0,
+    **kwargs,
+) -> Tuple[FeatureDict, Dict]:
+    model_config = config.model_config(model_name)
+    if "num_ensemble" in kwargs:
+        model_config.data.eval.num_ensemble = kwargs["num_ensemble"]
+    if "max_recycles" in kwargs:
+        model_config.model.num_recycle = kwargs["max_recycles"]
+        model_config.data.common.num_recycle = kwargs["max_recycles"]
+    if "max_msa_clusters" in kwargs:
+        model_config.data.eval.max_msa_clusters = kwargs["max_msa_clusters"]
+        model_config.data.common.reduce_msa_clusters_by_max_templates = False
+    if "max_extra_msa" in kwargs:
+        model_config.data.common.max_extra_msa = kwargs["max_extra_msa"]
+
+    data_pipe = MonomerMSAFeatureProcessor(
+        msa_paths=msa_paths,
+    )
+
+    raw_features = data_pipe.process(
+        input_sequence=sequence, input_description=target_name
+    )
+    raw_features_with_template = {**raw_features, **template_feature}
+    return raw_features_with_template
+
+
 def predict_structure(
     target_name: str,
     processed_feature: FeatureDict,

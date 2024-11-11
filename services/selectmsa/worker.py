@@ -157,7 +157,7 @@ class MSASelectRunner(BaseCommandRunner):
             for tag in ls_dict.keys():
                 
                 least_seqs = ls_dict[tag]
-                if tag == "hj" and "hhblits" in search_args.keys() and "jackhmmer" in search_args.keys():
+                if tag == "hj" and ("hhblits" in search_args.keys() or "jackhmmer" in search_args.keys()):
                     input_path = str(ptree.search.integrated_search_hj_a3m_dp)
                 if tag == "bl" and "blast" in search_args.keys():
                     input_path = str(ptree.search.integrated_search_bl_a3m_dp)

@@ -227,7 +227,7 @@ class MSAMergeRunner(BaseRunner):
             
             self.outputs_paths = [template_msa_a3m]
             search_args = misc.safe_get(self.requests[0], ["run_config", "msa_search"])
-            if "hhblits" in search_args.keys() and "jackhmmer" in search_args.keys():
+            if "hhblits" in search_args.keys() or "jackhmmer" in search_args.keys():
                 # hhblits and jackhmmer: 3000
                 integrated_search_hj_a3m = str(ptree.search.integrated_search_hj_a3m)
                 integrated_search_hj_a3m_dp = str(ptree.search.integrated_search_hj_a3m_dp)
