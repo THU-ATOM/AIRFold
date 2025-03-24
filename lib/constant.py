@@ -21,7 +21,7 @@ if rlaunch_exists():
     AF_MGNIFY_ROOT = Path("/sharefs/thuhc-data/alphafold/mgnify")
     AF_UNIREF90_ROOT = Path("/sharefs/thuhc-data/alphafold/uniref90")
     AF_PARAMS_ROOT = Path("/sharefs/thuhc-data/alphafold/")
-    UNICLUST_ESM_EMBEDDING = Path("/sharefs/thuhc-data/uniclust30/ESM_embeddings.pkl")
+    # UNICLUST_ESM_EMBEDDING = Path("/sharefs/thuhc-data/uniclust30/ESM_embeddings.pkl")
     BLAST_ROOT = Path("/sharefs/thuhc-data/blast_dbs/nr/nr")
 
     # Runtime
@@ -35,7 +35,7 @@ else:
     CAMEO_DATA_ROOT = Path("/data/protein/CAMEO/data/")
     CASP15_DATA_ROOT = Path("/data/protein/CASP15/data/")
     AF_PARAMS_ROOT = Path("/data/protein/alphafold/")
-    UNICLUST_ESM_EMBEDDING = Path("/data/protein/uniclust30/ESM_embeddings.pkl")
+    # UNICLUST_ESM_EMBEDDING = Path("/data/protein/uniclust30/ESM_embeddings.pkl")
     BFD_ROOT = Path("/data/protein/alphafold/bfd")
     BLAST_ROOT = Path("/data/protein/datasets_2022/blast_dbs/nr/nr")
 
@@ -43,7 +43,8 @@ else:
     PDB70_ROOT = Path("/data/protein/datasets_2022/pdb70")
     # PDB70_ROOT = Path("/data/protein/alphafold/pdb70")
     PDBMMCIF_ROOT = Path("/data/protein/datasets_2022/pdb_mmcif")
-    UNICLUST_ROOT = Path("/data/protein/datasets_2022/uniclust30")
+    # UNICLUST_ROOT = Path("/data/protein/datasets_2022/uniclust30")
+    UNICLUST_ROOT = Path("/data/protein/datasets_2024/UniRef30_2022_02")
     AF_UNIREF90_ROOT = Path("/data/protein/datasets_2022/uniref90")
     AF_MGNIFY_ROOT = Path("/data/protein/datasets_2022/mgnify")
     AF_UNIPROT_ROOT = Path("/data/protein/datasets_2022/uniprot")

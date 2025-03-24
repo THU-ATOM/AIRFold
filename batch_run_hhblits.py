@@ -113,10 +113,11 @@ def main():
     fasta_file = "/home/casp15/code/AIRFold/example/PF00959_1.fasta"
     from Bio import SeqIO
 
+    data_prefix = "2024-11-12_"
     for record in SeqIO.parse(fasta_file, "fasta"):
         request_dict["sequence"] = str(record.seq)
-        request_dict["name"] = record.id
-        request_dict["target"] = record.id
+        request_dict["name"] = data_prefix + record.id
+        request_dict["target"] = data_prefix + record.id
         logger.info(f"------- Received request: {request_dict}")
         insert_request(r=request_dict, info_report=info_report)
         call_pipeline(info_report=info_report)

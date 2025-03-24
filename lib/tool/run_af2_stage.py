@@ -1,5 +1,6 @@
 import os
 import time
+import tree
 
 # import _pickle as pkl
 import pickle as pkl
@@ -243,7 +244,17 @@ def monomer_msa2rawfeature(
     raw_features = data_pipe.process(
         input_sequence=sequence, input_description=target_name
     )
+    logging.info(
+        "XXXX ---- Running predict with shape(raw_features) = %s",
+        tree.map_structure(lambda x: x.shape, raw_features),
+    )
+
+    logging.info(
+        "XXXX ---- Running predict with shape(template_feature) = %s",
+        tree.map_structure(lambda x: x.shape, template_feature),
+    )
     raw_features_with_template = {**raw_features, **template_feature}
+
     return raw_features_with_template
 
 

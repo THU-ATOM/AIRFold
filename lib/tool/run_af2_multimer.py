@@ -17,6 +17,7 @@ import argparse
 import collections
 import dataclasses
 import os
+import tree
 
 from typing import Mapping, MutableMapping, Sequence
 import numpy as np
@@ -280,6 +281,11 @@ def main(args):
         all_chain_features = add_assembly_features(all_chain_features)
         all_chain_features_np = feature_processing.pair_and_merge(
             all_chain_features=all_chain_features
+        )
+
+        logging.info(
+            "XXXX ---- Running predict with shape(feat) = %s",
+            tree.map_structure(lambda x: x.shape, all_chain_features_np),
         )
 
         # Pad MSA to avoid zero-sized extra_msa.

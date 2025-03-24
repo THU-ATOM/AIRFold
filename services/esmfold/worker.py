@@ -55,6 +55,7 @@ class ESMFoldRunner(BaseCommandRunner):
         self.output_paths = []
         for model_name in models:
             pdb_path = str(os.path.join(str(ptree.esmfold.root), model_name)) + "_relaxed.pdb"
+            Path(pdb_path).parent.mkdir(exist_ok=True, parents=True)
             self.output_paths.append(pdb_path)
         
         model_names = " ".join(models)

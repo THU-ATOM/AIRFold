@@ -102,6 +102,18 @@ def load_fasta(file_path, dir_name, data_suffix):
                 sequence = line.strip()
                 
     return seq_name, sequence
+
+
+def load_seq(file_path):
+    # data_suffix: 2024-04-09
+    sequence = ""
+    with open(file_path, 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            if not line.startswith(">"):
+                sequence = line.strip()
+                
+    return sequence
                 
 
 def pipelineWorker(request_dicts):
@@ -121,21 +133,22 @@ def main():
 
     info_report = InfoReport()
     
-    with open("./tmp/temp_af2.json", 'r') as jf:
+    with open("./tmp/temp_7000_64_1_seqentropy_mmseqs_af2.json", 'r') as jf:
         request_dict = json.load(jf)
 
-    cameo_dir = "/data/protein/datasets_2024/prediction/modeling/2024.08.31/"
-    data_suffix = "2024-11-11"
-    case_suffix = "test"
+    cameo_dir = "/home/casp15/code/experiment/src/PF_52/"
+    data_suffix = "2024-12-04"
+    case_suffix = "jyj"
     
     # for run dir or run bad case
     # run dir
-    dir_names = os.listdir(cameo_dir)
-    for dir_name in  dir_names:
-        seq_file = cameo_dir + dir_name + "/" + "target.fasta"
-        seq_name, sequence = load_fasta(seq_file, dir_name, data_suffix)
+    fasta_files = os.listdir(cameo_dir)
+    for fasta_file in fasta_files[32:]:
+        seq_file = cameo_dir + fasta_file
+        seq_name = fasta_file.split(".")[0]
+        sequence = load_seq(seq_file)
         request_dict["sequence"] = sequence
-        request_dict["name"] = seq_name + "_" + case_suffix
+        request_dict["name"] = data_suffix + "_" + seq_name + "_" + case_suffix
         request_dict["target"] = seq_name
         logger.info(f"------- Received request: {request_dict}")
         insert_request(r=request_dict, info_report=info_report)
